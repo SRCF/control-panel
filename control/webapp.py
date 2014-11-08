@@ -3,7 +3,7 @@ from raven.flask_glue import AuthDecorator
 from srcf.database.queries import get_member, get_society
 
 class R(Request):
-    trusted_hosts = {'localhost'}
+    trusted_hosts = {'localhost', 'srcf-admin.soc.srcf.net'}
 
 app = Flask(__name__)
 app.debug = True
