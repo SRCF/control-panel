@@ -19,6 +19,8 @@ def home():
     crsid = auth_decorator.principal
     mem = get_member(crsid)
     mem.lists = [os.path.basename(ldir) for ldir in glob.iglob("/var/lib/mailman/lists/%s-*" % crsid)]
+    for soc in mem.societies:
+        soc.lists = [os.path.basename(ldir) for ldir in glob.iglob("/var/lib/mailman/lists/%s-*" % soc.name)]
     return render_template("home.jinja2", member=mem)
 
 if __name__ == '__main__':
