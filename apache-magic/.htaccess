@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f 
+RewriteRule ^(.*)$ flask.cgi/$1 [L,QSA]
+
+AuthType Ucam-WebAuth
+AADescription SRCF
+Require valid-user
