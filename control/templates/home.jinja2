@@ -39,14 +39,14 @@
         <div class="main">
             <h1>Control panel</h1>
             <p>Hello, <span class="data">{{ member.name }}</span>.  Here is the status of your SRCF services.</p>
-            <h3>Your user accounts on SRCF:</h3>
+            <h3>Your user account on SRCF:</h3>
             <ul class="acctlist">
                 <li class="acct">
                     <div class="head"><span class="data">{{ member.crsid }}</span> &mdash; <span class="data">{{ member.name }}</span></div>
                     <ul class="acctattribs">
                         <li class="meta">Created: <span class="data">{{ member.joindate }}</span></li>
                         <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
-<!--                        <li>
+{#                        <li>
                             {% member.mysqlAccounts|length > 0 %}
                             <a href="https://www.srcf.net/phpmyadmin/">MySQL account</a>:
                             {{ member.mysqlAccounts|join(', ') }}
@@ -59,13 +59,12 @@
                             <a href="https://www.srcf.net/mailman/admin/{{ list.name }}" class="data">{{ list.name }}</a>
                             {% endfor %}
                         </li>
-                        {% endif %}-->
+                        {% endif %}#}
                     </ul>
                 </li>
             </ul>
-            {% if socs|length > 0 %}
-
-            <h3> You are an adminstrator of the following societies</h3>
+            {% if member.societies %}
+            <h3>You are an adminstrator of the following societies:</h3>
             <ul>
                 {% for soc in member.societies %}
                 <li class="acct">
@@ -79,7 +78,7 @@
                             </abbr>
                             {% endfor %}
                         </li>
-<!--                        <li class="meta">
+{#                        <li class="meta">
                             MySQL account: 
                         </li>
                         <li class="meta">
@@ -97,10 +96,12 @@
                             <a href="https://www.srcf.net/mailman/admin/{{ list.name }}" class="data">{{ list.data }}</a>
                             {% endfor %}
                         </li>
-                        {% endif %} -->
+                        {% endif %}#}
                     </ul>
                 </li>
+                {% endfor %}
             </ul>
+            {% endif %}
         </div>
     </body>
 </html>

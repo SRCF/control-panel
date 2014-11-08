@@ -1,6 +1,6 @@
 from flask import Flask, Request, render_template, send_from_directory
 from raven.flask_glue import AuthDecorator
-from srcf.database import Member, Session
+from srcf.database.queries import get_member, get_society
 
 class R(Request):
     trusted_hosts = {'localhost'}
@@ -12,12 +12,9 @@ app.secret_key = "aVw9OormkPyuliR2LVoIq5IQJPK9GznZOT54kP65SeK8QeZrfC"
 auth_decorator = AuthDecorator(desc="SRCF control panel")
 app.before_request(auth_decorator.before_request)
 
-sess = Session()	
-
 @app.route('/')
 def home():
-	# auth_decorator.principal
-	return render_template("home.jinja2")
+    return render_template("home.jinja2", member=get_member(auth_decorator.principal))
 
 @app.route('/static/<path:filename>')
 def static(filename):
