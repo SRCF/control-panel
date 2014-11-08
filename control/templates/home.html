@@ -1,4 +1,4 @@
-{% extends "base.jinja2" %}
+{% extends "base.html" %}
 
 {% block body %}
 <div class="main">
@@ -39,9 +39,7 @@
                 <li class="meta">Created: <span class="data">{{ soc.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Administrators:
                     {% for admin in soc.admins %}
-                    <abbr title="{{ admin.name }}">
-                        <span class="data">{{ admin.crsid }}</span>
-                    </abbr>
+                    <abbr title="{{ admin.name }}"><span class="data">{{ admin.crsid }}</span></abbr>
                     {%- if not loop.last -%}
                     ,
                     {% endif %}
