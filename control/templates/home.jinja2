@@ -9,7 +9,7 @@
         <li class="acct">
             <div class="head"><span class="data">{{ member.crsid }}</span> &mdash; <span class="data">{{ member.name }}</span></div>
             <ul class="acctattribs">
-                <li class="meta">Created: <span class="data">{{ member.joindate }}</span></li>
+                <li class="meta">Created: <span class="data">{{ member.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
 {#                        <li>
                             {% member.mysqlAccounts|length > 0 %}
@@ -35,7 +35,7 @@
         <li class="acct">
             <div class="head"><span class="data">{{ soc.society }}</span> &mdash; <span class="data">{{ soc.description }}</span></div>
             <ul class="acctattribs">
-                <li class="meta">Created: <span class="data">{{ soc.joindate }}</span></li>
+                <li class="meta">Created: <span class="data">{{ soc.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Administrators:
                     {% for admin in soc.admins %}
                     <abbr title="{{ admin.name }}">
