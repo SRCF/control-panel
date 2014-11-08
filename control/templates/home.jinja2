@@ -76,6 +76,9 @@
                             <abbr title="{{ admin.name }}">
                                 <span class="data">{{ admin.crsid }}</span>
                             </abbr>
+                            {%- if not loop.last -%}
+                            ,
+                            {% endif %}
                             {% endfor %}
                         </li>
 {#                        <li class="meta">
