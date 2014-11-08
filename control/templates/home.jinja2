@@ -38,28 +38,66 @@
         </div>
         <div class="main">
             <h1>Control panel</h1>
-            <p>Hello, <span class="data">Anonymous</span>.  Here is the status of your SRCF services.</p>
-            <h3>You are responsible for the following accounts on the SRCF:</h3>
+            <p>Hello, <span class="data">{{ member.name }}</span>.  Here is the status of your SRCF services.</p>
+            <h3>Your user accounts on SRCF:</h3>
             <ul class="acctlist">
                 <li class="acct">
-                    <div class="head"><span class="data">anon1</span> &mdash; <span class="data">A. User (Anonymous)</span></div>
+                    <div class="head"><span class="data">{{ member.crsid }}</span> &mdash; <span class="data">{{ member.name }}</span></div>
                     <ul class="acctattribs">
-                        <li class="meta">created: <span class="data">2012/10</span></li>
-                        <li class="meta">status: <span class="data">user</span></li>
-                        <li class="meta">email address on record: <span class="data">anon1@cam.ac.uk</span></li>
-                        <li><a href="https://www.srcf.net/phpmyadmin/">MySQL account</a>: <span class="data">anon1</span></li>
-                        <li><a href="https://www.srcf.net/phpmyadmin/">MySQL database</a>: <span class="data">anon1</span></li>
-                        <li>mailing list: <a href="https://www.srcf.net/mailman/admin/anon1-list" class="data">anon1-list</a></li>
+                        <li class="meta">Created: <span class="data">{{ member.joindate }}</span></li>
+                        <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
+<!--                        <li>
+                            {% member.mysqlAccounts|length > 0 %}
+                            <a href="https://www.srcf.net/phpmyadmin/">MySQL account</a>:
+                            {{ member.mysqlAccounts|join(', ') }}
+                            <span class="data">{{ member.mysqlAccount }}</span>
+                        </li>
+                        <li><a href="https://www.srcf.net/phpmyadmin/">MySQL database</a>: <span class="data">{{ member.mysqlDatabase }}</span></li>
+                        {% if member.mailingLists|length > 0 %}
+                        <li>Mailing list:
+                            {% for list in member.mailingLists %}
+                            <a href="https://www.srcf.net/mailman/admin/{{ list.name }}" class="data">{{ list.name }}</a>
+                            {% endfor %}
+                        </li>
+                        {% endif %}-->
                     </ul>
                 </li>
+            </ul>
+            {% if socs|length > 0 %}
+
+            <h3> You are an adminstrator of the following societies</h3>
+            <ul>
+                {% for soc in member.societies %}
                 <li class="acct">
-                    <div class="head"><span class="data">soc</span> &mdash; <span class="data">Society</span></div>
+                    <div class="head"><span class="data">{{ soc.society }}</span> &mdash; <span class="data">{{ soc.description }}</span></div>
                     <ul class="acctattribs">
-                        <li class="meta">created: <span class="data">2012/10</span></li>
-                        <li class="meta">administrators:
-                        <abbr title="Anonymous User"><span class="data">anon1</span></abbr>, <abbr title="Anonymous User"><span class="data">anon2</span></abbr>
+                        <li class="meta">Created: <span class="data">{{ soc.joindate }}</span></li>
+                        <li class="meta">Administrators:
+                            {% for admin in soc.admins %}
+                            <abbr title="{{ admin.name }}">
+                                <span class="data">{{ admin.crsid }}</span>
+                            </abbr>
+                            {% endfor %}
                         </li>
-                        <li>two mailing lists: <a href="https://www.srcf.net/mailman/admin/soc-list1" class="data">soc-list1</a>, <a href="https://www.srcf.net/mailman/admin/soc-list2" class="data">soc-list2</a></li>
+<!--                        <li class="meta">
+                            MySQL account: 
+                        </li>
+                        <li class="meta">
+                            MySQL database:
+                        </li>
+                        <li class="meta">
+                            PostgreSQL account:
+                        </li>
+                        <li class="meta">
+                            PostgreSQL database:
+                        </li>
+                        {% if soc.mailingLists|length > 0 %}
+                        <li>Mailing lists:
+                            {% for list in soc.mailingLists %}
+                            <a href="https://www.srcf.net/mailman/admin/{{ list.name }}" class="data">{{ list.data }}</a>
+                            {% endfor %}
+                        </li>
+                        {% endif %} -->
                     </ul>
                 </li>
             </ul>
