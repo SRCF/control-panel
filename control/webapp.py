@@ -2,6 +2,8 @@ from flask import Flask, Request, render_template, send_from_directory
 from raven.flask_glue import AuthDecorator
 from srcf.database.queries import get_member, get_society
 
+import glob, os
+
 class R(Request):
     trusted_hosts = {'localhost'}
 
@@ -14,11 +16,10 @@ app.before_request(auth_decorator.before_request)
 
 @app.route('/')
 def home():
-    return render_template("home.jinja2", member=get_member(auth_decorator.principal))
-
-@app.route('/static/<path:filename>')
-def static(filename):
-    return send_from_directory('static', filename)
+    crsid = auth_decorator.principal
+    mem = get_member(crsid)
+    mem.lists = [os.path.basename(ldir) for ldir in glob.iglob("/var/lib/mailman/lists/%s-*" % crsid)]
+    return render_template("home.jinja2", member=mem)
 
 if __name__ == '__main__':
     app.run()
