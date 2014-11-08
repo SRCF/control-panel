@@ -30,7 +30,7 @@
     </ul>
     {% if member.societies %}
     <h3>You are an adminstrator of the following societies:</h3>
-    <ul>
+    <ul class="acctlist">
         {% for soc in member.societies %}
         <li class="acct">
             <div class="head"><span class="data">{{ soc.society }}</span> &mdash; <span class="data">{{ soc.description }}</span></div>
