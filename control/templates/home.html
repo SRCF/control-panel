@@ -1,51 +1,16 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Student-Run Computing Facility (SRCF) - SRCF control panel</title>
-        <link rel="stylesheet" href="//www.srcf.net/_srcf/style.css">
-        <link rel="stylesheet" href="static/style.css">
-    </head>
-    <body>
-        <div class="topbox" style="overflow: auto;">
-            <div class="logo" style="margin-bottom: 10px;">
-                <h1><a href="http://www.srcf.net/">srcf</a></h1>
-                <h2><a href="http://www.srcf.net/">student-run computing facility</a></h2>
-            </div>
-            <div class="menu">
-                <p style="margin-bottom: 0px;">
-                    For prospective members:&nbsp;
-                    <b><a href="https://www.srcf.net/signup/">Join</a></b> |
-                    <a href="http://www.srcf.net/tos">Terms of Service</a> |
-                    <a href="http://www.srcf.net/services/">Services</a><br/>
-                    For existing members:&nbsp;
-                    <b><a href="http://webmail.srcf.net/">Webmail</a></b> |
-                    <b><a href="http://www.srcf.net/webdesktop/">Desktop</a></b> |
-                    <a href="http://www.srcf.net/mailman/listinfo">Mailing lists</a> |
-                    <a href="http://www.srcf.net/mailman/admin">List administration</a><br/>
-                    About the society:&nbsp;
-                    <a href="http://www.srcf.net/committee">Committee</a> |
-                    <a href="http://www.srcf.net/constitution">Constitution</a> |
-                    <a href="http://www.srcf.net/contact-addresses">Contact Addresses</a> |
-                    <a href="http://www.srcf.net/minutes/">Minutes</a>
-                </p>
-                <p style="margin-top: 8px; margin-bottom: 15px;">
-                    <a href="https://www.srcf.net/donate"><img src="//www.srcf.net/_srcf/images/paypal-make-a-donation.gif" width="110" height="23" alt="Make A Donation" style="border:0px; margin-bottom: -7px;"/></a> |
-                    <a href="http://www.srcf.net/faq/">Frequently Asked Questions</a> |
-                    <a href="http://www.srcf.net/socs/">Societies</a> |
-                    <a href="http://status.srcf.net/">System status</a>
-                </p>
-            </div>
-        </div>
-        <div class="main">
-            <h1>Control panel</h1>
-            <p>Hello, <span class="data">{{ member.name }}</span>.  Here is the status of your SRCF services.</p>
-            <h3>Your user account on SRCF:</h3>
-            <ul class="acctlist">
-                <li class="acct">
-                    <div class="head"><span class="data">{{ member.crsid }}</span> &mdash; <span class="data">{{ member.name }}</span></div>
-                    <ul class="acctattribs">
-                        <li class="meta">Created: <span class="data">{{ member.joindate }}</span></li>
-                        <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
+{% extends "base.jinja2" %}
+
+{% block body %}
+<div class="main">
+    <h1>Control panel</h1>
+    <p>Hello, <span class="data">{{ member.name }}</span>.  Here is the status of your SRCF services.</p>
+    <h3>Your user account on SRCF:</h3>
+    <ul class="acctlist">
+        <li class="acct">
+            <div class="head"><span class="data">{{ member.crsid }}</span> &mdash; <span class="data">{{ member.name }}</span></div>
+            <ul class="acctattribs">
+                <li class="meta">Created: <span class="data">{{ member.joined.strftime('%b %G') }}</span></li>
+                <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
 {#                        <li>
                             {% member.mysqlAccounts|length > 0 %}
                             <a href="https://www.srcf.net/phpmyadmin/">MySQL account</a>:
@@ -53,31 +18,35 @@
                             <span class="data">{{ member.mysqlAccount }}</span>
                         </li>
                         <li><a href="https://www.srcf.net/phpmyadmin/">MySQL database</a>: <span class="data">{{ member.mysqlDatabase }}</span></li>
-                        {% if member.mailingLists|length > 0 %}
-                        <li>Mailing list:
-                            {% for list in member.mailingLists %}
-                            <a href="https://www.srcf.net/mailman/admin/{{ list.name }}" class="data">{{ list.name }}</a>
-                            {% endfor %}
-                        </li>
-                        {% endif %}#}
-                    </ul>
+                        #}
+                {% if member.lists|length > 0 %}
+                <li>Mailing list:
+                    {% for list in member.lists %}
+                    <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
+                    {% endfor %}
                 </li>
+                {% endif %}
             </ul>
-            {% if member.societies %}
-            <h3>You are an adminstrator of the following societies:</h3>
-            <ul>
-                {% for soc in member.societies %}
-                <li class="acct">
-                    <div class="head"><span class="data">{{ soc.society }}</span> &mdash; <span class="data">{{ soc.description }}</span></div>
-                    <ul class="acctattribs">
-                        <li class="meta">Created: <span class="data">{{ soc.joindate }}</span></li>
-                        <li class="meta">Administrators:
-                            {% for admin in soc.admins %}
-                            <abbr title="{{ admin.name }}">
-                                <span class="data">{{ admin.crsid }}</span>
-                            </abbr>
-                            {% endfor %}
-                        </li>
+        </li>
+    </ul>
+    {% if member.societies %}
+    <h3>You are an adminstrator of the following societies:</h3>
+    <ul class="acctlist">
+        {% for soc in member.societies %}
+        <li class="acct">
+            <div class="head"><span class="data">{{ soc.society }}</span> &mdash; <span class="data">{{ soc.description }}</span></div>
+            <ul class="acctattribs">
+                <li class="meta">Created: <span class="data">{{ soc.joined.strftime('%b %G') }}</span></li>
+                <li class="meta">Administrators:
+                    {% for admin in soc.admins %}
+                    <abbr title="{{ admin.name }}">
+                        <span class="data">{{ admin.crsid }}</span>
+                    </abbr>
+                    {%- if not loop.last -%}
+                    ,
+                    {% endif %}
+                    {% endfor %}
+                </li>
 {#                        <li class="meta">
                             MySQL account: 
                         </li>
@@ -89,19 +58,18 @@
                         </li>
                         <li class="meta">
                             PostgreSQL database:
-                        </li>
-                        {% if soc.mailingLists|length > 0 %}
-                        <li>Mailing lists:
-                            {% for list in soc.mailingLists %}
-                            <a href="https://www.srcf.net/mailman/admin/{{ list.name }}" class="data">{{ list.data }}</a>
-                            {% endfor %}
-                        </li>
-                        {% endif %}#}
-                    </ul>
+                        </li>#}
+                {% if soc.lists|length > 0 %}
+                <li>Mailing lists:
+                    {% for list in soc.lists %}
+                    <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
+                    {% endfor %}
                 </li>
-                {% endfor %}
+                {% endif %}
             </ul>
-            {% endif %}
-        </div>
-    </body>
-</html>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endblock %}
