@@ -19,13 +19,13 @@
                         </li>
                         <li><a href="https://www.srcf.net/phpmyadmin/">MySQL database</a>: <span class="data">{{ member.mysqlDatabase }}</span></li>
                         #}
-                        {% if member.lists|length > 0 %}
-                        <li>Mailing list:
-                            {% for list in member.lists %}
-                            <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
-                            {% endfor %}
-                        </li>
-                        {% endif %}
+                {% if member.lists|length > 0 %}
+                <li>Mailing list:
+                    {% for list in member.lists %}
+                    <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
+                    {% endfor %}
+                </li>
+                {% endif %}
             </ul>
         </li>
     </ul>
@@ -59,13 +59,13 @@
                         <li class="meta">
                             PostgreSQL database:
                         </li>#}
-                        {% if soc.lists|length > 0 %}
-                        <li>Mailing lists:
-                            {% for list in soc.lists %}
-                            <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
-                            {% endfor %}
-                        </li>
-                        {% endif %}
+                {% if soc.lists|length > 0 %}
+                <li>Mailing lists:
+                    {% for list in soc.lists %}
+                    <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
+                    {% endfor %}
+                </li>
+                {% endif %}
             </ul>
         </li>
         {% endfor %}
