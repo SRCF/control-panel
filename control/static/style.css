@@ -25,3 +25,14 @@ ul.acctlist li.acct ul.acctattribs li {
 .data {
 	font-weight: bold;
 }
+
+.signup-form p.help-block {
+    margin: 0;
+    font-style: italic;
+}
+.signup-form .form-group {
+    margin: 20px 0;
+}
+.form-group.error label {
+    color: red;
+}

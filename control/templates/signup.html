@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>Signup</h1>
+
+    <form action="{{ url_for('signup') }}" method="post" class="signup-form">
+
+    <div class='form-group'>
+        <label for="crsid">CRSid:</label>
+        <input type="text" id="crsid" name="crsid" value="{{ crsid }}" disabled="true" />
+    </div>
+
+    <div class='form-group {{ sif(errors.preferred_name, 'error') }}'>
+        <label for="preferred_name">Preferred Name:</label>
+        <input type="text" id="preferred_name" name="preferred_name" value="{{ preferred_name }}" />
+    </div>
+
+    <div class='form-group {{ sif(errors.surname, 'error') }}'>
+        <label for="lname">Surname:</label>
+        <input type="text" id="surname" name="surname" value="{{ surname }}" />
+    </div>
+
+    <div class='form-group {{ sif(errors.email, 'error') }}'>
+        <label for="email">Email Address:</label>
+        <input type="text" id="email" name="email" value="{{ email }}" />
+        <p class='help-block'>This is your preferred contact address, and will be the email
+        address to which email sent to your SRCF account is redirected to by
+        default.</p>
+    </div>
+
+    <div class='form-group {{ sif(errors.social, 'error') }}'>
+        <label for="social">Add me to the social mailing list:</label>
+        <input type="checkbox" id="social" name="social" {{ sif(social, 'checked') }} />
+        <p class='help-block'>We have a mailing list (soc-srcf-social@lists.cam.ac.uk) used
+        to organise various social events such as pub meets and LAN parties.
+        If you wish to be added to the list, check this box.</p>
+    </div>
+
+    <div class='form-group {{ sif(errors.dpa, 'error') }}'>
+        <label for="dpa">DPA Confirmation:</label>
+        <input type="checkbox" id="dpa" name="dpa" {{ sif(dpa, 'checked') }} />
+        <p class='help-block'>In creating your account, we store the above information.
+        The Data Protection Act requires us to explicitly seek your permission
+        to keep the above personal data on our server, for the purposes of
+        providing your account facilities and keeping you informed about the
+        SRCF as a society.</p>
+    </div>
+
+    <div class='form-group {{ sif(errors.tos, 'error') }}'>
+        <label for="tos">ToS Acceptance:</label>
+        <input type="checkbox" id="tos" name="tos" {{ sif(tos, 'checked') }} />
+        <p class='help-block'>All members are required to abide by our 
+        <a href="/tos" target="_blank">Terms of Service</a>.</p>
+    </div>
+
+    <div class='form-group'>
+        <input type='submit' value='Submit'>
+    </div>
+
+    </form>
+</div>
+{% endblock %}
