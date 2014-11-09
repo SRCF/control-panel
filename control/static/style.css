@@ -9,7 +9,7 @@ ul.acctlist div {
 ul.acctlist .head {
 	background: #cef;
 }
-ul.acctlist li.acct 
+ul.acctlist li.acct {
 	padding-bottom: 0;
 	padding-top: 0.8em;
 }
