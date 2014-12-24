@@ -4,9 +4,11 @@ import re
 import functools
 import operator
 
+import flask
 from flask import Flask, Request, render_template, redirect, url_for, request
-from raven.flask_glue import AuthDecorator
 import jinja2
+import sqlalchemy.orm
+from raven.flask_glue import AuthDecorator
 
 import srcf.database.queries
 from srcf.database.queries import get_member, get_society
@@ -19,8 +21,16 @@ app = Flask(__name__)
 auth_decorator = AuthDecorator(desc="SRCF control panel")
 app.before_request(auth_decorator.before_request)
 
-# TODO: Flask-SQLAlchemy
-sess = srcf.database.queries._sess()
+
+# This snippet is adapted from Flask-SQLAlchemy
+sess = sqlalchemy.orm.scoped_session(
+    srcf.database.Session,
+    scopefunc=flask._request_ctx_stack.__ident_func__
+)
+@app.teardown_request
+def teardown_request(res):
+    session.remove()
+    return res
 
 
 def lookup_pgdbs(prefix):
