@@ -91,8 +91,8 @@ def signup():
             return render_template("signup.html", crsid=crsid, errors=errors, **values)
         else:
             del values["dpa"], values["tos"]
-            j = jobs.Signup(crsid=crsid, **values)
-            sess.add(j.to_row())
+            j = jobs.Signup.new(crsid=crsid, **values)
+            sess.add(j.row)
             sess.commit()
 
     else:
