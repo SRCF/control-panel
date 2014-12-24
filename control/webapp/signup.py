@@ -49,10 +49,15 @@ def signup():
             sess.commit()
 
     else:
+        try:
+            surname = utils.ldapsearch(crsid)["sn"][0]
+        except KeyError:
+            surname = ""
+
         # defaults
         values = {
             "preferred_name": "",
-            "surname": "",
+            "surname": surname,
             "email": crsid + "@cam.ac.uk",
             "dpa": False,
             "tos": False,

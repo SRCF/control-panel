@@ -14,7 +14,7 @@ import srcf.database.queries
 
 
 __all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",
-           "temp_mysql_conn", "setup_app"]
+           "temp_mysql_conn", "setup_app", "ldapsearch"]
 
 
 # yeah whatever.
@@ -33,6 +33,17 @@ srcf_db_sess = sqlalchemy.orm.scoped_session(
 # Use the request session in srcf.database.queries
 get_member  = partial(srcf.database.queries.get_member,  session=srcf_db_sess)
 get_society = partial(srcf.database.queries.get_society, session=srcf_db_sess)
+
+# LDAP helper
+def ldapsearch(crsid):
+    l = ldap.initialize('ldap://ldap.lookup.cam.ac.uk')
+    r = l.search_s('ou=people, o=University of Cambridge,dc=cam,dc=ac,dc=uk',
+                   ldap.SCOPE_SUBTREE,
+                   '(uid={0})'.format(crsid))
+    if len(r) != 1:
+        raise KeyError(crsid)
+    (dn, attrs), = r
+    return attrs
 
 # We occasionally need a temporary MySQL connection
 my_cnf = ConfigParser.ConfigParser()
