@@ -11,17 +11,15 @@
             <ul class="acctattribs">
                 <li class="meta">Created: <span class="data">{{ member.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
-{#                        <li>
-                            {% member.mysqlAccounts|length > 0 %}
-                            <a href="https://www.srcf.net/phpmyadmin/">MySQL account</a>:
-                            {{ member.mysqlAccounts|join(', ') }}
-                            <span class="data">{{ member.mysqlAccount }}</span>
-                        </li>
-                        <li><a href="https://www.srcf.net/phpmyadmin/">MySQL database</a>: <span class="data">{{ member.mysqlDatabase }}</span></li>
-                        #}
-                {% if member.lists|length > 0 %}
-                <li>Mailing list:
-                    {% for list in member.lists %}
+                {% if member.mysqldbs %}
+                <li>MySQL databases: {% for db in member.mysqldbs|sort %}{{ db }} {% endfor %}</li>
+                {% endif %}
+                {% if member.pgdbs %}
+                <li>PostgreSQL databases: {% for db in member.pgdbs|sort %}{{ db }} {% endfor %}</li>
+                {% endif %}
+                {% if member.lists %}
+                <li>Mailing lists:
+                    {% for list in member.lists|sort %}
                     <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
                     {% endfor %}
                 </li>
@@ -38,28 +36,19 @@
             <ul class="acctattribs">
                 <li class="meta">Created: <span class="data">{{ soc.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Administrators:
-                    {% for admin in soc.admins %}
+                    {% for admin in soc.admins|sort(attribute='crsid') %}
                     <abbr title="{{ admin.name }}"><span class="data">{{ admin.crsid }}</span></abbr>
-                    {%- if not loop.last -%}
-                    ,
-                    {% endif %}
                     {% endfor %}
                 </li>
-{#                        <li class="meta">
-                            MySQL account: 
-                        </li>
-                        <li class="meta">
-                            MySQL database:
-                        </li>
-                        <li class="meta">
-                            PostgreSQL account:
-                        </li>
-                        <li class="meta">
-                            PostgreSQL database:
-                        </li>#}
-                {% if soc.lists|length > 0 %}
+                {% if soc.mysqldbs %}
+                <li>MySQL databases: {% for db in soc.mysqldbs|sort %}{{ db }} {% endfor %}</li>
+                {% endif %}
+                {% if soc.pgdbs %}
+                <li>PostgreSQL databases: {% for db in soc.pgdbs|sort %}{{ db }} {% endfor %}</li>
+                {% endif %}
+                {% if soc.lists %}
                 <li>Mailing lists:
-                    {% for list in soc.lists %}
+                    {% for list in soc.lists|sort %}
                     <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
                     {% endfor %}
                 </li>
