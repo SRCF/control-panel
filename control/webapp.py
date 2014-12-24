@@ -16,11 +16,12 @@ from srcf.database.queries import get_member, get_society
 from . import jobs
 
 
+## App setup
+
 app = Flask(__name__)
 
 auth_decorator = AuthDecorator(desc="SRCF control panel")
 app.before_request(auth_decorator.before_request)
-
 
 # This snippet is adapted from Flask-SQLAlchemy
 sess = sqlalchemy.orm.scoped_session(
@@ -29,10 +30,22 @@ sess = sqlalchemy.orm.scoped_session(
 )
 @app.teardown_request
 def teardown_request(res):
-    session.remove()
+    sess.remove()
     return res
 
 
+## Template helpers
+def sif(variable, val):
+    """"string if": `val` if `variable` is defined and truthy, else ''"""
+    if not jinja2.is_undefined(variable) and variable:
+        return val
+    else:    
+        return ""
+
+app.jinja_env.globals["sif"] = sif
+
+
+## Helpers
 def lookup_pgdbs(prefix):
     params = {'prefix': prefix, 'prefixfilter': '%s-%%' % prefix}
     q = sess.execute('SELECT datname FROM pg_database ' \
@@ -117,16 +130,3 @@ def signup():
         }
 
         return render_template("signup.html", crsid=crsid, errors={}, **values)
-
-def sif(variable, val):
-    """"string if": `val` if `variable` is defined and truthy, else ''"""
-    if not jinja2.is_undefined(variable) and variable:
-        return val
-    else:    
-        return ""
-
-@app.route("/temp")
-def temp():
-    return srcf.database._user
-
-app.jinja_env.globals["sif"] = sif
