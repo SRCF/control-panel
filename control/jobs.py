@@ -13,9 +13,17 @@ def add_job(cls):
 
 
 class Job:
-    @classmethod
+    @staticmethod
     def of_row(row):
         return all_jobs[row.type](row)
+
+    @classmethod
+    def find(cls, sess, id):
+        job = sess.query(database.Job).get(id)
+        if not job:
+            return None
+        else:
+            return cls.of_row(job)
 
     def run(self):
         body = "\n".join("{0}: {1}".format(k, v) for k, v in self.args.items())

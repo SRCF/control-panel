@@ -82,3 +82,4 @@ def setup_app(app):
             flask.g.mysql.close()
 
     app.jinja_env.globals["sif"] = sif
+    app.jinja_env.undefined = jinja2.StrictUndefined
