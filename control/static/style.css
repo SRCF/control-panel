@@ -35,3 +35,9 @@ ul.acctlist li.acct ul.acctattribs li {
 .form-group.error label {
     color: red;
 }
+th {
+    text-align: left
+}
+th, td {
+    padding-right: 1em;
+}
