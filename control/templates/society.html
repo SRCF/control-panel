@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>{{ society.society }} &mdash; {{ society.description }}</h1>
+
+    <p>Created <span class="data">{{ society.joined.strftime('%b %G') }}</span></p>
+
+    <h2>Administrators</h2>
+
+    <table>
+        <thead>
+            <th>CRSID</th>
+            <th>Name</th>
+            <th></th>
+        </thead>
+        <tbody>
+            {%- for admin in society.admins|sort(attribute='crsid') %}
+            <tr>
+                <td>{{ admin.crsid }}</td>
+                <td>{{ admin.name }}</td>
+                <td>
+                    {%- if admin != member -%}
+                    <a href='#'>Remove</a>
+                    {%- endif -%}
+                </td>
+            </tr>
+            {%- endfor %}
+        </tbody>
+    </table>
+
+    {% if society.pending_admins %}
+    <h3>Pending Administrators</h3>
+
+    <p>
+        It has (in the past) been requested that these people be added as administrators,
+        however, they first need to create a SRCF account. They will be automatically added
+        when this is done.
+    </p>
+
+    <table>
+        <thead>
+            <th>CRSID</th>
+        </thead>
+        <tbody>
+            {% for admin in society.pending_admins|sort(attribute='crsid') %}
+            <tr><td>{{ admin.crsid }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <h2>TODO</h2>
+    <ul>
+        <li>MySQL databases</li>
+        <li>Postgres databases</li>
+        <li>Mailing lists</li>
+    </ul>
+    {#
+        {% if soc.mysqldbs %}
+        <li>MySQL databases: {% for db in soc.mysqldbs|sort %}{{ db }} {% endfor %}</li>
+        {% endif %}
+        {% if soc.pgdbs %}
+        <li>PostgreSQL databases: {% for db in soc.pgdbs|sort %}{{ db }} {% endfor %}</li>
+        {% endif %}
+        {% if soc.lists %}
+        <li>Mailing lists:
+            {% for list in soc.lists|sort %}
+            <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
+            {% endfor %}
+        </li>
+        {% endif %}
+    #}
+</div>
+{% endblock body %}

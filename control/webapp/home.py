@@ -1,6 +1,7 @@
 import os
 import glob
 
+from werkzeug.exceptions import NotFound, Forbidden
 from flask import Blueprint, render_template, redirect, url_for
 
 from .utils import srcf_db_sess as sess
@@ -50,3 +51,16 @@ def home():
         soc.lists = lookup_lists(soc.society)
 
     return render_template("home.html", member=mem)
+
+@bp.route('/societies/<society>')
+def society(society):
+    crsid = utils.raven.principal
+    try:
+        mem = utils.get_member(crsid)
+        soc = utils.get_society(society)
+    except KeyError:
+        raise NotFound
+    if mem not in soc.admins:
+        raise Forbidden
+
+    return render_template("society.html", member=mem, society=soc)

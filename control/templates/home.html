@@ -32,7 +32,10 @@
     <ul class="acctlist">
         {% for soc in member.societies %}
         <li class="acct">
-            <div class="head"><span class="data">{{ soc.society }}</span> &mdash; <span class="data">{{ soc.description }}</span></div>
+            <div class="head">
+                <a href="{{ url_for('home.society', society=soc.society) }}"><span class="data">{{ soc.society }}</span></a>
+                &mdash; <span class="data">{{ soc.description }}</span>
+            </div>
             <ul class="acctattribs">
                 <li class="meta">Created: <span class="data">{{ soc.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Administrators:
@@ -53,6 +56,7 @@
                     {% endfor %}
                 </li>
                 {% endif %}
+                <li><a href="{{ url_for('home.society', society=soc.society) }}">Manage Society</a></li>
             </ul>
         </li>
         {% endfor %}
