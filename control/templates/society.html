@@ -23,7 +23,7 @@
                 <td>{{ admin.name }}</td>
                 <td>
                     {%- if admin != member -%}
-                    <a href='#'>Remove</a>
+                    <a href='#todo'>Remove</a>
                     {%- endif -%}
                 </td>
             </tr>
@@ -33,7 +33,7 @@
 
     <h3>Add administrator</h3>
 
-    <form action="#" method="GET">
+    <form action="#todo" method="GET">
         <label for="crsid">CRSid:</label>
         <input type="text" id="crsid" name="crsid" />
         <input type='submit' value='Add'>
@@ -69,7 +69,7 @@
             <p>
                 Username: <code>{{ society.mysqluser }}</code>. <br>
                 The password will have been issued by email when the user was created. <br>
-                <a href="#">Reset password</a>.
+                <a href="#todo">Reset password</a>.
             </p>
 
             {% if society.mysqldbs|length > 1 %}
@@ -117,7 +117,7 @@
                 A password will have been issued by email when the user was created, though it should
                 not be necessary when using PostgreSQL from the command line, scripts or websites: it will
                 authenticate automatically. <br>
-                <a href="#">Reset password</a>.
+                <a href="#todo">Reset password</a>.
             </p>
 
             {% if society.pgdbs|length > 1 %}
@@ -166,7 +166,7 @@
                 <tr>
                     <td>{{ list }}<small>@srcf.net</small></td>
                     <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>
-                    <td><a href="#">Reset password</a></td>
+                    <td><a href="#todo">Reset password</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
