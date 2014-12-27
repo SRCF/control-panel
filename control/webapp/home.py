@@ -4,6 +4,8 @@ import glob
 from werkzeug.exceptions import NotFound, Forbidden
 from flask import Blueprint, render_template, redirect, url_for
 
+import srcf.database
+
 from .utils import srcf_db_sess as sess
 from . import utils
 
@@ -21,17 +23,57 @@ def lookup_pgdbs(prefix):
     return [row[0] for row in q.fetchall()]
 
 def lookup_mysqldbs(prefix):
-    cur = utils.temp_mysql_conn().cursor()
-    perfix = prefix.replace("-", "_")
-    q = "SELECT SCHEMA_NAME FROM information_schema.schemata WHERE " \
-        "SCHEMA_NAME = %s OR SCHEMA_NAME LIKE %s"
-    cur.execute(q, (prefix, prefix + '/%'))
-    return [row[0] for row in cur]
+    try:
+        cur = utils.temp_mysql_conn().cursor()
+        prefix = prefix.replace("-", "_")
+        q = "SELECT SCHEMA_NAME FROM information_schema.schemata WHERE " \
+            "SCHEMA_NAME = %s OR SCHEMA_NAME LIKE %s"
+        cur.execute(q, (prefix, prefix + '/%'))
+        return [row[0] for row in cur]
+    finally:
+        cur.close()
+
+def lookup_pguser(crsid_or_society):
+    q = sess.execute('SELECT rolname FROM pg_roles WHERE rolname = :user',
+                     {"user": crsid_or_society})
+    assert q.rowcount in {0, 1}
+    q.fetchall()
+    if q.rowcount:
+        return crsid_or_society
+    else:
+        return None
+
+def lookup_mysqluser(crsid_or_society):
+    try:
+        cur = utils.temp_mysql_conn().cursor()
+        crsid_or_society = crsid_or_society.replace("-", "_")
+        q = "SELECT User from mysql.user WHERE User = %s"
+        cur.execute(q, (crsid_or_society, ))
+        assert cur.rowcount in {0, 1}
+        if cur.rowcount:
+            return crsid_or_society
+        else:
+            return None
+    finally:
+        cur.close()
 
 def lookup_lists(prefix):
     patterns = "/var/lib/mailman/lists/%s-*" % prefix
     return [os.path.basename(ldir) for ldir in glob.iglob(patterns)]
 
+def lookup_all(obj):
+    if isinstance(obj, srcf.database.Member):
+        prefix = obj.crsid
+    elif isinstance(obj, srcf.database.Society):
+        prefix = obj.society
+    else:
+        raise TypeError
+
+    obj.mysqluser = lookup_mysqluser(prefix)
+    obj.mysqldbs = lookup_mysqldbs(prefix)
+    obj.pguser = lookup_pguser(prefix)
+    obj.pgdbs = lookup_pgdbs(prefix)
+    obj.lists = lookup_lists(prefix)
 
 @bp.route('/')
 def home():
@@ -42,13 +84,9 @@ def home():
     except KeyError:
         return redirect(url_for('signup.signup'))
 
-    mem.mysqldbs = lookup_mysqldbs(crsid)
-    mem.pgdbs = lookup_pgdbs(crsid)
-    mem.lists = lookup_lists(crsid)
+    lookup_all(mem)
     for soc in mem.societies:
-        soc.mysqldbs = lookup_mysqldbs(soc.society)
-        soc.pgdbs = lookup_pgdbs(soc.society)
-        soc.lists = lookup_lists(soc.society)
+        lookup_all(soc)
 
     return render_template("home.html", member=mem)
 
@@ -62,5 +100,8 @@ def society(society):
         raise NotFound
     if mem not in soc.admins:
         raise Forbidden
+
+    lookup_all(mem)
+    lookup_all(soc)
 
     return render_template("society.html", member=mem, society=soc)

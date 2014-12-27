@@ -10,9 +10,11 @@
 
     <table>
         <thead>
-            <th>CRSID</th>
-            <th>Name</th>
-            <th></th>
+            <tr>
+                <th>CRSid</th>
+                <th>Name</th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
             {%- for admin in society.admins|sort(attribute='crsid') %}
@@ -29,6 +31,14 @@
         </tbody>
     </table>
 
+    <h3>Add administrator</h3>
+
+    <form action="#" method="GET">
+        <label for="crsid">CRSid:</label>
+        <input type="text" id="crsid" name="crsid" />
+        <input type='submit' value='Add'>
+    </form>
+
     {% if society.pending_admins %}
     <h3>Pending Administrators</h3>
 
@@ -40,7 +50,7 @@
 
     <table>
         <thead>
-            <th>CRSID</th>
+            <tr><th>CRSid</th></tr>
         </thead>
         <tbody>
             {% for admin in society.pending_admins|sort(attribute='crsid') %}
@@ -50,26 +60,119 @@
     </table>
     {% endif %}
 
-    <h2>TODO</h2>
-    <ul>
-        <li>MySQL databases</li>
-        <li>Postgres databases</li>
-        <li>Mailing lists</li>
-    </ul>
-    {#
-        {% if soc.mysqldbs %}
-        <li>MySQL databases: {% for db in soc.mysqldbs|sort %}{{ db }} {% endfor %}</li>
+    {% if society.mysqldbs or society.pgdbs %}
+        <h2>Databases</h2>
+
+        {% if society.mysqldbs %}
+            <h3>MySQL</h3>
+
+            <p>
+                Username: <code>{{ society.mysqluser }}</code>. <br>
+                The password will have been issued by email when the user was created. <br>
+                <a href="#">Reset password</a>.
+            </p>
+
+            {% if society.mysqldbs|length > 1 %}
+            <p>Databases:</p>
+            <ul>
+                {% for db in society.mysqldbs|sort %}
+                <li>{{ db }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>Database: {{ society.mysqldbs[0] }}</p>
+            {% endif %}
+
+            <p>Manage</p>
+            <ul>
+                <li><a href="http://www.srcf.net/phpmyadmin">phpMyAdmin</a></li>
+                {% if member.mysqluser %}
+                <li>
+                    Type <code>mysql -p -D {{ society.mysqldbs[0] }}</code>
+                    to connect from the SRCF command line using your personal MySQL password.
+                </li>
+                {% endif %}
+                <li>
+                    Type <code>mysql -u {{ society.mysqluser }} -p -D {{ society.mysqldbs[0] }}</code>
+                    to connect from the SRCF command line using the society MySQL password.
+                </li>
+            </ul>
+
+            {% if member.mysqluser %}
+            <p>
+                Note that your personal MySQL user (<code>{{ member.mysqluser }}</code>) can also be used
+                to manage the society database.
+                However, please do not use your personal user to connect society websites (Wordpress, etc.) to MySQL.
+                It makes it very difficult for us to manage the accounts, and in particular makes it far harder to hand over to a
+                new administrator if you wish to transfer ownership of the society account later.
+            </p>
+            {% endif %}
         {% endif %}
-        {% if soc.pgdbs %}
-        <li>PostgreSQL databases: {% for db in soc.pgdbs|sort %}{{ db }} {% endfor %}</li>
+
+        {% if society.pgdbs %}
+            <h3>PostgreSQL</h3>
+
+            <p>
+                Username: <code>{{ society.pguser }}</code>. <br>
+                A password will have been issued by email when the user was created, though it should
+                not be necessary when using PostgreSQL from the command line, scripts or websites: it will
+                authenticate automatically. <br>
+                <a href="#">Reset password</a>.
+            </p>
+
+            {% if society.pgdbs|length > 1 %}
+            <p>Databases:</p>
+            <ul>
+                {% for db in society.pgdbs|sort %}
+                <li>{{ db }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>Database: {{ society.pgdbs[0] }}</p>
+            {% endif %}
+
+            <p>Manage</p>
+            <ul>
+                <li><a href="http://www.srcf.net/phppgadmin">phpPgAdmin</a></li>
+                {% if member.pguser %}
+                <li>Type <code>psql {{ society.pgdbs[0] }}</code> to connect from the SRCF command line.</li>
+                {% endif %}
+            </ul>
+
+            {% if member.pguser %}
+            <p>
+                Note that your personal PostgreSQL user (<code>{{ member.pguser }}</code>) can also be used
+                to manage the society database.
+                However, please do not use your personal user to connect society websites to PostgreSQL.
+                It makes it very difficult for us to manage the accounts, and in particular makes it far harder to hand over to a
+                new administrator if you wish to transfer ownership of the society account later.
+            </p>
+            {% endif %}
         {% endif %}
-        {% if soc.lists %}
-        <li>Mailing lists:
-            {% for list in soc.lists|sort %}
-            <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
-            {% endfor %}
-        </li>
-        {% endif %}
-    #}
+    {% endif %}
+
+    {% if society.lists %}
+        <h2>Mailing lists</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Email address</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for list in society.lists|sort %}
+                <tr>
+                    <td>{{ list }}<small>@srcf.net</small></td>
+                    <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>
+                    <td><a href="#">Reset password</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <p><a href="{{ url_for("home.home") }}">Control panel home</a></p>
 </div>
 {% endblock body %}
