@@ -1,3 +1,5 @@
+import subprocess
+
 from srcf import database
 from srcf.database import queries
 from srcf.mail import mail_sysadmins
@@ -248,6 +250,21 @@ class ChangeSocietyAdmin(Job):
         fmt = "{verb} {0.target_member.crsid} ({0.target_member.name}) "\
                 "{prep} {0.society.society} ({0.society.description})"
         return fmt.format(self, verb=verb, prep=prep)
+
+    def run(self, sess):
+        if self.action == "add":
+            return JobFailed("adding not implemented")
+
+        if self.target_member not in self.society.admins:
+            return JobFailed("{0.target_member.crsid} is not an admin of {0.society.society}".format(self))
+
+        if self.owner not in self.society.admins:
+            return JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
+
+        self.society.admins.remove(self.target_member)
+        subprocess.check_call(["deluser", self.target_member.crsid, self.society.society])
+
+        return JobDone()
 
 @add_job
 class CreateSocietyMailingList(Job):
