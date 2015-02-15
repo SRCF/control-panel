@@ -32,6 +32,27 @@ def home(society):
 
     return render_template("society/home.html", member=mem, society=soc)
 
+@bp.route("/societies/<society>/admins/add", methods=["POST"])
+def add_admin(society):
+    mem, soc = find_mem_society(society)
+
+    try:
+        tgt = utils.get_member(request.form["crsid"])
+    except KeyError:
+        raise NotFound
+    if tgt in soc.admins:
+        raise Forbidden
+
+    j = jobs.ChangeSocietyAdmin.new(
+        requesting_member=mem,
+        society=soc,
+        target_member=tgt,
+        action="add"
+    )
+    sess.add(j.row)
+    sess.commit()
+    return redirect(url_for('job_status.status', id=j.job_id))
+
 @bp.route("/societies/<society>/admins/<target_crsid>/remove", methods=["GET", "POST"])
 def remove_admin(society, target_crsid):
     mem, soc = find_mem_society(society)

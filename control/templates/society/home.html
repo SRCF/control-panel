@@ -34,10 +34,9 @@
 
     <h3>Add administrator</h3>
 
-    <form action="#todo" method="GET">
-        <label for="crsid">CRSid:</label>
-        <input type="text" id="crsid" name="crsid" />
-        <input type='submit' value='Add'>
+    <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
+        <input name="crsid" placeholder="CRSid" />
+        <input type="submit" value="Add">
     </form>
 
     {% if society.pending_admins %}
