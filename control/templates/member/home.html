@@ -5,7 +5,7 @@
     <h1>{{ member.crsid }} &mdash; {{ member.name }}</h1>
 
     <p>Created <span class="data">{{ member.joined.strftime('%b %G') }}</span></p>
-    <p><a href="{{ url_for("home.home") }}">Control panel home</a></p>
+    <p><a href="{{ url_for('home.home') }}">Control panel home</a></p>
 
     <h2>Databases</h2>
 
@@ -15,7 +15,7 @@
         <p>
             Username: <code>{{ member.mysqluser }}</code>. <br>
             The password will have been issued by email when the user was created. <br>
-            <a href="#todo">Reset password</a>.
+            <a href="{{ url_for('member.reset_password') }}">Reset password</a>.
         </p>
 
         {% if member.mysqldbs|length > 1 %}
