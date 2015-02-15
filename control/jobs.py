@@ -16,7 +16,7 @@ def add_job(cls):
     return cls
 
 
-class Job:
+class Job(object):
     @staticmethod
     def of_row(row):
         return all_jobs[row.type](row)
@@ -62,10 +62,8 @@ class Job:
             args=args
         ))
 
-    def run(self):
-        body = "\n".join("{0}: {1}".format(k, v) for k, v in self.args.items())
-        subject = "Control panel job: {0}".format(self.JOB_TYPE)
-        mail_sysadmins(subject, body)
+    def run(self, sess):
+        self.set_state("failed", "not implemented")
 
     job_id = property(lambda s: s.row.job_id)
     owner = property(lambda s: s.row.owner)
@@ -77,6 +75,10 @@ class Job:
     def state(s, n): s.row.state = n
     @state_message.setter
     def state_message(s, n): s.row.state_message = n
+
+    def set_state(self, state, message=None):
+        self.state = state
+        self.state_message = message
 
 
 @add_job
