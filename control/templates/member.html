@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>{{ member.crsid }} &mdash; {{ member.name }}</h1>
+
+    <p>Created <span class="data">{{ member.joined.strftime('%b %G') }}</span></p>
+    <p><a href="{{ url_for("home.home") }}">Control panel home</a></p>
+
+    <h2>Databases</h2>
+
+    <h3>MySQL</h3>
+
+    {% if member.mysqldbs %}
+        <p>
+            Username: <code>{{ member.mysqluser }}</code>. <br>
+            The password will have been issued by email when the user was created. <br>
+            <a href="#todo">Reset password</a>.
+        </p>
+
+        {% if member.mysqldbs|length > 1 %}
+        <p>Databases:</p>
+        <ul>
+            {% for db in member.mysqldbs|sort %}
+            <li>{{ db }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Database: {{ member.mysqldbs[0] }}</p>
+        {% endif %}
+
+        <p>Manage</p>
+        <ul>
+            <li><a href="http://www.srcf.net/phpmyadmin">phpMyAdmin</a></li>
+            {% if member.mysqluser %}
+            <li>
+                Type <code>mysql -p -D {{ member.mysqldbs[0] }}</code>
+                to connect from the SRCF command line using your personal MySQL password.
+            </li>
+            {% endif %}
+            <li>
+                Type <code>mysql -u {{ member.mysqluser }} -p -D {{ member.mysqldbs[0] }}</code>
+                to connect from the SRCF command line using your MySQL password.
+            </li>
+        </ul>
+    {% endif %}
+
+    {% if member.pgdbs %}
+        <h3>PostgreSQL</h3>
+
+        <p>
+            Username: <code>{{ member.pguser }}</code>. <br>
+            A password will have been issued by email when the user was created, though it should
+            not be necessary when using PostgreSQL from the command line, scripts or websites: it will
+            authenticate automatically. <br>
+            <a href="#todo">Reset password</a>.
+        </p>
+
+        {% if member.pgdbs|length > 1 %}
+        <p>Databases:</p>
+        <ul>
+            {% for db in member.pgdbs|sort %}
+            <li>{{ db }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Database: {{ member.pgdbs[0] }}</p>
+        {% endif %}
+
+        <p>Manage</p>
+        <ul>
+            <li><a href="http://www.srcf.net/phppgadmin">phpPgAdmin</a></li>
+            {% if member.pguser %}
+            <li>Type <code>psql {{ member.pgdbs[0] }}</code> to connect from the SRCF command line.</li>
+            {% endif %}
+        </ul>
+    {% endif %}
+
+    {% if not member.mysqldbs or not member.pgdbs %}
+        <h3>New</h3>
+        {% if not member.mysqldbs %}
+        <p><a href="#todo">Create MySQL database</a></p>
+        {% endif %}
+        {% if not member.pgdbs %}
+        <p><a href="#todo">Create PostgreSQL database</a></p>
+        {% endif %}
+    {% endif %}
+
+    <h2>Mailing lists</h2>
+
+    {% if member.mailinglists %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Email address</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for list in member.mailinglists|sort %}
+                <tr>
+                    <td>{{ list }}<small>@srcf.net</small></td>
+                    <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>
+                    <td><a href="#todo">Reset password</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <h3>New</h3>
+    <p><a href="#todo">Create new mailing list</a></p>
+</div>
+{% endblock body %}
