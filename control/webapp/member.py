@@ -74,3 +74,16 @@ def reset_postgres_password():
         return redirect(url_for('job_status.status', id=j.job_id))
     else:
         return render_template("member/reset_postgres_password.html", member=mem)
+
+@bp.route("/member/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
+@bp.route("/member/postgres/create", methods=["POST"], defaults={"type": "postgres"})
+def create_database(type):
+    crsid, mem = find_member()
+
+    j = {"mysql": jobs.CreateMySQLUserDatabase,
+         "postgres": jobs.CreatePostgresUserDatabase,
+         }[type].new(member=mem)
+
+    sess.add(j.row)
+    sess.commit()
+    return redirect(url_for('job_status.status', id=j.job_id))

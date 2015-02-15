@@ -44,7 +44,11 @@
             </li>
         </ul>
     {% else %}
-        <p><a href="#todo">Create MySQL database</a></p>
+        <form action="{{ url_for('member.create_database', type='mysql') }}" method="post">
+          <div class="form-group">
+            <input type="submit" value="Create MySQL Database">
+          </div>
+        </form>
     {% endif %}
 
     <h3>PostgreSQL</h3>
@@ -76,7 +80,11 @@
             {% endif %}
         </ul>
     {% else %}
-        <p><a href="#todo">Create PostgreSQL database</a></p>
+        <form action="{{ url_for('member.create_database', type='postgres') }}" method="post">
+          <div class="form-group">
+            <input type="submit" value="Create PostgreSQL Database">
+          </div>
+        </form>
     {% endif %}
 
     <h2>Mailing lists</h2>
