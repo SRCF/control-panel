@@ -103,7 +103,7 @@
                 <tr>
                     <td>{{ list }}<small>@srcf.net</small></td>
                     <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>
-                    <td><a href="#todo">Reset password</a></td>
+                    <td><a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}">Reset password</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

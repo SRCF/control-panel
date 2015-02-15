@@ -88,6 +88,23 @@ def create_mailing_list(society):
     sess.commit()
     return redirect(url_for('jobs.status', id=j.job_id))
 
+@bp.route("/societies/<society>/mailinglist/<listname>/password", methods=["GET", "POST"])
+def reset_mailing_list_password(society, listname):
+    mem, soc = find_mem_society(society)
+
+    kwargs = { "society": soc,
+               "member": mem,
+               "listname": listname,
+               }
+
+    if request.method == "POST":
+        j = jobs.ResetSocietyMailingListPassword.new(**kwargs)
+        sess.add(j.row)
+        sess.commit()
+        return redirect(url_for('jobs.status', id=j.job_id))
+    else:
+        return render_template("society/reset_mailing_list_password.html", **kwargs)
+
 @bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"])
 def reset_mysql_password(society):
     mem, soc = find_mem_society(society)
