@@ -106,7 +106,11 @@
         </p>
         {% endif %}
     {% else %}
-        <p><a href="#todo">Create society MySQL database</a></p>
+        <form action="{{ url_for('society.create_database', society=society.society, type='mysql') }}" method="post">
+          <div class="form-group">
+            <input type="submit" value="Create MySQL Database">
+          </div>
+        </form>
     {% endif %}
 
     <h3>PostgreSQL</h3>
@@ -148,7 +152,11 @@
         </p>
         {% endif %}
     {% else %}
-        <p><a href="#todo">Create society PostgreSQL database</a></p>
+        <form action="{{ url_for('society.create_database', society=society.society, type='postgres') }}" method="post">
+          <div class="form-group">
+            <input type="submit" value="Create PostgreSQL Database">
+          </div>
+        </form>
     {% endif %}
 
     <h2>Mailing lists</h2>

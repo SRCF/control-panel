@@ -111,3 +111,16 @@ def reset_postgres_password(society):
         return redirect(url_for('job_status.status', id=j.job_id))
     else:
         return render_template("society/reset_postgres_password.html", society=soc, member=mem)
+
+@bp.route("/societies/<society>/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
+@bp.route("/societies/<society>/postgres/create", methods=["POST"], defaults={"type": "postgres"})
+def create_database(society, type):
+    mem, soc = find_mem_society(society)
+
+    j = {"mysql": jobs.CreateMySQLSocietyDatabase,
+         "postgres": jobs.CreatePostgresSocietyDatabase,
+         }[type].new(member=mem, society=soc)
+
+    sess.add(j.row)
+    sess.commit()
+    return redirect(url_for('job_status.status', id=j.job_id))

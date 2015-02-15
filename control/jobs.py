@@ -359,7 +359,7 @@ class CreatePostgresSocietyDatabase(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.store(member, {}, require_approval)
+        return cls.store(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
