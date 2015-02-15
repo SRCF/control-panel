@@ -11,6 +11,9 @@
             <ul class="acctattribs">
                 <li class="meta">Created: <span class="data">{{ member.joined.strftime('%b %G') }}</span></li>
                 <li class="meta">Email: <span class="data">{{ member.email }}</span></li>
+                {% if member.website %}
+                <li>Website: <a href="http://{{ member.crsid }}.user.srcf.net">{{ member.crsid }}.user.srcf.net</a></li>
+                {% endif %}
                 {% if member.mysqldbs %}
                 <li>MySQL databases: {% for db in member.mysqldbs|sort %}{{ db }} {% endfor %}</li>
                 {% endif %}
@@ -48,6 +51,9 @@
                     <abbr title="{{ admin.name }}"><span class="data">{{ admin.crsid }}</span></abbr>
                     {% endfor %}
                 </li>
+                {% if soc.website %}
+                <li>Website: <a href="http://{{ soc.society }}.soc.srcf.net">{{ soc.society }}.soc.srcf.net</a></li>
+                {% endif %}
                 {% if soc.mysqldbs %}
                 <li>MySQL databases: {% for db in soc.mysqldbs|sort %}{{ db }} {% endfor %}</li>
                 {% endif %}
