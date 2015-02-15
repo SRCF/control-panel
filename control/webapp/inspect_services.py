@@ -65,6 +65,11 @@ def lookup_mailinglists(prefix):
     patterns = "/var/lib/mailman/lists/%s-*" % prefix
     return [os.path.basename(ldir) for ldir in glob.iglob(patterns)]
 
+def lookup_website(user):
+    """Detect if a website exists for the given user."""
+    path = os.path.join(os.path.expanduser("~" + user), "public_html")
+    return os.path.exists(path) and len(os.listdir(path)) > 0
+
 def lookup_all(obj):
     """
     Augment `obj` (a :cls:`srcf.database.Member` or
@@ -89,3 +94,4 @@ def lookup_all(obj):
     obj.pguser = lookup_pguser(prefix)
     obj.pgdbs = lookup_pgdbs(prefix)
     obj.mailinglists = lookup_mailinglists(prefix)
+    obj.website = lookup_website(prefix)

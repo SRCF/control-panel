@@ -63,9 +63,8 @@
 
     <h2>Databases</h2>
 
+    <h3>MySQL</h3>
     {% if society.mysqldbs %}
-        <h3>MySQL</h3>
-
         <p>
             Username: <code>{{ society.mysqluser }}</code>. <br>
             The password will have been issued by email when the user was created. <br>
@@ -107,11 +106,12 @@
             new administrator if you wish to transfer ownership of the society account later.
         </p>
         {% endif %}
+    {% else %}
+        <p><a href="#todo">Create society MySQL database</a></p>
     {% endif %}
 
+    <h3>PostgreSQL</h3>
     {% if society.pgdbs %}
-        <h3>PostgreSQL</h3>
-
         <p>
             Username: <code>{{ society.pguser }}</code>. <br>
             A password will have been issued by email when the user was created, though it should
@@ -148,16 +148,8 @@
             new administrator if you wish to transfer ownership of the society account later.
         </p>
         {% endif %}
-    {% endif %}
-
-    {% if not society.mysqldbs or not society.pgdbs %}
-        <h3>New</h3>
-        {% if not society.mysqldbs %}
-        <p><a href="#todo">Create society MySQL database</a></p>
-        {% endif %}
-        {% if not society.pgdbs %}
+    {% else %}
         <p><a href="#todo">Create society PostgreSQL database</a></p>
-        {% endif %}
     {% endif %}
 
     <h2>Mailing lists</h2>

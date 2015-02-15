@@ -260,7 +260,7 @@ class ResetMySQLSocietyPassword(Job):
         self.society = queries.get_society(self.society_society, session=sess)
 
     @classmethod
-    def new(cls, member):
+    def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
         return cls.store(member, args, require_approval)
@@ -336,7 +336,7 @@ class ResetPostgresSocietyPassword(Job):
         self.society = queries.get_society(self.society_society, session=sess)
 
     @classmethod
-    def new(cls, member):
+    def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
         return cls.store(member, args, require_approval)

@@ -57,3 +57,27 @@ def remove_admin(society, target_crsid):
         return redirect(url_for('job_status.status', id=j.job_id))
     else:
         return render_template("society/remove_admin.html", society=soc, target=tgt)
+
+@bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"])
+def reset_mysql_password(society):
+    mem, soc = find_mem_society(society)
+
+    if request.method == "POST":
+        j = jobs.ResetMySQLSocietyPassword.new(society=soc, member=mem)
+        sess.add(j.row)
+        sess.commit()
+        return redirect(url_for('job_status.status', id=j.job_id))
+    else:
+        return render_template("society/reset_mysql_password.html", society=soc, member=mem)
+
+@bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"])
+def reset_postgres_password(society):
+    mem, soc = find_mem_society(society)
+
+    if request.method == "POST":
+        j = jobs.ResetPostgresSocietyPassword.new(society=soc, member=mem)
+        sess.add(j.row)
+        sess.commit()
+        return redirect(url_for('job_status.status', id=j.job_id))
+    else:
+        return render_template("society/reset_postgres_password.html", society=soc, member=mem)
