@@ -149,14 +149,13 @@ class CreateSociety(Job):
 
     @classmethod
     def new(cls, member, society, description, admins,
-            mysql, postgres, mailinglists):
+            mysql, postgres):
         args = {
             "society": society,
             "description": description,
             "admins": ",".join(a.crsid for a in admins),
             "mysql": "y" if mysql else "n",
-            "postgres": "y" if postgres else "n",
-            "mailinglists": ",".join(mailinglists)
+            "postgres": "y" if postgres else "n"
         }
         return cls.store(member, args)
 
@@ -165,7 +164,6 @@ class CreateSociety(Job):
     admin_crsids = property(lambda s: s.row.args["admins"].split(","))
     mysql        = property(lambda s: s.row.args["mysql"] == "y")
     postgres     = property(lambda s: s.row.args["postgres"] == "y")
-    mailinglists = property(lambda s: s.row.args["mailinglists"].split(","))
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
     describe = property("Create Society: {0.society} ({0.description})".format)
