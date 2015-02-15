@@ -97,7 +97,7 @@ class ChangeSocietyAdmin(Job):
         row = database.Job(
             type=cls.JOB_TYPE,
             state="unapproved" if require_approval else "queued",
-            args = args
+            args=args
         )
         return cls(row)
 

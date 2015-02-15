@@ -6,7 +6,7 @@ from . import utils
 from ..jobs import Job
 
 
-bp = Blueprint("jobs", __name__)
+bp = Blueprint("job_status", __name__)
 
 
 @bp.route('/job/<int:id>')

@@ -33,7 +33,7 @@
         {% for soc in member.societies %}
         <li class="acct">
             <div class="head">
-                <a href="{{ url_for('home.society', society=soc.society) }}"><span class="data">{{ soc.society }}</span></a>
+                <a href="{{ url_for('overview.society', society=soc.society) }}"><span class="data">{{ soc.society }}</span></a>
                 &mdash; <span class="data">{{ soc.description }}</span>
             </div>
             <ul class="acctattribs">
@@ -56,7 +56,7 @@
                     {% endfor %}
                 </li>
                 {% endif %}
-                <li><a href="{{ url_for('home.society', society=soc.society) }}">Manage Society</a></li>
+                <li><a href="{{ url_for('overview.society', society=soc.society) }}">Manage Society</a></li>
             </ul>
         </li>
         {% endfor %}
