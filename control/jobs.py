@@ -30,7 +30,9 @@ class Job:
         subject = "Control panel job: {0}".format(self.JOB_TYPE)
         mail_sysadmins(subject, body)
 
+    job_id = property(lambda s: s.row.job_id)
     owner = property(lambda s: s.row.owner)
+    owner_crsid = property(lambda s: s.row.owner_crsid)
     state = property(lambda s: s.row.state)
     state_message = property(lambda s: s.row.state_message)
 
@@ -66,8 +68,10 @@ class Signup(Job):
     email          = property(lambda s: s.row.args["email"])
     social         = property(lambda s: s.row.args["social"] == "y")
 
-    def __repr__(self):
-        return "<Signup {0}>".format(self.crsid)
+    __repr__ = "<Signup {0.crsid}>".format
+    description = \
+        property("Signup: {0.crsid} ({0.preferred_name} "
+                 "{0.surname}, {0.email})".format)
 
 @add_job
 class ChangeSocietyAdmin(Job):

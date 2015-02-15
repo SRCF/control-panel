@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>{{ state|title }} Jobs</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Owner</th>
+                <th>Type</th>
+                <th>State</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.job_id }}</td>
+                <td>{{ job.owner_crsid }}</td>
+                <td>{{ job.JOB_TYPE }}</td>
+                <td>{{ job.state }}</td>
+                <td><a href="#todo">View</a></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="4">{{ job.description }}</td>
+            </tr>
+            {% if job.state_message %}
+            <tr>
+                <td>State</td>
+                <td colspan="4">{{ job.state_message }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock body %}
