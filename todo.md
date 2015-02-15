@@ -1,7 +1,5 @@
  - Job runner.
- - Create MySQL/PostgreSQL database
- - New mailing list
- - Job list totally broken
  - Perhaps some unit tests?
  - Proper deployment.
  - Beautify
+ - Restore signup page check
