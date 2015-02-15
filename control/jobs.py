@@ -83,6 +83,37 @@ class Signup(Job):
                  "{0.surname}, {0.email})".format)
 
 @add_job
+class CreateSociety(Job):
+    JOB_TYPE = 'create_society'
+
+    def __init__(self, row):
+        self.row = row
+
+    @classmethod
+    def new(cls, requesting_member, short_name, full_name, admins, mysql, postgres, lists):
+        args = {
+            "requesting_member": requesting_member,
+            "short_name": short_name,
+            "full_name": full_name,
+            "admins": ",".join(admins),
+            "mysql": "y" if mysql else "n",
+            "postgres": "y" if postgres else "n",
+            "lists": ",".join(lists)
+        }
+        return cls.store(args)
+
+    short_name = property(lambda s: s.row.args["short_name"])
+    full_name  = property(lambda s: s.row.args["full_name"])
+    admins     = property(lambda s: s.row.args["admins"].split(","))
+    mysql      = property(lambda s: s.row.args["mysql"] == "y")
+    postgres   = property(lambda s: s.row.args["postgres"] == "y")
+    lists      = property(lambda s: s.row.args["lists"].split(","))
+
+    __repr__ = "<CreateSociety {0.short_name}>".format
+    description = \
+        property("Create Society: {0.short_name} ({0.full_name})".format)
+
+@add_job
 class ChangeSocietyAdmin(Job):
     JOB_TYPE = 'change_society_admin'
 
