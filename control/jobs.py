@@ -87,7 +87,7 @@ class Signup(Job):
             "social": "y" if social else "n"
         }
         # note that we can't set owner because the Member doesn't exist yet
-        return cls.store(args, None)
+        return cls.store(None, args)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])
