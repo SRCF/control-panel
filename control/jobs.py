@@ -115,7 +115,7 @@ class CreateSociety(Job):
     @classmethod
     def new(cls, requesting_member, short_name, full_name, admins, mysql, postgres, lists):
         args = {
-            "requesting_member": requesting_member,
+            "requesting_member": requesting_member.crsid,
             "short_name": short_name,
             "full_name": full_name,
             "admins": ",".join(admins),
