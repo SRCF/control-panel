@@ -176,6 +176,10 @@
     {% endif %}
 
     <h3>New</h3>
-    <p><a href="#todo">Create new mailing list</a></p>
+    <form action="{{ url_for('society.create_mailing_list', society=society.society) }}" method="post">
+        {{ society.society }}-<input name="listname" placeholder="List name">@srcf.net
+        <input type="Submit" value="Create">
+    </form>
+
 </div>
 {% endblock body %}

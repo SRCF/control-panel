@@ -127,6 +127,8 @@ class CreateUserMailingList(Job):
         require_approval = member.danger
         return cls.store(member, args, require_approval)
 
+    listname = property(lambda s: s.row.args["listname"])
+
     __repr__ = "<CreateUserMailingList {0.owner_crsid}-{0.listname}>".format
     describe = property("Create User Mailing List: {0.owner_crsid}-{0.listname}".format)
 
@@ -220,16 +222,23 @@ class CreateSocietyMailingList(Job):
     def __init__(self, row):
         self.row = row
 
+    def resolve_references(self, sess):
+        self.society = \
+            queries.get_society(self.society_society, session=sess)
+
     @classmethod
     def new(cls, member, society, listname):
         args = {
-            "society": society,
+            "society": society.society,
             "listname": listname
         }
         require_approval = member.danger or society.danger
         return cls.store(member, args, require_approval)
 
-    __repr__ = "<CreateSocietyMailingList {0.society.society}-{0.listname}>".format
+    society_society     = property(lambda s: s.row.args["society"])
+    listname = property(lambda s: s.row.args["listname"])
+
+    __repr__ = "<CreateSocietyMailingList {0.society_society}-{0.listname}>".format
     describe = property("Create Society Mailing List: {0.society.society}-{0.listname}".format)
 
 @add_job

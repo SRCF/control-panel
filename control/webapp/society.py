@@ -58,6 +58,15 @@ def remove_admin(society, target_crsid):
     else:
         return render_template("society/remove_admin.html", society=soc, target=tgt)
 
+@bp.route("/societies/<society>/mailinglist", methods=["POST"])
+def create_mailing_list(society):
+    mem, soc = find_mem_society(society)
+
+    j = jobs.CreateSocietyMailingList.new(member=mem, society=soc, listname=request.form["listname"])
+    sess.add(j.row)
+    sess.commit()
+    return redirect(url_for('job_status.status', id=j.job_id))
+
 @bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"])
 def reset_mysql_password(society):
     mem, soc = find_mem_society(society)
