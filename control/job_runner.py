@@ -1,8 +1,11 @@
 from __future__ import print_function
 
 import sys
+import os
 import select
 import traceback
+import logging
+import platform
 
 import psycopg2.extensions
 
@@ -13,6 +16,11 @@ import sqlalchemy.ext.compiler
 from srcf import database
 
 from .jobs import Job
+
+
+logger = logging.getLogger("control.job_runner")
+
+runner_id_string = "{} {}".format(platform.node(), os.getpid())
 
 
 RUNNER_LOCK_NUM = 0x366636F6E7472
@@ -112,7 +120,8 @@ def main():
             sess.rollback()
             continue
 
-        job.set_state("running", "TODO")
+        logger.info("Running job %s %s", job.job_id, job)
+        job.set_state("running", "..on " + runner_id_string)
         sess.add(job.row)
         sess.commit()
 
@@ -123,6 +132,7 @@ def main():
                 raise RuntimeError("job.run() finished, but did not mark as failed or done")
 
         except:
+            logger.exception("job %s unhandled exception", job.job_id)
             sess.rollback()
             job = Job.find(id=i, sess=sess)
             exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
@@ -132,8 +142,15 @@ def main():
             raise
 
         else:
+            logger.info("job %s ran; finished %s %s", job.job_id, job.state, job.state_message)
             sess.add(job.row)
             sess.commit()
 
 if __name__ == "__main__":
-    main()
+    logging.basicConfig(level=logging.INFO)
+    logger.info("starting %s", runner_id_string)
+    try:
+        main()
+    except:
+        logger.exception("unhandled exception")
+        raise
