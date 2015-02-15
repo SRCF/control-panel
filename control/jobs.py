@@ -15,8 +15,8 @@ def add_job(cls):
 
 class Job:
     @staticmethod
-    def of_row(row, sess):
-        return all_jobs[row.type](row, sess=sess)
+    def of_row(row):
+        return all_jobs[row.type](row)
 
     @classmethod
     def find(cls, sess, id):
@@ -24,7 +24,23 @@ class Job:
         if not job:
             return None
         else:
-            return cls.of_row(job, sess=sess)
+            job = cls.of_row(job)
+            job.resolve_references(sess)
+            return job
+
+    def resolve_references(self, sess):
+        """
+        Due to jobs having a varying number of arguments, and hstore columns
+        mapping strings to strings, sometimes we'll store (say) a string crsid
+        for the target of a job (say, adding an admin).
+
+        This function uses `sess` to look up those Members/Societies and
+        populate attributes with `srcf.database.*` objects.
+
+        It would be far nice if SQLAlchemy could handle this, even using a JOIN
+        where possible, but this sounds like a lot of work.
+        """
+        pass
 
     def run(self):
         body = "\n".join("{0}: {1}".format(k, v) for k, v in self.args.items())
@@ -47,7 +63,7 @@ class Job:
 class Signup(Job):
     JOB_TYPE = 'signup'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
@@ -78,12 +94,14 @@ class Signup(Job):
 class ChangeSocietyAdmin(Job):
     JOB_TYPE = 'change_society_admin'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
         self.society = \
-                queries.get_society(self.society_society,    session=sess)
+            queries.get_society(self.society_society,    session=sess)
         self.target_member = \
-                queries.get_member(self.target_member_crsid, session=sess)
+            queries.get_member(self.target_member_crsid, session=sess)
 
     @classmethod
     def new(cls, requesting_member, society, target_member, action):
