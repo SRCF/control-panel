@@ -104,7 +104,7 @@ class Signup(Job):
 class ResetUserPassword(Job):
     JOB_TYPE = 'reset_user_password'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
@@ -125,28 +125,36 @@ class ResetUserPassword(Job):
 class CreateSociety(Job):
     JOB_TYPE = 'create_society'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
+        self.admins = \
+                sess.query(database.Member) \
+                .filter(database.Member.crsid.in_(self.admin_crsids)) \
+                .all()
+        if len(self.admins) != len(self.admin_crsids):
+            raise KeyError("CreateSociety references admins")
 
     @classmethod
     def new(cls, requesting_member, short_name, full_name, admins, mysql, postgres, lists):
         args = {
             "requesting_member": requesting_member.crsid,
-            "short_name": short_name,
-            "full_name": full_name,
+            "society": society,
+            "description": description,
             "admins": ",".join(admins),
             "mysql": "y" if mysql else "n",
             "postgres": "y" if postgres else "n",
-            "lists": ",".join(lists)
+            "mailinglists": ",".join(lists)
         }
         return cls.store(requesting_member, args)
 
-    short_name = property(lambda s: s.row.args["short_name"])
-    full_name  = property(lambda s: s.row.args["full_name"])
-    admins     = property(lambda s: s.row.args["admins"].split(","))
-    mysql      = property(lambda s: s.row.args["mysql"] == "y")
-    postgres   = property(lambda s: s.row.args["postgres"] == "y")
-    lists      = property(lambda s: s.row.args["lists"].split(","))
+    society      = property(lambda s: s.row.args["society"])
+    description  = property(lambda s: s.row.args["description"])
+    admin_crsids = property(lambda s: s.row.args["admins"].split(","))
+    mysql        = property(lambda s: s.row.args["mysql"] == "y")
+    postgres     = property(lambda s: s.row.args["postgres"] == "y")
+    mailinglists = property(lambda s: s.row.args["mailinglists"].split(","))
 
     __repr__ = "<CreateSociety {0.short_name}>".format
     description = \
@@ -181,8 +189,9 @@ class ChangeSocietyAdmin(Job):
              or requesting_member == target_member
         return cls.store(requesting_member, args, require_approval)
 
-    society_crsid = property(lambda s: s.row.args["society"])
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+    society_society     = property(lambda s: s.row.args["society"])
+    target_member_crsid = property(lambda s: s.row.args["target_member"])
+    action              = property(lambda s: s.row.args["action"])
 
     _repr_fmt = \
             "<ChangeSocietyAdmin {0.action} {0.society_society} " \
@@ -199,18 +208,13 @@ class ChangeSocietyAdmin(Job):
 class CreateMySQLUserDatabase(Job):
     JOB_TYPE = 'create_mysql_user_database'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
     def new(cls, member):
-        args = {
-            "member": member.crsid
-        }
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
-
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+        return cls.store(member, {}, require_approval)
 
     __repr__ = "<CreateMySQLUserDatabase {0.member}>".format
     description = \
@@ -220,18 +224,13 @@ class CreateMySQLUserDatabase(Job):
 class ResetMySQLUserPassword(Job):
     JOB_TYPE = 'reset_mysql_user_password'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
     def new(cls, member):
-        args = {
-            "member": member.crsid
-        }
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
-
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+        return cls.store(member, {}, require_approval)
 
     __repr__ = "<ResetMySQLUserPassword {0.member}>".format
     description = \
@@ -241,22 +240,19 @@ class ResetMySQLUserPassword(Job):
 class CreateMySQLSocietyDatabase(Job):
     JOB_TYPE = 'create_mysql_society_database'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
+        self.society = queries.get_society(self.society_society, session=sess)
 
     @classmethod
     def new(cls, member, society):
-        args = {
-            "society": society.society,
-            "member": member.crsid
-        }
-        require_approval = \
-                society.danger \
-             or member.danger
+        args = {"society": society.society}
+        require_approval = society.danger or member.danger
         return cls.store(member, args, require_approval)
 
-    society_crsid = property(lambda s: s.row.args["society"])
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+    society_society = property(lambda s: s.row.args["society"])
 
     __repr__ = "<CreateMySQLSocietyDatabase {0.society}>".format
     description = \
@@ -266,21 +262,19 @@ class CreateMySQLSocietyDatabase(Job):
 class ResetMySQLSocietyPassword(Job):
     JOB_TYPE = 'reset_mysql_society_password'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
+        self.society = queries.get_society(self.society_society, session=sess)
 
     @classmethod
     def new(cls, member):
-        args = {
-            "society": society.society,
-            "member": member.crsid
-        }
-        require_approval = \
-                society.danger \
-             or member.danger
+        args = {"society": society.society}
+        require_approval = society.danger or member.danger
         return cls.store(member, args, require_approval)
 
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+    society_society = property(lambda s: s.row.args["society"])
 
     __repr__ = "<ResetMySQLSocietyPassword {0.society}>".format
     description = \
@@ -290,18 +284,13 @@ class ResetMySQLSocietyPassword(Job):
 class CreatePostgresUserDatabase(Job):
     JOB_TYPE = 'create_postgres_user_database'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
     def new(cls, member):
-        args = {
-            "member": member.crsid
-        }
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
-
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+        return cls.store(member, {}, require_approval)
 
     __repr__ = "<CreatePostgresUserDatabase {0.member}>".format
     description = \
@@ -311,18 +300,13 @@ class CreatePostgresUserDatabase(Job):
 class ResetPostgresUserPassword(Job):
     JOB_TYPE = 'reset_postgres_user_password'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
     def new(cls, member):
-        args = {
-            "member": member.crsid
-        }
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
-
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+        return cls.store(member, {}, require_approval)
 
     __repr__ = "<ResetPostgresUserPassword {0.member}>".format
     description = \
@@ -332,23 +316,19 @@ class ResetPostgresUserPassword(Job):
 class CreatePostgresSocietyDatabase(Job):
     JOB_TYPE = 'create_postgres_society_database'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
+        self.society = queries.get_society(self.society_society, session=sess)
 
     @classmethod
     def new(cls, member, society):
-        args = {
-            "society": society.society,
-            "member": member.crsid
-        }
-        require_approval = \
-                society.danger \
-             or member.danger
-        return cls.store(member, args, require_approval)
+        args = {"society": society.society}
+        require_approval = society.danger or member.danger
+        return cls.store(member, {}, require_approval)
 
-    society_society     = property(lambda s: s.row.args["society"])
-    target_member_crsid = property(lambda s: s.row.args["target_member"])
-    action              = property(lambda s: s.row.args["action"])
+    society_society = property(lambda s: s.row.args["society"])
 
     __repr__ = "<CreatePostgresSocietyDatabase {0.society}>".format
     description = \
@@ -358,21 +338,19 @@ class CreatePostgresSocietyDatabase(Job):
 class ResetPostgresSocietyPassword(Job):
     JOB_TYPE = 'reset_postgres_society_password'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
+        self.society = queries.get_society(self.society_society, session=sess)
 
     @classmethod
     def new(cls, member):
-        args = {
-            "society": society.society,
-            "member": member.crsid
-        }
-        require_approval = \
-                society.danger \
-             or member.danger
+        args = {"society": society.society}
+        require_approval = society.danger or member.danger
         return cls.store(member, args, require_approval)
 
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+    society_society = property(lambda s: s.row.args["society"])
 
     __repr__ = "<ResetPostgresSocietyPassword {0.member}>".format
     description = \
