@@ -1,0 +1,6 @@
+{
+    "pythonpath": "/societies/srcf-admin/control-hackday",
+    "hostname": "srcf-admin.soc.srcf.net",
+    "secret": "",
+    "web_directory": "/control-hackday"
+}
