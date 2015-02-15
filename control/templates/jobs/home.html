@@ -4,6 +4,7 @@
 <div class="main">
     <h1>Jobs for {{ crsid }}</h1>
 
+    {% if jobs %}
     <table>
         <thead>
             <tr>
@@ -34,5 +35,9 @@
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p>No jobs to show.</p>
+    {% endif %}
+
 </div>
 {% endblock body %}

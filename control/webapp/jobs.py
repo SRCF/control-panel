@@ -28,4 +28,4 @@ def status(id):
     if not can_view:
         raise NotFound(id)
 
-    return render_template("jobs/info.html", job=job)
+    return render_template("jobs/status.html", job=job)
