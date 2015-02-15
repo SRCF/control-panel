@@ -4,16 +4,22 @@ from srcf.mail import mail_sysadmins
 import srcf.database
 
 
-__all__ = ["Job", "Signup", "ChangeSocietyAdmin", \
-           "CreateMySQLUserDatabase", "CreateMySQLSocietyDatabase", \
-           "CreatePostgresUserDatabase", "CreatePostgresSocietyDatabase"]
-
-
 all_jobs = {}
 
 def add_job(cls):
     all_jobs[cls.JOB_TYPE] = cls
     return cls
+
+
+class JobDone(object):
+    def __init__(self, message=None):
+        self.state = "done"
+        self.message = message
+
+class JobFailed(object):
+    def __init__(self, message=None):
+        self.state = "failed"
+        self.message = message
 
 
 class Job(object):
@@ -63,7 +69,8 @@ class Job(object):
         ))
 
     def run(self, sess):
-        self.set_state("failed", "not implemented")
+        """Run the job. `self.state` will be set to `done` or `failed`."""
+        return JobFailed("not implemented")
 
     job_id = property(lambda s: s.row.job_id)
     owner = property(lambda s: s.row.owner)
