@@ -258,6 +258,9 @@ class ChangeSocietyAdmin(Job):
         if self.target_member not in self.society.admins:
             return JobFailed("{0.target_member.crsid} is not an admin of {0.society.society}".format(self))
 
+        if len(self.society.admins) == 1:
+            return JobFailed("removing all admins not implemented")
+
         if self.owner not in self.society.admins:
             return JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
 
