@@ -1,4 +1,5 @@
 from srcf import database
+from srcf.database import queries
 from srcf.mail import mail_sysadmins
 
 
@@ -14,8 +15,8 @@ def add_job(cls):
 
 class Job:
     @staticmethod
-    def of_row(row):
-        return all_jobs[row.type](row)
+    def of_row(row, sess):
+        return all_jobs[row.type](row, sess=sess)
 
     @classmethod
     def find(cls, sess, id):
@@ -23,7 +24,7 @@ class Job:
         if not job:
             return None
         else:
-            return cls.of_row(job)
+            return cls.of_row(job, sess=sess)
 
     def run(self):
         body = "\n".join("{0}: {1}".format(k, v) for k, v in self.args.items())
@@ -46,7 +47,7 @@ class Job:
 class Signup(Job):
     JOB_TYPE = 'signup'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -77,29 +78,36 @@ class Signup(Job):
 class ChangeSocietyAdmin(Job):
     JOB_TYPE = 'change_society_admin'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
+        self.society = \
+                queries.get_society(self.society_society,    session=sess)
+        self.target_member = \
+                queries.get_member(self.target_member_crsid, session=sess)
 
     @classmethod
-    def new(cls, requesting_member, society, member, action):
+    def new(cls, requesting_member, society, target_member, action):
         if action not in {"add", "remove"}:
             raise ValueError("action should be 'add' or 'remove'", action)
         args = {
             "society": society.society,
-            "member": member.crsid,
+            "target_member": target_member.crsid,
             "action": action
         }
         require_approval = \
                 society.danger \
-             or member.danger \
-             or requesting_member.danger
+             or target_member.danger \
+             or requesting_member.danger \
+             or requesting_member == target_member
 
         row = database.Job(
             type=cls.JOB_TYPE,
+            owner=requesting_member,
             state="unapproved" if require_approval else "queued",
             args=args
         )
         return cls(row)
 
-    society_crsid = property(lambda s: s.row.args["society"])
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+    society_society     = property(lambda s: s.row.args["society"])
+    target_member_crsid = property(lambda s: s.row.args["target_member"])
+    action              = property(lambda s: s.row.args["action"])

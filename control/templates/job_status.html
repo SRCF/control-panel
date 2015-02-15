@@ -1,15 +1,18 @@
 {% extends "base.html" %}
+{% from "macros.html" import mem_name_crsid, soc_desc_soc %}
 
 {% block body %}
 <div class="main">
     <h1>Job Status</h1>
 
     {% if job.JOB_TYPE == "signup" %}
-    <h2>Account creation for {{ job.preferred_name }} {{ job.surname }} (<code>{{ job.crsid }}</code>)</h2>
-    {% elif job.JOB_TYPE == "change_society_admin" and job.action == "add" %}
-    <h2>Add <code>{{ job.member }}</code> as an administrator of society <code>{{ job.society }}</code>.</h2>
-    {% elif job.JOB_TYPE == "change_society_admin" and job.action == "remove" %}
-    <h2>Remove <code>{{ job.member }}</code> from society <code>{{ job.society }}</code>.</h2>
+    <h2>Account creation for <b>{{ job.preferred_name }} {{ job.surname }}</b> (<code>{{ job.crsid }}</code>)</h2>
+    {% elif job.JOB_TYPE == "change_society_admin" %}
+    <h2>
+        {{ job.action|title }} {{ mem_name_crsid(job.target_member) }}
+        {{ "to" if job.action == "add" else "from" }}
+        society {{ soc_desc_soc(job.society) }}
+    </h2>
     {% endif %}
 
     {% if job.state == "unapproved" %}

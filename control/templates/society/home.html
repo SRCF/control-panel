@@ -24,7 +24,7 @@
                 <td>{{ admin.name }}</td>
                 <td>
                     {%- if admin != member -%}
-                    <a href='#todo'>Remove</a>
+                    <a href='{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid ) }}'>Remove</a>
                     {%- endif -%}
                 </td>
             </tr>
