@@ -15,7 +15,7 @@ import sqlalchemy.ext.compiler
 
 from srcf import database
 
-from .jobs import Job
+from . import jobs
 
 
 logger = logging.getLogger("control.job_runner")
@@ -115,7 +115,7 @@ def queued_jobs(conn, sess):
 def main():
     conn, sess = connect()
     for i in queued_jobs(conn, sess):
-        job = Job.find(id=i, sess=sess)
+        job = jobs.Job.find(id=i, sess=sess)
         if job.state != "queued":
             sess.rollback()
             continue
@@ -126,25 +126,29 @@ def main():
         sess.commit()
 
         try:
-            job.run(sess=sess)
-
-            if job.state not in {'failed', 'done'}:
-                raise RuntimeError("job.run() finished, but did not mark as failed or done")
+            run_result = job.run(sess=sess)
 
         except:
             logger.exception("job %s unhandled exception", job.job_id)
-            sess.rollback()
-            job = Job.find(id=i, sess=sess)
-            exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
-            job.set_state("failed", exc)
-            sess.add(job.row)
-            sess.commit()
-            raise
 
+            # rollback
+            sess.rollback()
+            job = jobs.Job.find(id=i, sess=sess)
+
+            exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
+            run_result = jobs.JobFailed(exc)
+            
         else:
-            logger.info("job %s ran; finished %s %s", job.job_id, job.state, job.state_message)
-            sess.add(job.row)
-            sess.commit()
+            if not hasattr(run_result, 'state'):
+                raise RuntimeError("job.run() did not return a result")
+            if run_result.state not in {"done", "failed"}:
+                raise RuntimeError("job.run() did not return done or failed")
+
+            logger.info("job %s ran; finished %s %s", job.job_id, run_result.state, run_result.message)
+
+        job.set_state(run_result.state, run_result.message)
+        sess.add(job.row)
+        sess.commit()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

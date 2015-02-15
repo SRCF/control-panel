@@ -1,12 +1,9 @@
+import subprocess
+
 from srcf import database
 from srcf.database import queries
 from srcf.mail import mail_sysadmins
 import srcf.database
-
-
-__all__ = ["Job", "Signup", "ChangeSocietyAdmin", \
-           "CreateMySQLUserDatabase", "CreateMySQLSocietyDatabase", \
-           "CreatePostgresUserDatabase", "CreatePostgresSocietyDatabase"]
 
 
 all_jobs = {}
@@ -14,6 +11,17 @@ all_jobs = {}
 def add_job(cls):
     all_jobs[cls.JOB_TYPE] = cls
     return cls
+
+
+class JobDone(object):
+    def __init__(self, message=None):
+        self.state = "done"
+        self.message = message
+
+class JobFailed(object):
+    def __init__(self, message=None):
+        self.state = "failed"
+        self.message = message
 
 
 class Job(object):
@@ -63,7 +71,8 @@ class Job(object):
         ))
 
     def run(self, sess):
-        self.set_state("failed", "not implemented")
+        """Run the job. `self.state` will be set to `done` or `failed`."""
+        return JobFailed("not implemented")
 
     job_id = property(lambda s: s.row.job_id)
     owner = property(lambda s: s.row.owner)
@@ -241,6 +250,30 @@ class ChangeSocietyAdmin(Job):
         fmt = "{verb} {0.target_member.crsid} ({0.target_member.name}) "\
                 "{prep} {0.society.society} ({0.society.description})"
         return fmt.format(self, verb=verb, prep=prep)
+
+    def run(self, sess):
+        if self.action == "add":
+            return JobFailed("adding not implemented")
+
+        if self.target_member not in self.society.admins:
+            return JobFailed("{0.target_member.crsid} is not an admin of {0.society.society}".format(self))
+
+        if len(self.society.admins) == 1:
+            return JobFailed("removing all admins not implemented")
+
+        if self.owner not in self.society.admins:
+            return JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
+
+        self.society.admins.remove(self.target_member)
+        subprocess.check_call(["deluser", self.target_member.crsid, self.society.society])
+
+        mail_sysadmins("SRCF Society Admins Change",
+                       "{0.target_member.crsid} ({0.target_member.name}) removed from "
+                       "{0.society.society} ({0.society.description}) "
+                       "at request of {0.owner.crsid} ({0.owner.name})"
+                       .format(self))
+
+        return JobDone()
 
 @add_job
 class CreateSocietyMailingList(Job):
