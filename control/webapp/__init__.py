@@ -1,6 +1,6 @@
 from flask import Flask
 
-from . import utils, home, signup, jobs, admin
+from . import utils, home, signup, job_status, admin
 
 app = Flask(__name__,
             template_folder="../templates",
@@ -8,5 +8,5 @@ app = Flask(__name__,
 utils.setup_app(app)
 app.register_blueprint(home.bp)
 app.register_blueprint(signup.bp)
-app.register_blueprint(jobs.bp)
+app.register_blueprint(job_status.bp)
 app.register_blueprint(admin.bp)
