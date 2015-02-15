@@ -19,7 +19,7 @@ def signup():
     except KeyError:
         pass
     else:
-        return redirect(url_for('overview.home'))
+        return redirect(url_for('home.home'))
 
     if request.method == 'POST':
         values = {}

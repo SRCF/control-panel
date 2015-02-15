@@ -8,7 +8,7 @@ bp = Blueprint("society", __name__)
 
 
 @bp.route('/societies/<society>')
-def society(society):
+def home(society):
     crsid = utils.raven.principal
     try:
         mem = utils.get_member(crsid)
@@ -22,3 +22,7 @@ def society(society):
     inspect_services.lookup_all(soc)
 
     return render_template("society.html", member=mem, society=soc)
+
+@bp.route("/societies/<society>/admins/<crsid>/remove", methods=["GET", "POST"])
+def remove_admin(society, crsid):
+    pass

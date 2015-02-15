@@ -5,7 +5,7 @@
     <h1>{{ society.society }} &mdash; {{ society.description }}</h1>
 
     <p>Created <span class="data">{{ society.joined.strftime('%b %G') }}</span></p>
-    <p><a href="{{ url_for("overview.home") }}">Control panel home</a></p>
+    <p><a href="{{ url_for("home.home") }}">Control panel home</a></p>
 
     <h2>Administrators</h2>
 
@@ -162,7 +162,7 @@
 
     <h2>Mailing lists</h2>
 
-    {% if society.lists %}
+    {% if society.mailinglists %}
         <table>
             <thead>
                 <tr>
@@ -172,7 +172,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for list in society.lists|sort %}
+                {% for list in society.mailinglists|sort %}
                 <tr>
                     <td>{{ list }}<small>@srcf.net</small></td>
                     <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>

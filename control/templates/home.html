@@ -17,9 +17,9 @@
                 {% if member.pgdbs %}
                 <li>PostgreSQL databases: {% for db in member.pgdbs|sort %}{{ db }} {% endfor %}</li>
                 {% endif %}
-                {% if member.lists %}
+                {% if member.mailinglists %}
                 <li>Mailing lists:
-                    {% for list in member.lists|sort %}
+                    {% for list in member.mailinglists|sort %}
                     <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
                     {% endfor %}
                 </li>
@@ -33,7 +33,7 @@
         {% for soc in member.societies %}
         <li class="acct">
             <div class="head">
-                <a href="{{ url_for('overview.society', society=soc.society) }}"><span class="data">{{ soc.society }}</span></a>
+                <a href="{{ url_for('society.home', society=soc.society) }}"><span class="data">{{ soc.society }}</span></a>
                 &mdash; <span class="data">{{ soc.description }}</span>
             </div>
             <ul class="acctattribs">
@@ -49,14 +49,14 @@
                 {% if soc.pgdbs %}
                 <li>PostgreSQL databases: {% for db in soc.pgdbs|sort %}{{ db }} {% endfor %}</li>
                 {% endif %}
-                {% if soc.lists %}
+                {% if soc.mailinglists %}
                 <li>Mailing lists:
-                    {% for list in soc.lists|sort %}
+                    {% for list in soc.mailinglists|sort %}
                     <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>
                     {% endfor %}
                 </li>
                 {% endif %}
-                <li><a href="{{ url_for('overview.society', society=soc.society) }}">Manage Society</a></li>
+                <li><a href="{{ url_for('society.home', society=soc.society) }}">Manage Society</a></li>
             </ul>
         </li>
         {% endfor %}
