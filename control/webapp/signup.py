@@ -8,8 +8,8 @@ from .utils import srcf_db_sess as sess
 from . import utils
 from .. import jobs
 
-FULL_NAME_RE = re.compile(r'^[\w\s]*$')
-SHORT_NAME_RE = re.compile(r'^[a-z]*$')
+SOC_DESC_RE = re.compile(r'^[\w\s]*$')
+SOC_SOCIETY_RE = re.compile(r'^[a-z]*$')
 MAILING_LIST_RE = re.compile(r'^[-\w]*$')
 
 bp = Blueprint("signup", __name__)
@@ -80,7 +80,7 @@ def newsoc():
 
     if request.method == 'POST':
         values = {}
-        for key in ("full_name", "short_name"):
+        for key in ("society", "description"):
             values[key] = request.form.get(key, "")
         for key in ("admins", "lists"):
             values[key] = request.form.get(key, "").splitlines()
@@ -88,8 +88,8 @@ def newsoc():
             values[key] = bool(request.form.get(key, False))
 
         errors = {
-            "full_name": FULL_NAME_RE.match(values["full_name"]) == None,
-            "short_name": SHORT_NAME_RE.match(values["short_name"]) == None,
+            "description": SOC_DESC_RE.match(values["description"]) == None,
+            "society": SOC_SOCIETY_RE.match(values["society"]) == None,
             "admins": False,
             "lists": False
         }
@@ -124,8 +124,8 @@ def newsoc():
     else:
         # defaults
         values = {
-            "full_name": "",
-            "short_name": "",
+            "description": "",
+            "society": "",
             "admins": mem,
             "lists": "",
             "mysql": False,

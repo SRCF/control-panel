@@ -137,17 +137,17 @@ class CreateSociety(Job):
             raise KeyError("CreateSociety references admins")
 
     @classmethod
-    def new(cls, requesting_member, short_name, full_name, admins, mysql, postgres, lists):
+    def new(cls, member, society, description, admins,
+            mysql, postgres, mailinglists):
         args = {
-            "requesting_member": requesting_member.crsid,
             "society": society,
             "description": description,
-            "admins": ",".join(admins),
+            "admins": ",".join(a.crsid for a in admins),
             "mysql": "y" if mysql else "n",
             "postgres": "y" if postgres else "n",
-            "mailinglists": ",".join(lists)
+            "mailinglists": ",".join(mailinglists)
         }
-        return cls.store(requesting_member, args)
+        return cls.store(member, args)
 
     society      = property(lambda s: s.row.args["society"])
     description  = property(lambda s: s.row.args["description"])
@@ -156,9 +156,9 @@ class CreateSociety(Job):
     postgres     = property(lambda s: s.row.args["postgres"] == "y")
     mailinglists = property(lambda s: s.row.args["mailinglists"].split(","))
 
-    __repr__ = "<CreateSociety {0.short_name}>".format
+    __repr__ = "<CreateSociety {0.society}>".format
     description = \
-        property("Create Society: {0.short_name} ({0.full_name})".format)
+        property("Create Society: {0.society} ({0.description})".format)
 
 @add_job
 class ChangeSocietyAdmin(Job):
