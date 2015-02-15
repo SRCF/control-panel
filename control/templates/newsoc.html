@@ -23,7 +23,7 @@
 
         <div class='form-group {{ sif (errors.society, 'error') }}'>
             <label for="society">Society short name:</label>
-            <input type="text" id="society" name="society" value="{{ society }}" />
+            <input type="text" id="society" name="society" maxlength="16" value="{{ society }}" />
 
             {% if errors.society is defined and errors.society %}
             <br />
