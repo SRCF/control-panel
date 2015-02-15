@@ -96,9 +96,8 @@ class Signup(Job):
     social         = property(lambda s: s.row.args["social"] == "y")
 
     __repr__ = "<Signup {0.crsid}>".format
-    description = \
-        property("Signup: {0.crsid} ({0.preferred_name} "
-                 "{0.surname}, {0.email})".format)
+    describe = property("Signup: {0.crsid} ({0.preferred_name} "
+                        "{0.surname}, {0.email})".format)
 
 @add_job
 class ResetUserPassword(Job):
@@ -109,17 +108,11 @@ class ResetUserPassword(Job):
 
     @classmethod
     def new(cls, member):
-        args = {
-            "member": member.crsid
-        }
         require_approval = member.danger
         return cls.store(member, args, require_approval)
 
-    member_crsid  = property(lambda s: s.row.args["crsid"])
-
-    __repr__ = "<ResetUserPassword {0.member}>".format
-    description = \
-        property("Reset User Password: {0.member}".format)
+    __repr__ = "<ResetUserPassword {0.owner_crsid}>".format
+    describe = property("Reset User Password: {0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
 class CreateSociety(Job):
@@ -157,8 +150,7 @@ class CreateSociety(Job):
     mailinglists = property(lambda s: s.row.args["mailinglists"].split(","))
 
     __repr__ = "<CreateSociety {0.society}>".format
-    description = \
-        property("Create Society: {0.society} ({0.description})".format)
+    describe = property("Create Society: {0.society} ({0.description})".format)
 
 @add_job
 class ChangeSocietyAdmin(Job):
@@ -198,11 +190,12 @@ class ChangeSocietyAdmin(Job):
             "{0.target_member_crsid}>"
     __repr__ = _repr_fmt.format
     @property
-    def description(self):
+    def describe(self):
+        verb = self.action.title()
         prep = "to" if self.action == "add" else "from"
-        fmt = "ChangeSocietyAdmin: {0.action} {0.target_member_crsid} "\
-                "{prep} {0.society_society}"
-        return fmt.format(self, prep=prep)
+        fmt = "{verb} {0.target_member.crsid} ({0.target_member.name}) "\
+                "{prep} {0.society.society} ({0.society.description})"
+        return fmt.format(self, verb=verb, prep=prep)
 
 @add_job
 class CreateMySQLUserDatabase(Job):
@@ -216,9 +209,8 @@ class CreateMySQLUserDatabase(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
-    __repr__ = "<CreateMySQLUserDatabase {0.member}>".format
-    description = \
-        property("Create MySQL User Database: {0.member}".format)
+    __repr__ = "<CreateMySQLUserDatabase {0.owner_crsid}>".format
+    describe = property("Create MySQL User Database: {0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
 class ResetMySQLUserPassword(Job):
@@ -232,9 +224,8 @@ class ResetMySQLUserPassword(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
-    __repr__ = "<ResetMySQLUserPassword {0.member}>".format
-    description = \
-        property("Reset MySQL User Password: {0.member}".format)
+    __repr__ = "<ResetMySQLUserPassword {0.owner_crsid}".format
+    describe = property("Reset MySQL User Password: {0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
 class CreateMySQLSocietyDatabase(Job):
@@ -254,9 +245,9 @@ class CreateMySQLSocietyDatabase(Job):
 
     society_society = property(lambda s: s.row.args["society"])
 
-    __repr__ = "<CreateMySQLSocietyDatabase {0.society}>".format
-    description = \
-        property("Create MySQL Society Database: {0.society} ({0.member})".format)
+    __repr__ = "<CreateMySQLSocietyDatabase {0.society_society}>".format
+    describe = property("Create MySQL Society Database: "
+                        "{0.society.society} ({0.society.description})".format)
 
 @add_job
 class ResetMySQLSocietyPassword(Job):
@@ -276,9 +267,9 @@ class ResetMySQLSocietyPassword(Job):
 
     society_society = property(lambda s: s.row.args["society"])
 
-    __repr__ = "<ResetMySQLSocietyPassword {0.society}>".format
-    description = \
-        property("Reset MySQL Society Password: {0.society} ({0.member})".format)
+    __repr__ = "<ResetMySQLSocietyPassword {0.society_society}>".format
+    describe = property("Reset MySQL Society Password: "
+                        "{0.society.society} ({0.society.description})".format)
 
 @add_job
 class CreatePostgresUserDatabase(Job):
@@ -292,9 +283,9 @@ class CreatePostgresUserDatabase(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
-    __repr__ = "<CreatePostgresUserDatabase {0.member}>".format
-    description = \
-        property("Create Postgres User Database: {0.member}".format)
+    __repr__ = "<CreatePostgresUserDatabase {0.owner_crsid}>".format
+    describe = property("Create Postgres User Database: "
+                        "{0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
 class ResetPostgresUserPassword(Job):
@@ -308,9 +299,9 @@ class ResetPostgresUserPassword(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
-    __repr__ = "<ResetPostgresUserPassword {0.member}>".format
-    description = \
-        property("Reset Postgres User Password: {0.member}".format)
+    __repr__ = "<ResetPostgresUserPassword {0.owner_crsid}>".format
+    describe = property("Reset Postgres User Password: "
+                        "{0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
 class CreatePostgresSocietyDatabase(Job):
@@ -330,9 +321,9 @@ class CreatePostgresSocietyDatabase(Job):
 
     society_society = property(lambda s: s.row.args["society"])
 
-    __repr__ = "<CreatePostgresSocietyDatabase {0.society}>".format
-    description = \
-        property("Create Postgres Society Database: {0.society} ({0.member})".format)
+    __repr__ = "<CreatePostgresSocietyDatabase {0.society_society}>".format
+    describe = property("Create Postgres Society Database: "
+                        "{0.society.society} ({0.society.description})".format)
 
 @add_job
 class ResetPostgresSocietyPassword(Job):
@@ -352,6 +343,6 @@ class ResetPostgresSocietyPassword(Job):
 
     society_society = property(lambda s: s.row.args["society"])
 
-    __repr__ = "<ResetPostgresSocietyPassword {0.member}>".format
-    description = \
-        property("Reset Postgres Society Password: {0.society} ({0.member})".format)
+    __repr__ = "<ResetPostgresSocietyPassword {0.society_society}>".format
+    describe = property("Reset Postgres Society Password: "
+                        "{0.society.society} ({0.society.description})".format)

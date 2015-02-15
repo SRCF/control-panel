@@ -5,15 +5,7 @@
 <div class="main">
     <h1>Job Status</h1>
 
-    {% if job.JOB_TYPE == "signup" %}
-    <h2>Account creation for <b>{{ job.preferred_name }} {{ job.surname }}</b> (<code>{{ job.crsid }}</code>)</h2>
-    {% elif job.JOB_TYPE == "change_society_admin" %}
-    <h2>
-        {{ job.action|title }} {{ mem_name_crsid(job.target_member) }}
-        {{ "to" if job.action == "add" else "from" }}
-        society {{ soc_desc_soc(job.society) }}
-    </h2>
-    {% endif %}
+    <h2>{{ job.describe }}</h2>
 
     {% if job.state == "unapproved" %}
         <h3>To be checked by a sysadmin</h3>
