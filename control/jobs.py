@@ -270,7 +270,7 @@ class ResetMySQLSocietyPassword(Job):
         self.row = row
 
     @classmethod
-    def new(cls, member):
+    def new(cls, member, society):
         args = {
             "society": society.society,
             "member": member.crsid
@@ -362,7 +362,7 @@ class ResetPostgresSocietyPassword(Job):
         self.row = row
 
     @classmethod
-    def new(cls, member):
+    def new(cls, member, society):
         args = {
             "society": society.society,
             "member": member.crsid
