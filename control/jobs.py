@@ -85,6 +85,27 @@ class Signup(Job):
                  "{0.surname}, {0.email})".format)
 
 @add_job
+class ResetUserPassword(Job):
+    JOB_TYPE = 'reset_user_password'
+
+    def __init__(self, row, sess=None):
+        self.row = row
+
+    @classmethod
+    def new(cls, member):
+        args = {
+            "member": member.crsid
+        }
+        require_approval = member.danger
+        return cls.store(member, args, require_approval)
+
+    member_crsid  = property(lambda s: s.row.args["crsid"])
+
+    __repr__ = "<ResetUserPassword {0.member}>".format
+    description = \
+        property("Reset User Password: {0.member}".format)
+
+@add_job
 class CreateSociety(Job):
     JOB_TYPE = 'create_society'
 
@@ -145,6 +166,10 @@ class ChangeSocietyAdmin(Job):
     society_crsid = property(lambda s: s.row.args["society"])
     member_crsid  = property(lambda s: s.row.args["crsid"])
 
+    __repr__ = "<ChangeSocietyAdmin {0.society} {0.action} {0.targret_member}>".format
+    description = \
+        property("Change Society Admin: {0.society} ({0.action} {0.target_member})".format)
+
 @add_job
 class CreateMySQLUserDatabase(Job):
     JOB_TYPE = 'create_mysql_user_database'
@@ -162,6 +187,31 @@ class CreateMySQLUserDatabase(Job):
 
     member_crsid  = property(lambda s: s.row.args["crsid"])
 
+    __repr__ = "<CreateMySQLUserDatabase {0.member}>".format
+    description = \
+        property("Create MySQL User Database: {0.member}".format)
+
+@add_job
+class ResetMySQLUserPassword(Job):
+    JOB_TYPE = 'reset_mysql_user_password'
+
+    def __init__(self, row, sess=None):
+        self.row = row
+
+    @classmethod
+    def new(cls, member):
+        args = {
+            "member": member.crsid
+        }
+        require_approval = member.danger
+        return cls.store(member, args, require_approval)
+
+    member_crsid  = property(lambda s: s.row.args["crsid"])
+
+    __repr__ = "<ResetMySQLUserPassword {0.member}>".format
+    description = \
+        property("Reset MySQL User Password: {0.member}".format)
+
 @add_job
 class CreateMySQLSocietyDatabase(Job):
     JOB_TYPE = 'create_mysql_society_database'
@@ -170,18 +220,46 @@ class CreateMySQLSocietyDatabase(Job):
         self.row = row
 
     @classmethod
-    def new(cls, requesting_member, society):
+    def new(cls, member, society):
         args = {
             "society": society.society,
-            "member": requesting_member.crsid
+            "member": member.crsid
         }
         require_approval = \
                 society.danger \
-             or requesting_member.danger
-        return cls.store(requesting_member, args, require_approval)
+             or member.danger
+        return cls.store(member, args, require_approval)
 
     society_crsid = property(lambda s: s.row.args["society"])
     member_crsid  = property(lambda s: s.row.args["crsid"])
+
+    __repr__ = "<CreateMySQLSocietyDatabase {0.society}>".format
+    description = \
+        property("Create MySQL Society Database: {0.society} ({0.member})".format)
+
+@add_job
+class ResetMySQLSocietyPassword(Job):
+    JOB_TYPE = 'reset_mysql_society_password'
+
+    def __init__(self, row, sess=None):
+        self.row = row
+
+    @classmethod
+    def new(cls, member):
+        args = {
+            "society": society.society,
+            "member": member.crsid
+        }
+        require_approval = \
+                society.danger \
+             or member.danger
+        return cls.store(member, args, require_approval)
+
+    member_crsid  = property(lambda s: s.row.args["crsid"])
+
+    __repr__ = "<ResetMySQLSocietyPassword {0.society}>".format
+    description = \
+        property("Reset MySQL Society Password: {0.society} ({0.member})".format)
 
 @add_job
 class CreatePostgresUserDatabase(Job):
@@ -200,6 +278,31 @@ class CreatePostgresUserDatabase(Job):
 
     member_crsid  = property(lambda s: s.row.args["crsid"])
 
+    __repr__ = "<CreatePostgresUserDatabase {0.member}>".format
+    description = \
+        property("Create Postgres User Database: {0.member}".format)
+
+@add_job
+class ResetPostgresUserPassword(Job):
+    JOB_TYPE = 'reset_postgres_user_password'
+
+    def __init__(self, row, sess=None):
+        self.row = row
+
+    @classmethod
+    def new(cls, member):
+        args = {
+            "member": member.crsid
+        }
+        require_approval = member.danger
+        return cls.store(member, args, require_approval)
+
+    member_crsid  = property(lambda s: s.row.args["crsid"])
+
+    __repr__ = "<ResetPostgresUserPassword {0.member}>".format
+    description = \
+        property("Reset Postgres User Password: {0.member}".format)
+
 @add_job
 class CreatePostgresSocietyDatabase(Job):
     JOB_TYPE = 'create_postgres_society_database'
@@ -208,16 +311,44 @@ class CreatePostgresSocietyDatabase(Job):
         self.row = row
 
     @classmethod
-    def new(cls, requesting_member, society):
+    def new(cls, member, society):
         args = {
             "society": society.society,
-            "member": requesting_member.crsid
+            "member": member.crsid
         }
         require_approval = \
                 society.danger \
-             or requesting_member.danger
-        return cls.store(requesting_member, args, require_approval)
+             or member.danger
+        return cls.store(member, args, require_approval)
 
     society_society     = property(lambda s: s.row.args["society"])
     target_member_crsid = property(lambda s: s.row.args["target_member"])
     action              = property(lambda s: s.row.args["action"])
+
+    __repr__ = "<CreatePostgresSocietyDatabase {0.society}>".format
+    description = \
+        property("Create Postgres Society Database: {0.society} ({0.member})".format)
+
+@add_job
+class ResetPostgresSocietyPassword(Job):
+    JOB_TYPE = 'reset_postgres_society_password'
+
+    def __init__(self, row, sess=None):
+        self.row = row
+
+    @classmethod
+    def new(cls, member):
+        args = {
+            "society": society.society,
+            "member": member.crsid
+        }
+        require_approval = \
+                society.danger \
+             or member.danger
+        return cls.store(member, args, require_approval)
+
+    member_crsid  = property(lambda s: s.row.args["crsid"])
+
+    __repr__ = "<ResetPostgresSocietyPassword {0.member}>".format
+    description = \
+        property("Reset Postgres Society Password: {0.society} ({0.member})".format)
