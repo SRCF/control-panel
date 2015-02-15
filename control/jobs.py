@@ -17,8 +17,8 @@ def add_job(cls):
 
 class Job:
     @staticmethod
-    def of_row(row, sess):
-        return all_jobs[row.type](row, sess=sess)
+    def of_row(row):
+        return all_jobs[row.type](row)
 
     @classmethod
     def find(cls, sess, id):
@@ -26,7 +26,23 @@ class Job:
         if not job:
             return None
         else:
-            return cls.of_row(job, sess=sess)
+            job = cls.of_row(job)
+            job.resolve_references(sess)
+            return job
+
+    def resolve_references(self, sess):
+        """
+        Due to jobs having a varying number of arguments, and hstore columns
+        mapping strings to strings, sometimes we'll store (say) a string crsid
+        for the target of a job (say, adding an admin).
+
+        This function uses `sess` to look up those Members/Societies and
+        populate attributes with `srcf.database.*` objects.
+
+        It would be far nice if SQLAlchemy could handle this, even using a JOIN
+        where possible, but this sounds like a lot of work.
+        """
+        pass
 
     @classmethod
     def store(cls, owner, args, require_approval=False):
@@ -58,7 +74,7 @@ class Job:
 class Signup(Job):
     JOB_TYPE = 'signup'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
 
     @classmethod
@@ -140,12 +156,14 @@ class CreateSociety(Job):
 class ChangeSocietyAdmin(Job):
     JOB_TYPE = 'change_society_admin'
 
-    def __init__(self, row, sess=None):
+    def __init__(self, row):
         self.row = row
+
+    def resolve_references(self, sess):
         self.society = \
-                queries.get_society(self.society_society,    session=sess)
+            queries.get_society(self.society_society,    session=sess)
         self.target_member = \
-                queries.get_member(self.target_member_crsid, session=sess)
+            queries.get_member(self.target_member_crsid, session=sess)
 
     @classmethod
     def new(cls, requesting_member, society, target_member, action):
@@ -166,9 +184,16 @@ class ChangeSocietyAdmin(Job):
     society_crsid = property(lambda s: s.row.args["society"])
     member_crsid  = property(lambda s: s.row.args["crsid"])
 
-    __repr__ = "<ChangeSocietyAdmin {0.society} {0.action} {0.targret_member}>".format
-    description = \
-        property("Change Society Admin: {0.society} ({0.action} {0.target_member})".format)
+    _repr_fmt = \
+            "<ChangeSocietyAdmin {0.action} {0.society_society} " \
+            "{0.target_member_crsid}>"
+    __repr__ = _repr_fmt.format
+    @property
+    def description(self):
+        prep = "to" if self.action == "add" else "from"
+        fmt = "ChangeSocietyAdmin: {0.action} {0.target_member_crsid} "\
+                "{prep} {0.society_society}"
+        return fmt.format(self, prep=prep)
 
 @add_job
 class CreateMySQLUserDatabase(Job):

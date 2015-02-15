@@ -28,6 +28,10 @@
             </ul>
         </li>
     </ul>
+    {% if member is admin %}
+    <h3>You are an adminstrator of the SRCF:</h3>
+    <a href="{{ url_for('admin.home') }}">Control Panel Administration</a>
+    {% endif %}
     {% if member.societies %}
     <h3>You are an adminstrator of the following societies:</h3>
     <ul class="acctlist">
