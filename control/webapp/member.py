@@ -5,17 +5,22 @@ from .utils import srcf_db_sess as sess
 from . import utils, inspect_services
 from .. import jobs
 
+def find_member():
+    """ Gets a CRSID and member object from the Raven authentication data """
+    crsid = utils.raven.principal
+    try:
+        mem = utils.get_member(crsid)
+    except KeyError:
+        raise NotFound
+
+    return crsid, mem
 
 bp = Blueprint("member", __name__)
 
 
 @bp.route('/member')
 def home():
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
+    crsid, mem = find_member()
 
     inspect_services.lookup_all(mem)
 
@@ -23,11 +28,7 @@ def home():
 
 @bp.route("/member/password", methods=["GET", "POST"])
 def reset_password():
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
+    crsid, mem = find_member()
 
     if request.method == "POST":
         j = jobs.ResetUserPassword.new(member=mem)
@@ -52,11 +53,7 @@ def create_mailing_list():
 
 @bp.route("/member/mysql/password", methods=["GET", "POST"])
 def reset_mysql_password():
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
+    crsid, mem = find_member()
 
     if request.method == "POST":
         j = jobs.ResetMySQLUserPassword.new(member=mem)
@@ -68,11 +65,7 @@ def reset_mysql_password():
 
 @bp.route("/member/postgres/password", methods=["GET", "POST"])
 def reset_postgres_password():
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
+    crsid, mem = find_member()
 
     if request.method == "POST":
         j = jobs.ResetPostgresUserPassword.new(member=mem)
