@@ -47,5 +47,7 @@ def view_jobs(state):
     jobs = sess.query(job_row) \
                     .filter(job_row.state == state) \
                     .order_by(job_row.job_id)
-    jobs = map(Job.of_row, jobs)
+    # XXX: it would be quite nice to load this with a JOIN, but due to
+    # jobs having different arguments and relations this is harder.
+    jobs = [Job.of_row(r, sess=sess) for r in jobs]
     return render_template("admin/view_jobs.html", state=state, jobs=jobs)

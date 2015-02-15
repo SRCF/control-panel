@@ -1,4 +1,5 @@
 from srcf import database
+from srcf.database import queries
 from srcf.mail import mail_sysadmins
 
 
@@ -16,8 +17,8 @@ def add_job(cls):
 
 class Job:
     @staticmethod
-    def of_row(row):
-        return all_jobs[row.type](row)
+    def of_row(row, sess):
+        return all_jobs[row.type](row, sess=sess)
 
     @classmethod
     def find(cls, sess, id):
@@ -25,12 +26,13 @@ class Job:
         if not job:
             return None
         else:
-            return cls.of_row(job)
+            return cls.of_row(job, sess=sess)
 
     @classmethod
-    def store(cls, args, require_approval=False):
+    def store(cls, owner, args, require_approval=False):
         return cls(database.Job(
             type=cls.JOB_TYPE,
+            owner=owner,
             state="unapproved" if require_approval else "queued",
             args=args
         ))
@@ -56,7 +58,7 @@ class Job:
 class Signup(Job):
     JOB_TYPE = 'signup'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -69,7 +71,7 @@ class Signup(Job):
             "social": "y" if social else "n"
         }
         # note that we can't set owner because the Member doesn't exist yet
-        return cls.store(args)
+        return cls.store(args, None)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])
@@ -86,7 +88,7 @@ class Signup(Job):
 class CreateSociety(Job):
     JOB_TYPE = 'create_society'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -100,7 +102,7 @@ class CreateSociety(Job):
             "postgres": "y" if postgres else "n",
             "lists": ",".join(lists)
         }
-        return cls.store(args)
+        return cls.store(requesting_member, args)
 
     short_name = property(lambda s: s.row.args["short_name"])
     full_name  = property(lambda s: s.row.args["full_name"])
@@ -117,23 +119,28 @@ class CreateSociety(Job):
 class ChangeSocietyAdmin(Job):
     JOB_TYPE = 'change_society_admin'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
+        self.society = \
+                queries.get_society(self.society_society,    session=sess)
+        self.target_member = \
+                queries.get_member(self.target_member_crsid, session=sess)
 
     @classmethod
-    def new(cls, requesting_member, society, member, action):
+    def new(cls, requesting_member, society, target_member, action):
         if action not in {"add", "remove"}:
             raise ValueError("action should be 'add' or 'remove'", action)
         args = {
             "society": society.society,
-            "member": member.crsid,
+            "target_member": target_member.crsid,
             "action": action
         }
         require_approval = \
                 society.danger \
-             or member.danger \
-             or requesting_member.danger
-        return cls.store(args, require_approval)
+             or target_member.danger \
+             or requesting_member.danger \
+             or requesting_member == target_member
+        return cls.store(requesting_member, args, require_approval)
 
     society_crsid = property(lambda s: s.row.args["society"])
     member_crsid  = property(lambda s: s.row.args["crsid"])
@@ -142,7 +149,7 @@ class ChangeSocietyAdmin(Job):
 class CreateMySQLUserDatabase(Job):
     JOB_TYPE = 'create_mysql_user_database'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -151,7 +158,7 @@ class CreateMySQLUserDatabase(Job):
             "member": member.crsid
         }
         require_approval = member.danger
-        return cls.store(args, require_approval)
+        return cls.store(member, args, require_approval)
 
     member_crsid  = property(lambda s: s.row.args["crsid"])
 
@@ -159,7 +166,7 @@ class CreateMySQLUserDatabase(Job):
 class CreateMySQLSocietyDatabase(Job):
     JOB_TYPE = 'create_mysql_society_database'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -171,7 +178,7 @@ class CreateMySQLSocietyDatabase(Job):
         require_approval = \
                 society.danger \
              or requesting_member.danger
-        return cls.store(args, require_approval)
+        return cls.store(requesting_member, args, require_approval)
 
     society_crsid = property(lambda s: s.row.args["society"])
     member_crsid  = property(lambda s: s.row.args["crsid"])
@@ -180,7 +187,7 @@ class CreateMySQLSocietyDatabase(Job):
 class CreatePostgresUserDatabase(Job):
     JOB_TYPE = 'create_postgres_user_database'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -189,7 +196,7 @@ class CreatePostgresUserDatabase(Job):
             "member": member.crsid
         }
         require_approval = member.danger
-        return cls.store(args, require_approval)
+        return cls.store(member, args, require_approval)
 
     member_crsid  = property(lambda s: s.row.args["crsid"])
 
@@ -197,7 +204,7 @@ class CreatePostgresUserDatabase(Job):
 class CreatePostgresSocietyDatabase(Job):
     JOB_TYPE = 'create_postgres_society_database'
 
-    def __init__(self, row):
+    def __init__(self, row, sess=None):
         self.row = row
 
     @classmethod
@@ -209,7 +216,8 @@ class CreatePostgresSocietyDatabase(Job):
         require_approval = \
                 society.danger \
              or requesting_member.danger
-        return cls.store(args, require_approval)
+        return cls.store(requesting_member, args, require_approval)
 
-    society_crsid = property(lambda s: s.row.args["society"])
-    member_crsid  = property(lambda s: s.row.args["crsid"])
+    society_society     = property(lambda s: s.row.args["society"])
+    target_member_crsid = property(lambda s: s.row.args["target_member"])
+    action              = property(lambda s: s.row.args["action"])

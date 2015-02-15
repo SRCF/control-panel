@@ -46,7 +46,7 @@ def signup():
             j = jobs.Signup.new(crsid=crsid, **values)
             sess.add(j.row)
             sess.commit()
-            return redirect(url_for('job_status.status', id=j.row.job_id))
+            return redirect(url_for('job_status.status', id=j.job_id))
 
     else:
         try:
