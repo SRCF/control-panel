@@ -109,10 +109,26 @@ class ResetUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
+        return cls.store(member, {}, require_approval)
 
     __repr__ = "<ResetUserPassword {0.owner_crsid}>".format
     describe = property("Reset User Password: {0.owner.crsid} ({0.owner.name})".format)
+
+@add_job
+class CreateUserMailingList(Job):
+    JOB_TYPE = 'create_user_mailing_list'
+
+    def __init__(self, row):
+        self.row = row
+
+    @classmethod
+    def new(cls, member, listname):
+        args = {"listname": listname}
+        require_approval = member.danger
+        return cls.store(member, args, require_approval)
+
+    __repr__ = "<CreateUserMailingList {0.owner_crsid}-{0.listname}>".format
+    describe = property("Create User Mailing List: {0.owner_crsid}-{0.listname}".format)
 
 @add_job
 class CreateSociety(Job):
@@ -198,6 +214,25 @@ class ChangeSocietyAdmin(Job):
         return fmt.format(self, verb=verb, prep=prep)
 
 @add_job
+class CreateSocietyMailingList(Job):
+    JOB_TYPE = 'create_society_mailing_list'
+
+    def __init__(self, row):
+        self.row = row
+
+    @classmethod
+    def new(cls, member, society, listname):
+        args = {
+            "society": society,
+            "listname": listname
+        }
+        require_approval = member.danger or society.danger
+        return cls.store(member, args, require_approval)
+
+    __repr__ = "<CreateSocietyMailingList {0.society.society}-{0.listname}>".format
+    describe = property("Create Society Mailing List: {0.society.society}-{0.listname}".format)
+
+@add_job
 class CreateMySQLUserDatabase(Job):
     JOB_TYPE = 'create_mysql_user_database'
 
@@ -224,7 +259,7 @@ class ResetMySQLUserPassword(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
-    __repr__ = "<ResetMySQLUserPassword {0.owner_crsid}".format
+    __repr__ = "<ResetMySQLUserPassword {0.owner_crsid}>".format
     describe = property("Reset MySQL User Password: {0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
