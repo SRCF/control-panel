@@ -26,18 +26,6 @@ def home():
 
     return render_template("member/home.html", member=mem)
 
-@bp.route("/member/password", methods=["GET", "POST"])
-def reset_password():
-    crsid, mem = find_member()
-
-    if request.method == "POST":
-        j = jobs.ResetUserPassword.new(member=mem)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
-    else:
-        return render_template("member/reset_password.html", member=mem)
-
 @bp.route("/member/mailinglist", methods=["POST"])
 def create_mailing_list():
     crsid = utils.raven.principal
@@ -65,31 +53,41 @@ def reset_mailing_list_password(listname):
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        return render_template("member/reset_mailing_list_password.html", **kwargs)
+        args = {"item": "Mailing List",
+                "action": url_for('member.reset_mailing_list_password', listname=listname)}
+        return render_template("member/reset_password.html", **args)
 
-@bp.route("/member/mysql/password", methods=["GET", "POST"])
-def reset_mysql_password():
+@bp.route("/member/srcf/password", methods=["GET", "POST"], defaults={"type": "srcf"})
+@bp.route("/member/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/member/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
+def reset_password(type):
     crsid, mem = find_member()
 
     if request.method == "POST":
-        j = jobs.ResetMySQLUserPassword.new(member=mem)
+        j = {"mysql": jobs.ResetMySQLUserPassword.new(member=mem),
+             "postgres": jobs.ResetPostgresUserPassword.new(member=mem),
+             "srcf": jobs.ResetUserPassword.new(member=mem)
+             }[type].new(member=mem)
         sess.add(j.row)
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        return render_template("member/reset_mysql_password.html", member=mem)
+        formatted_name = {"mysql": "MySQL",
+                          "postgres": "PostgreSQL",
+                          "srcf": "SRCF"}[type]
+        web_interface = {"mysql": "phpMyAdmin",
+                         "postgres": "phpPgAdmin",
+                         "srcf": ""}[type]
 
-@bp.route("/member/postgres/password", methods=["GET", "POST"])
-def reset_postgres_password():
-    crsid, mem = find_member()
+        args = { "item": formatted_name,
+                 "action": url_for('member.reset_password', type=type) }
 
-    if request.method == "POST":
-        j = jobs.ResetPostgresUserPassword.new(member=mem)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
-    else:
-        return render_template("member/reset_postgres_password.html", member=mem)
+        if type == "srcf":
+            args["affects"] = "password-based access to the shell service, graphical desktop and SFTP"
+        else:
+            args["affects"] = "access to " + web_interface + ", as well as any scripts that access databases using your account"
+
+        return render_template("member/reset_password.html", **args)
 
 @bp.route("/member/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/create", methods=["POST"], defaults={"type": "postgres"})

@@ -6,7 +6,7 @@
 
     <p>Created <span class="data">{{ member.joined.strftime('%b %G') }}</span></p>
     <p><a href="{{ url_for('home.home') }}">Control panel home</a></p>
-    <p><a href="{{ url_for('member.reset_password') }}">Reset password</a></p>
+    <p><a href="{{ url_for('member.reset_password', type='srcf') }}">Reset password</a></p>
 
     <h2>Databases</h2>
 
@@ -15,7 +15,7 @@
         <p>
             Username: <code>{{ member.mysqluser }}</code>. <br>
             The password will have been issued by email when the user was created. <br>
-            <a href="{{ url_for('member.reset_mysql_password') }}">Reset password</a>.
+            <a href="{{ url_for('member.reset_password', type='mysql') }}">Reset password</a>.
         </p>
 
         {% if member.mysqldbs|length > 1 %}
@@ -58,7 +58,7 @@
             A password will have been issued by email when the user was created, though it should
             not be necessary when using PostgreSQL from the command line, scripts or websites: it will
             authenticate automatically. <br>
-            <a href="{{ url_for('member.reset_postgres_password') }}">Reset password</a>.
+            <a href="{{ url_for('member.reset_password', type='postgres') }}">Reset password</a>.
         </p>
 
         {% if member.pgdbs|length > 1 %}
