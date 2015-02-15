@@ -60,6 +60,12 @@ def temp_mysql_conn():
 
 
 # Template helpers
+def is_admin(member):
+    for soc in member.societies:
+        if soc.society == "srcf-admin":
+            return True
+    return False
+
 def sif(variable, val):
     """"string if": `val` if `variable` is defined and truthy, else ''"""
     if not jinja2.is_undefined(variable) and variable:
@@ -82,4 +88,5 @@ def setup_app(app):
             flask.g.mysql.close()
 
     app.jinja_env.globals["sif"] = sif
+    app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
