@@ -111,3 +111,14 @@ class ChangeSocietyAdmin(Job):
     society_society     = property(lambda s: s.row.args["society"])
     target_member_crsid = property(lambda s: s.row.args["target_member"])
     action              = property(lambda s: s.row.args["action"])
+
+    _repr_fmt = \
+            "<ChangeSocietyAdmin {0.action} {0.society_society} " \
+            "{0.target_member_crsid}>"
+    __repr__ = _repr_fmt.format
+    @property
+    def description(self):
+        prep = "to" if self.action == "add" else "from"
+        fmt = "ChangeSocietyAdmin: {0.action} {0.target_member_crsid} "\
+                "{prep} {0.society_society}"
+        return fmt.format(self, prep=prep)
