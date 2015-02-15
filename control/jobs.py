@@ -1,6 +1,7 @@
 from srcf import database
 from srcf.database import queries
 from srcf.mail import mail_sysadmins
+import srcf.database
 
 
 __all__ = ["Job", "Signup", "ChangeSocietyAdmin", \
@@ -19,6 +20,14 @@ class Job:
     @staticmethod
     def of_row(row):
         return all_jobs[row.type](row)
+
+    @classmethod
+    def of_user(cls, sess, crsid):
+        job_row = srcf.database.Job
+        jobs = sess.query(job_row) \
+                    .filter(job_row.owner_crsid == crsid) \
+                    .order_by(job_row.job_id)
+        return [Job.of_row(r) for r in jobs]
 
     @classmethod
     def find(cls, sess, id):

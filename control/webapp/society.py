@@ -51,7 +51,7 @@ def add_admin(society):
     )
     sess.add(j.row)
     sess.commit()
-    return redirect(url_for('job_status.status', id=j.job_id))
+    return redirect(url_for('jobs.status', id=j.job_id))
 
 @bp.route("/societies/<society>/admins/<target_crsid>/remove", methods=["GET", "POST"])
 def remove_admin(society, target_crsid):
@@ -75,7 +75,7 @@ def remove_admin(society, target_crsid):
         )
         sess.add(j.row)
         sess.commit()
-        return redirect(url_for('job_status.status', id=j.job_id))
+        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("society/remove_admin.html", society=soc, target=tgt)
 
@@ -86,7 +86,7 @@ def create_mailing_list(society):
     j = jobs.CreateSocietyMailingList.new(member=mem, society=soc, listname=request.form["listname"])
     sess.add(j.row)
     sess.commit()
-    return redirect(url_for('job_status.status', id=j.job_id))
+    return redirect(url_for('jobs.status', id=j.job_id))
 
 @bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"])
 def reset_mysql_password(society):
@@ -96,7 +96,7 @@ def reset_mysql_password(society):
         j = jobs.ResetMySQLSocietyPassword.new(society=soc, member=mem)
         sess.add(j.row)
         sess.commit()
-        return redirect(url_for('job_status.status', id=j.job_id))
+        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("society/reset_mysql_password.html", society=soc, member=mem)
 
@@ -108,7 +108,7 @@ def reset_postgres_password(society):
         j = jobs.ResetPostgresSocietyPassword.new(society=soc, member=mem)
         sess.add(j.row)
         sess.commit()
-        return redirect(url_for('job_status.status', id=j.job_id))
+        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("society/reset_postgres_password.html", society=soc, member=mem)
 
@@ -123,4 +123,4 @@ def create_database(society, type):
 
     sess.add(j.row)
     sess.commit()
-    return redirect(url_for('job_status.status', id=j.job_id))
+    return redirect(url_for('jobs.status', id=j.job_id))

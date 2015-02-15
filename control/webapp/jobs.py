@@ -6,10 +6,15 @@ from . import utils
 from ..jobs import Job
 
 
-bp = Blueprint("job_status", __name__)
+bp = Blueprint("jobs", __name__)
 
 
-@bp.route('/job/<int:id>')
+@bp.route('/jobs')
+def home():
+    jobs = Job.of_user(sess, utils.raven.principal)
+    return render_template("jobs/home.html", crsid=utils.raven.principal, jobs=jobs)
+
+@bp.route('/jobs/<int:id>')
 def status(id):
     job = Job.find(sess, id)
     if not job:
@@ -23,4 +28,4 @@ def status(id):
     if not can_view:
         raise NotFound(id)
 
-    return render_template("job_status.html", job=job)
+    return render_template("jobs/info.html", job=job)

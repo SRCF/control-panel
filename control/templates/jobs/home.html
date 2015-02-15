@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>Jobs for {{ crsid }}</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>State</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.job_id }}</td>
+                <td>{{ job.JOB_TYPE }}</td>
+                <td>{{ job.state }}</td>
+                <td><a href="#todo">View</a></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="4">{{ job.describe }}</td>
+            </tr>
+            {% if job.state_message %}
+            <tr>
+                <td>State</td>
+                <td colspan="4">{{ job.state_message }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock body %}

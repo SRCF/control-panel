@@ -58,7 +58,7 @@ def signup():
             j = jobs.Signup.new(crsid=crsid, **values)
             sess.add(j.row)
             sess.commit()
-            return redirect(url_for('job_status.status', id=j.job_id))
+            return redirect(url_for('jobs.status', id=j.job_id))
 
     else:
         try:
@@ -140,7 +140,7 @@ def newsoc():
             j = jobs.CreateSociety.new(member=mem, **values)
             sess.add(j.row)
             sess.commit()
-            return redirect(url_for('job_status.status', id=j.row.job_id))
+            return redirect(url_for('jobs.status', id=j.row.job_id))
 
     else:
         # defaults

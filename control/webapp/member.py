@@ -34,7 +34,7 @@ def reset_password():
         j = jobs.ResetUserPassword.new(member=mem)
         sess.add(j.row)
         sess.commit()
-        return redirect(url_for('job_status.status', id=j.job_id))
+        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("member/reset_password.html", member=mem)
 
@@ -49,7 +49,7 @@ def create_mailing_list():
     j = jobs.CreateUserMailingList.new(member=mem, listname=request.form["listname"])
     sess.add(j.row)
     sess.commit()
-    return redirect(url_for('job_status.status', id=j.job_id))
+    return redirect(url_for('jobs.status', id=j.job_id))
 
 @bp.route("/member/mysql/password", methods=["GET", "POST"])
 def reset_mysql_password():
@@ -59,7 +59,7 @@ def reset_mysql_password():
         j = jobs.ResetMySQLUserPassword.new(member=mem)
         sess.add(j.row)
         sess.commit()
-        return redirect(url_for('job_status.status', id=j.job_id))
+        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("member/reset_mysql_password.html", member=mem)
 
@@ -71,7 +71,7 @@ def reset_postgres_password():
         j = jobs.ResetPostgresUserPassword.new(member=mem)
         sess.add(j.row)
         sess.commit()
-        return redirect(url_for('job_status.status', id=j.job_id))
+        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("member/reset_postgres_password.html", member=mem)
 
@@ -86,4 +86,4 @@ def create_database(type):
 
     sess.add(j.row)
     sess.commit()
-    return redirect(url_for('job_status.status', id=j.job_id))
+    return redirect(url_for('jobs.status', id=j.job_id))
