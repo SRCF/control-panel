@@ -4,6 +4,8 @@ import re
 
 from flask import Blueprint, render_template, redirect, url_for, request
 
+from srcf.database import Member, Society
+
 from .utils import srcf_db_sess as sess
 from . import utils
 from .. import jobs
@@ -82,7 +84,7 @@ def newsoc():
         values = {}
         for key in ("society", "description"):
             values[key] = request.form.get(key, "")
-        for key in ("admins", "lists"):
+        for key in ("admins", "mailinglists"):
             values[key] = request.form.get(key, "").splitlines()
         for key in ("mysql", "postgres"):
             values[key] = bool(request.form.get(key, False))
@@ -91,32 +93,32 @@ def newsoc():
             "description": SOC_DESC_RE.match(values["description"]) == None,
             "society": SOC_SOCIETY_RE.match(values["society"]) == None,
             "admins": False,
-            "lists": False
+            "mailinglists": False
         }
 
-        for admin in values["admins"]:
-            try:
-                utils.get_member(admin)
-            except KeyError:
-                errors["admins"] = True
-                break
+        expect_admins = len(values["admins"])
+        values["admins"] = \
+            sess.query(Member) \
+                .filter(Member.crsid.in_(values["admins"])) \
+                .all()
 
-        if crsid not in values["admins"]:
+        if len(values["admins"]) != expect_admins:
             errors["admins"] = True
 
-        for mailing_list in values["lists"]:
+        if mem not in values["admins"]:
+            errors["admins"] = True
+
+        for mailing_list in values["mailinglists"]:
             if not MAILING_LIST_RE.match(mailing_list):
-                errors["lists"] = True
+                errors["mailinglists"] = True
                 break
 
         any_error = functools.reduce(operator.or_, errors.values())
 
         if any_error:
-            values["admins"] = "\n".join(values["admins"])
-            values["lists"] = "\n".join(values["lists"])
             return render_template("newsoc.html", errors=errors, **values)
         else:
-            j = jobs.CreateSociety.new(requesting_member=mem, **values)
+            j = jobs.CreateSociety.new(member=mem, **values)
             sess.add(j.row)
             sess.commit()
             return redirect(url_for('job_status.status', id=j.row.job_id))
@@ -126,8 +128,8 @@ def newsoc():
         values = {
             "description": "",
             "society": "",
-            "admins": mem,
-            "lists": "",
+            "admins": [mem],
+            "mailinglists": [],
             "mysql": False,
             "postgres": False
         }
