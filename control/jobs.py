@@ -264,6 +264,12 @@ class ChangeSocietyAdmin(Job):
         self.society.admins.remove(self.target_member)
         subprocess.check_call(["deluser", self.target_member.crsid, self.society.society])
 
+        mail_sysadmins("SRCF Society Admins Change",
+                       "{0.target_member.crsid} ({0.target_member.name}) removed from "
+                       "{0.society.society} ({0.society.description}) "
+                       "at request of {0.owner.crsid} ({0.owner.name})"
+                       .format(self))
+
         return JobDone()
 
 @add_job
