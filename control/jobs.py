@@ -623,7 +623,9 @@ class CreatePostgresUserDatabase(Job):
                    "You will be automatically identified so no password is required.\n\n" \
                    "Regards,\n\n" \
                    "The Sysadmins\n"
-        send_mail((self.owner.name, crsid + "@srcf.net"), "PostgreSQL database created for " + crsid, message)
+        send_mail((self.owner.name, crsid + "@srcf.net"), "PostgreSQL database created for " + crsid, message, copy_sysadmins=False)
+        mail_sysadmins("PostgreSQL database created for " + crsid, "")
+
 
         return JobDone()
 
