@@ -1,11 +1,12 @@
 import subprocess
 import sys
 
-from srcf import database
+from srcf import database, pwgen
 from srcf.database import queries
 from srcf.mail import mail_sysadmins, send_mail, template
 import os
 import srcf.database
+import pgdb
 
 def parse_mail_template(temp, obj):
     f = open(temp, "r")
@@ -567,6 +568,66 @@ class CreatePostgresUserDatabase(Job):
     def new(cls, member):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
+
+    def run(self, sess):
+        crsid = self.owner.crsid
+        password = pwgen(8)
+
+        # Connect to database
+        db = pgdb.connect(database='template1')
+        cursor = db.cursor()
+
+        # Create user
+        usercreated = False
+
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
+        results = cursor.fetchall()
+
+        if len(results) == 0:
+            cursor.execute("COMMIT")
+            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD '" + password + "' NOCREATEDB NOCREATEUSER")
+            usercreated = True
+        else:
+            # Just in case the user exists but is disabled
+            cursor.execute("ALTER ROLE " + crsid + " LOGIN")
+
+        # Create database
+        dbcreated = False
+
+        cursor.execute("SELECT datname FROM pg_database WHERE datname = '" + crsid + "'")
+        results = cursor.fetchall()
+        
+        if len(results) == 0:
+            cursor.execute("COMMIT")
+            cursor.execute("CREATE DATABASE " + crsid + " OWNER " + crsid)
+            dbcreated = True
+
+        if not dbcreated and not usercreated:
+            return JobFailed(crsid + " already has a functioning database")
+
+        # Email user
+        message = ""
+        if usercreated:
+            message += "A postgreSQL database '" + crsid + "' has been created for you\n" \
+                       "PostgreSQL username:  " + crsid + "\n" \
+                       "PostgreSQl password:  " + password + "\n\n" \
+                       "Do not let anyone know your password, including the system\n" \
+                       "administrators (they do not need to know it to administer your\n" \
+                       "account). In particular, if you reply to this message, DO NOT quote\n" \
+                       "your password in the reply\n\n"
+
+        message += "To access the database via a web interface (phpPgAdmin), visit:\n" \
+                   "  https://www.srcf.net/phpgadmin\n\n" \
+                   "To access the database from the shell, use the following command:\n" \
+                   "  psql " + crsid + "\n" \
+                   "You will be automatically identified so no password is required.\n\n" \
+                   "Regards,\n\n" \
+                   "The Sysadmins\n"
+        send_mail((self.owner.name, crsid + "@srcf.net"), "PostgreSQL database created for " + crsid, message)
+
+        return JobDone()
+
+
 
     def __repr__(self): return "<CreatePostgresUserDatabase {0.owner_crsid}>".format(self)
     describe = property("Create Postgres User Database: "
