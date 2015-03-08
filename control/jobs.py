@@ -215,14 +215,11 @@ class ResetUserMailingListPassword(Job):
 
     def run(self, sess):
 
-        full_listname = "{}-{}".format(self.owner, self.listname)
-
-        resetadmins = subprocess.Popen('config_list -o - $1 | grep "^owner ="')
-        resetadmins.wait()
-        if resetadmins.returncode != 0:
+        resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
+        if "owner =" not in resetadmins:
             return JobFailed("Failed at reset admins")
-        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", full_listname])
-        if "New {} password".format(full_listname) not in newpasswd:
+        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
+        if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
 
         return JobDone()
