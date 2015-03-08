@@ -154,32 +154,34 @@ class CreateUserMailingList(Job):
 
     def run(self, sess):
 
+        full_listname = "{}-{}".format(self.owner, self.listname)
+
         import re
-        if not re.match("^[A-Za-z0-9\-]+$", listname) \
-        or listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
+        if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
+        or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                        "owner", "request", "subscribe", "unsubscribe"):
-            return JobFailed("Invalid list name {}-{}".format(self.owner, self.listname))
+            return JobFailed("Invalid list name {}".format(full_listname))
 
         import Mailman.Utils
         newlist = Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
                         '| grep -v "Hit enter to notify.*"'
-                        % (listname, owner), shell=True)
+                        % (full_listname, self.owner), shell=True)
         newlist.wait()
         if newlist.returncode != 0:
             return JobFailed("Failed at newlist")
         configlist = Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
-                            listname])
+                            full_listname])
         configlist.wait()
         if configlist.returncode != 0:
             return JobFailed("Failed at configlist")
-        genalias = Popen(["gen_alias", listname])
+        genalias = Popen(["gen_alias", full_listname])
         genalias.wait()
         if genalias.returncode != 0:
             return JobFailed("Failed at genalias")
 
         mail_sysadmins("SRCF User List Creation",
-                       "{0.owner.crsid}-{0.listname} created for {0.owner.crsid} ({0.owner.name})"
-                       .format(self))
+                       "{0} created for {1.owner.crsid} ({1.owner.name})"
+                       .format(full_listname, self))
 
         return JobDone()
 
