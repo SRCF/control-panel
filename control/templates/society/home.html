@@ -67,7 +67,7 @@
         <p>
             Username: <code>{{ society.mysqluser }}</code>. <br>
             The password will have been issued by email when the user was created. <br>
-            <a href="{{ url_for('society.reset_mysql_password', society=society.society) }}">Reset password</a>.
+            <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}">Reset password</a>.
         </p>
 
         {% if society.mysqldbs|length > 1 %}
@@ -120,7 +120,7 @@
             A password will have been issued by email when the user was created, though it should
             not be necessary when using PostgreSQL from the command line, scripts or websites: it will
             authenticate automatically. <br>
-            <a href="{{ url_for('society.reset_postgres_password', society=society.society) }}">Reset password</a>.
+            <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}">Reset password</a>.
         </p>
 
         {% if society.pgdbs|length > 1 %}

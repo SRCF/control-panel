@@ -1,6 +1,5 @@
 from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template, request, redirect, url_for
-
+from flask import Blueprint, render_template, request, redirect, url_for 
 from .utils import srcf_db_sess as sess
 from . import utils, inspect_services
 from .. import jobs
@@ -105,29 +104,31 @@ def reset_mailing_list_password(society, listname):
     else:
         return render_template("society/reset_mailing_list_password.html", **kwargs)
 
-@bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"])
-def reset_mysql_password(society):
+@bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
+def reset_database_password(society, type):
     mem, soc = find_mem_society(society)
 
     if request.method == "POST":
-        j = jobs.ResetMySQLSocietyPassword.new(society=soc, member=mem)
+        j = {"mysql": jobs.ResetMySQLSocietyPassword,
+         "postgres": jobs.ResetPostgresSocietyPassword,
+         }[type].new(society=soc, member=mem)
+
         sess.add(j.row)
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        return render_template("society/reset_mysql_password.html", society=soc, member=mem)
+        formatted_name = {"mysql": "MySQL",
+                          "postgres": "PostgreSQL"}[type]
+        web_interface = {"mysql": "phpMyAdmin",
+                         "postgres": "phpPgAdmin"}[type]
 
-@bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"])
-def reset_postgres_password(society):
-    mem, soc = find_mem_society(society)
+        args = { "item": formatted_name,
+                 "web_interface": web_interface,
+                 "action": url_for('society.reset_database_password', society=society, type=type)
+                 }
 
-    if request.method == "POST":
-        j = jobs.ResetPostgresSocietyPassword.new(society=soc, member=mem)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
-    else:
-        return render_template("society/reset_postgres_password.html", society=soc, member=mem)
+        return render_template("society/reset_database_password.html", society=soc, member=mem, **args)
 
 @bp.route("/societies/<society>/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
 @bp.route("/societies/<society>/postgres/create", methods=["POST"], defaults={"type": "postgres"})

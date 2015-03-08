@@ -53,9 +53,9 @@ def reset_mailing_list_password(listname):
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        args = {"item": "Mailing List",
+        args = {"mailing_list": listname,
                 "action": url_for('member.reset_mailing_list_password', listname=listname)}
-        return render_template("member/reset_password.html", **args)
+        return render_template("member/reset_mailing_list_password.html", **args)
 
 @bp.route("/member/srcf/password", methods=["GET", "POST"], defaults={"type": "srcf"})
 @bp.route("/member/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
