@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 from srcf import database
 from srcf.database import queries
@@ -162,19 +163,21 @@ class CreateUserMailingList(Job):
                                        "owner", "request", "subscribe", "unsubscribe"):
             return JobFailed("Invalid list name {}".format(full_listname))
 
+        if "/usr/lib/mailman" not in sys.path:
+            sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
-        newlist = Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
+        newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
                         '| grep -v "Hit enter to notify.*"'
-                        % (full_listname, self.owner), shell=True)
+                        % (full_listname, self.owner.crsid + "@srcf.net"), shell=True)
         newlist.wait()
         if newlist.returncode != 0:
             return JobFailed("Failed at newlist")
-        configlist = Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
+        configlist = subprocess.Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
                             full_listname])
         configlist.wait()
         if configlist.returncode != 0:
             return JobFailed("Failed at configlist")
-        genalias = Popen(["gen_alias", full_listname])
+        genalias = subprocess.Popen(["gen_alias", full_listname])
         genalias.wait()
         if genalias.returncode != 0:
             return JobFailed("Failed at genalias")
