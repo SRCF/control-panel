@@ -463,6 +463,17 @@ class ResetSocietyMailingListPassword(Job):
     def __repr__(self): return "<ResetSocietyMailingListPassword {0.society_society} {0.listname}>".format(self)
     describe = property("Reset Society Mailing List Password: {0.society.society} {0.listname}".format)
 
+    def run(self, sess):
+
+        resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
+        if "owner =" not in resetadmins:
+            return JobFailed("Failed at reset admins")
+        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
+        if "New {} password".format(self.listname) not in newpasswd:
+            return JobFailed("Failed at new password")
+
+        return JobDone()
+
 @add_job
 class CreateMySQLUserDatabase(Job):
     JOB_TYPE = 'create_mysql_user_database'
