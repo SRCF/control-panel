@@ -206,6 +206,20 @@ class ResetUserMailingListPassword(Job):
     def __repr__(self): return "<ResetUserMailingListPassword {0.owner_crsid} {0.listname}>".format(self)
     describe = property("Reset User Mailing List Password: {0.owner_crsid} {0.listname}".format)
 
+    def run(self, sess):
+
+        full_listname = "{}-{}".format(self.owner, self.listname)
+
+        resetadmins = subprocess.Popen('config_list -o - $1 | grep "^owner ="')
+        resetadmins.wait()
+        if resetadmins.returncode != 0:
+            return JobFailed("Failed at reset admins")
+        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", full_listname])
+        if "New {} password".format(full_listname) not in newpasswd:
+            return JobFailed("Failed at new password")
+
+        return JobDone()
+
 @add_job
 class CreateSociety(Job):
     JOB_TYPE = 'create_society'
