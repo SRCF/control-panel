@@ -160,7 +160,7 @@ class CreateUserMailingList(Job):
         import re
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
-                                       "owner", "request", "subscribe", "unsubscribe"):
+                                            "owner", "request", "subscribe", "unsubscribe"):
             return JobFailed("Invalid list name {}".format(full_listname))
 
         if "/usr/lib/mailman" not in sys.path:
@@ -331,11 +331,46 @@ class CreateSocietyMailingList(Job):
         require_approval = member.danger or society.danger
         return cls.store(member, args, require_approval)
 
-    society_society     = property(lambda s: s.row.args["society"])
+    society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<CreateSocietyMailingList {0.society_society}-{0.listname}>".format(self)
-    describe = property("Create Society Mailing List: {0.society.society}-{0.listname}".format)
+    describe = property("Create Society Mailing List: {0.society_society}-{0.listname}".format)
+
+    def run(self, sess):
+
+        full_listname = "{}-{}".format(self.society_society, self.listname)
+
+        import re
+        if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
+        or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
+                                            "owner", "request", "subscribe", "unsubscribe"):
+            return JobFailed("Invalid list name {}".format(full_listname))
+
+        if "/usr/lib/mailman" not in sys.path:
+            sys.path.append("/usr/lib/mailman")
+        import Mailman.Utils
+        newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
+                        '| grep -v "Hit enter to notify.*"'
+                        % (full_listname, self.society_society + "-admins@srcf.net"), shell=True)
+        newlist.wait()
+        if newlist.returncode != 0:
+            return JobFailed("Failed at newlist")
+        configlist = subprocess.Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
+                            full_listname])
+        configlist.wait()
+        if configlist.returncode != 0:
+            return JobFailed("Failed at configlist")
+        genalias = subprocess.Popen(["gen_alias", full_listname])
+        genalias.wait()
+        if genalias.returncode != 0:
+            return JobFailed("Failed at genalias")
+
+        mail_sysadmins("SRCF Society List Creation",
+                       "{0} created for {1.society_society} ({1.society.description})"
+                       .format(full_listname, self))
+
+        return JobDone()
 
 @add_job
 class ResetSocietyMailingListPassword(Job):
