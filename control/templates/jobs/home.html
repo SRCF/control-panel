@@ -20,11 +20,11 @@
                 <td>{{ job.job_id }}</td>
                 <td>{{ job.JOB_TYPE }}</td>
                 <td>{{ job.state }}</td>
-                <td><a href="#todo">View</a></td>
+                <td><a href="jobs/{{ job.job_id }}">View</a></td>
             </tr>
             <tr>
                 <td></td>
-                <td colspan="4">{{ job.describe }}</td>
+                <td colspan="4">{{ job.describe if false else "TODO: fix self.describe" }}</td>
             </tr>
             {% if job.state_message %}
             <tr>
