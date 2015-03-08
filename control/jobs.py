@@ -222,6 +222,10 @@ class ResetUserMailingListPassword(Job):
         if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
 
+        mail_sysadmins("SRCF User List Password Reset",
+                       "{0.listname} password reset for {0.owner.crsid} ({0.owner.name})"
+                       .format(self))
+
         return JobDone()
 
 @add_job
@@ -471,6 +475,10 @@ class ResetSocietyMailingListPassword(Job):
         newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
         if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
+
+        mail_sysadmins("SRCF Society List Password Reset",
+                       "{0.listname} password reset for {0.society_society} ({0.society.description})"
+                       .format(self))
 
         return JobDone()
 
