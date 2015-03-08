@@ -3,16 +3,23 @@ import sys
 
 from srcf import database
 from srcf.database import queries
-from srcf.mail import mail_sysadmins
+from srcf.mail import mail_sysadmins, send_mail, template
+import os
 import srcf.database
 
+def parse_mail_template(temp, obj):
+    f = open(temp, "r")
+    text = f.read()
+    f.close()
+
+    keys = template.substitutions(obj)
+    return template.replace(text, keys)
 
 all_jobs = {}
 
 def add_job(cls):
     all_jobs[cls.JOB_TYPE] = cls
     return cls
-
 
 class JobDone(object):
     def __init__(self, message=None):
@@ -301,29 +308,76 @@ class ChangeSocietyAdmin(Job):
                 "{prep} {0.society.society} ({0.society.description})"
         return fmt.format(self, verb=verb, prep=prep)
 
-    def run(self, sess):
-        if self.action == "add":
-            return JobFailed("adding not implemented")
+    def add_admin(self, sess):
+        if self.target_member in self.society.admins:
+            return JobFailed("{0.target_member.crsid} is already an admin of {0.society}".format(self))
 
+        # Get the recipient lists before adding because we are sending the new admin a separate email.
+        recipients = [(x.name, x.crsid + "@srcf.net") for x in self.society.admins]
+
+        self.society.admins.add(self.target_member)
+
+        subprocess.check_call(["adduser", self.target_member.crsid, self.society.society])
+
+        target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
+        source_ln = "/societies/{0.society.society}/".format(self)
+        if not os.path.exists(target_ln):
+            os.symlink(source_ln, target_ln)
+
+        send_mail((self.target_member.name, self.target_member.crsid + "@srcf.net"),
+                  "Access granted to society {0.society.society} "
+                  "for {0.target_member.crsid}".format(self),
+                  parse_mail_template("/usr/local/share/srcf/mailtemplates/user-added2soc", self.society),
+                  copy_sysadmins=False)
+                
+        send_mail((self.society.description + " Admins", self.society.society + "-admins@srcf.net"), 
+                  "Access granted to society {0.society.society} "
+                  "for {0.target_member.crsid}".format(self),
+                  "{0.target_member.crsid} ({0.target_member.name}) added to "
+                  "{0.society.society} ({0.society.description}) "
+                  "at request of {0.owner.crsid} ({0.owner.name})"
+                  .format(self))
+
+        return JobDone()
+
+
+    def rm_admin(self, sess):
         if self.target_member not in self.society.admins:
             return JobFailed("{0.target_member.crsid} is not an admin of {0.society.society}".format(self))
 
         if len(self.society.admins) == 1:
             return JobFailed("removing all admins not implemented")
 
-        if self.owner not in self.society.admins:
-            return JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
+        # Get the recipient lists before removing because we want to notify the user removed
+        recipients = [(x.name, x.crsid + "@srcf.net") for x in self.society.admins]
 
         self.society.admins.remove(self.target_member)
         subprocess.check_call(["deluser", self.target_member.crsid, self.society.society])
 
-        mail_sysadmins("SRCF Society Admins Change",
-                       "{0.target_member.crsid} ({0.target_member.name}) removed from "
-                       "{0.society.society} ({0.society.description}) "
-                       "at request of {0.owner.crsid} ({0.owner.name})"
-                       .format(self))
+        target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
+        source_ln = "/societies/{0.society.society}/".format(self)
+        if os.path.islink(target_ln) and os.path.samefile(target_ln, source_ln):
+            os.remove(target_ln)
+
+        send_mail([(self.society.description + " Admins", self.society.society + "-admins@srcf.net"),
+                   (self.target_member.name, self.target_member.crsid + "@srcf.net")], 
+                  "Access to society {0.society.society} removed "
+                  "for {0.target_member.crsid}".format(self),
+                  "{0.target_member.crsid} ({0.target_member.name}) removed from "
+                  "{0.society.society} ({0.society.description}) "
+                  "at request of {0.owner.crsid} ({0.owner.name})"
+                  .format(self))
 
         return JobDone()
+
+    def run(self, sess):
+        if self.owner not in self.society.admins:
+            return JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
+
+        if self.action == "add":
+            return self.add_admin(sess)
+        else:
+            return self.rm_admin(sess)
 
 @add_job
 class CreateSocietyMailingList(Job):
