@@ -152,6 +152,37 @@ class CreateUserMailingList(Job):
     def __repr__(self): return "<CreateUserMailingList {0.owner_crsid}-{0.listname}>".format(self)
     describe = property("Create User Mailing List: {0.owner_crsid}-{0.listname}".format)
 
+    def run(self, sess):
+
+        import re
+        if not re.match("^[A-Za-z0-9\-]+$", listname) \
+        or listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
+                                       "owner", "request", "subscribe", "unsubscribe"):
+            return JobFailed("Invalid list name {}-{}".format(self.owner, self.listname))
+
+        import Mailman.Utils
+        newlist = Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
+                        '| grep -v "Hit enter to notify.*"'
+                        % (listname, owner), shell=True)
+        newlist.wait()
+        if newlist.returncode != 0:
+            return JobFailed("Failed at newlist")
+        configlist = Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
+                            listname])
+        configlist.wait()
+        if configlist.returncode != 0:
+            return JobFailed("Failed at configlist")
+        genalias = Popen(["gen_alias", listname])
+        genalias.wait()
+        if genalias.returncode != 0:
+            return JobFailed("Failed at genalias")
+
+        mail_sysadmins("SRCF User List Creation",
+                       "{0.owner.crsid}-{0.listname} created for {0.owner.crsid} ({0.owner.name})"
+                       .format(self))
+
+        return JobDone()
+
 @add_job
 class ResetUserMailingListPassword(Job):
     JOB_TYPE = 'reset_user_mailing_list_password'
