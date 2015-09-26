@@ -6,6 +6,7 @@
 
     <p>Created <span class="data">{{ member.joined.strftime('%b %G') }}</span></p>
     <p><a href="{{ url_for('home.home') }}">Control panel home</a></p>
+    <p>Email address: <span class="data">{{ member.email }}</span> (<a href="{{ url_for('member.update_email_address') }}">change</a>)</p>
     <p><a href="{{ url_for('member.reset_password', type='srcf') }}">Reset password</a></p>
 
     <h2>Databases</h2>

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>Update Email Address</h1>
+
+    <form method="post">
+
+    <p>This will update the email address we have on record for you, and changes the address subscribed to <code>soc-srcf</code> mailing lists.</p>
+    <p>This does <strong>not</strong> affect the delivery of emails sent to {{ crsid }}@srcf.net &ndash; you will need to edit your <code>.forward</code> file for this.</p>
+
+    <p>
+    New email address:
+    <input name="email" type="email"{% if error %} class="error"{% endif %} value="{{ email }}">
+    {% if error %}<br>
+    <span class="error">{{ error }}</span>{% endif %}
+    </p>
+
+    <div class="form-group">
+        <input type="submit" value="Confirm">
+        <a href="{{ url_for('member.home') }}">Cancel</a>
+    </div>
+
+    </form>
+</div>
+{% endblock %}

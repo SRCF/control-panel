@@ -26,6 +26,32 @@ def home():
 
     return render_template("member/home.html", member=mem)
 
+@bp.route("/member/email", methods=["GET", "POST"])
+def update_email_address():
+    crsid = utils.raven.principal
+    try:
+        mem = utils.get_member(crsid)
+    except KeyError:
+        raise NotFound
+
+    email = mem.email
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email")
+        if not email:
+            error = "Please enter your email address."
+        elif not utils.email_re.match(email):
+            error = "That address doesn't look valid."
+
+    if request.method == "POST" and not error:
+        j = jobs.UpdateEmailAddress.new(member=mem, email=request.form["email"])
+        sess.add(j.row)
+        sess.commit()
+        return redirect(url_for("jobs.status", id=j.job_id))
+    else:
+        args = {"crsid": crsid, "email": email, "error": error}
+        return render_template("member/update_email_address.html", **args)
+
 @bp.route("/member/mailinglist", methods=["POST"])
 def create_mailing_list():
     crsid = utils.raven.principal

@@ -144,6 +144,22 @@ class ResetUserPassword(Job):
     describe = property("Reset User Password: {0.owner.crsid} ({0.owner.name})".format)
 
 @add_job
+class UpdateEmailAddress(Job):
+    JOB_TYPE = 'update_email_address'
+
+    def __init__(self, row):
+        self.row = row
+
+    @classmethod
+    def new(cls, member, email):
+        args = {"email": email}
+        require_approval = member.danger
+        return cls.store(member, args, require_approval)
+
+    def __repr__(self): return "<UpdateEmailAddress {0.owner_crsid}>".format(self)
+    describe = property("Update Email Address: {0.owner.crsid} ({0.owner.email} to {0.email})".format)
+
+@add_job
 class CreateUserMailingList(Job):
     JOB_TYPE = 'create_user_mailing_list'
 
