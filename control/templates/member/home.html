@@ -2,120 +2,80 @@
 
 {% block body %}
 <div class="main">
-    <h1>{{ member.crsid }} &mdash; {{ member.name }}</h1>
-
-    <p>Created <span class="data">{{ member.joined.strftime('%b %G') }}</span></p>
-    <p><a href="{{ url_for('home.home') }}">Control panel home</a></p>
-    <p>Email address: <span class="data">{{ member.email }}</span> (<a href="{{ url_for('member.update_email_address') }}">change</a>)</p>
-    <p><a href="{{ url_for('member.reset_password', type='srcf') }}">Reset password</a></p>
-
+    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; {{ member.crsid }} &bullet; {{ member.name }}</h1>
+    <p>Date joined: <span class="data">{{ member.joined.strftime('%B %G') }}</span></p>
+    <h3>Email</h3>
+    <p>The email address we currently have on record for you is <span class="data">{{ member.email }}</span>. &mdash; <a href="{{ url_for('member.update_email_address') }}">Update</a></p>
+    <p>This address is added to the <code>soc-srcf</code> mailing lists, and will be used if the sysadmins need to contact you about your account.</p>
+    <p>Note that this does not affect the delivery of emails sent to <span class="data">{{ member.crsid }}@srcf.net</span> &ndash; you will need to <a href="https://www.srcf.net/faq/email#forwarding">configure email forwarding</a> for this.
+    <h3>Password</h3>
+    <p>Your password will have originally been issued when creating your account, and is used to login to the shell, file server, web desktop and more.</p>
+    <p>If you have forgotten it, you can request a new one, which will be emailed to you. &mdash; <a href="{{ url_for('member.reset_password', type='srcf') }}">Reset password</a></p>
+    <h3>Website</h3>
+    {%- if member.website %}
+    <p>You currently have a website set up at <a href="http://{{ member.crsid }}.user.srcf.net">{{ member.crsid }}.user.srcf.net</a>.  This is managed by uploading pages to your <span class="data">public_html</span> folder.</p>
+    {%- else %}
+    <p>You don't currently have a website set up.  You can do this by uploading pages to your <span class="data">public_html</span> folder.  This will then become available at <span class="data">{{ member.crsid }}.user.srcf.net</span>.</p>
+    {%- endif %}
     <h2>Databases</h2>
-
     <h3>MySQL</h3>
-    {% if member.mysqldbs %}
-        <p>
-            Username: <code>{{ member.mysqluser }}</code>. <br>
-            The password will have been issued by email when the user was created. <br>
-            <a href="{{ url_for('member.reset_password', type='mysql') }}">Reset password</a>.
-        </p>
-
-        {% if member.mysqldbs|length > 1 %}
-        <p>Databases:</p>
-        <ul>
-            {% for db in member.mysqldbs|sort %}
-            <li>{{ db }}</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>Database: {{ member.mysqldbs[0] }}</p>
-        {% endif %}
-
-        <p>Manage</p>
-        <ul>
-            <li><a href="http://www.srcf.net/phpmyadmin">phpMyAdmin</a></li>
-            {% if member.mysqluser %}
-            <li>
-                Type <code>mysql -p -D {{ member.mysqldbs[0] }}</code>
-                to connect from the SRCF command line using your personal MySQL password.
-            </li>
-            {% endif %}
-            <li>
-                Type <code>mysql -u {{ member.mysqluser }} -p -D {{ member.mysqldbs[0] }}</code>
-                to connect from the SRCF command line using your MySQL password.
-            </li>
-        </ul>
-    {% else %}
-        <form action="{{ url_for('member.create_database', type='mysql') }}" method="post">
-          <div class="form-group">
-            <input type="submit" value="Create MySQL Database">
-          </div>
-        </form>
-    {% endif %}
-
-    <h3>PostgreSQL</h3>
-    {% if member.pgdbs %}
-        <p>
-            Username: <code>{{ member.pguser }}</code>. <br>
-            A password will have been issued by email when the user was created, though it should
-            not be necessary when using PostgreSQL from the command line, scripts or websites: it will
-            authenticate automatically. <br>
-            <a href="{{ url_for('member.reset_password', type='postgres') }}">Reset password</a>.
-        </p>
-
-        {% if member.pgdbs|length > 1 %}
-        <p>Databases:</p>
-        <ul>
-            {% for db in member.pgdbs|sort %}
-            <li>{{ db }}</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>Database: {{ member.pgdbs[0] }}</p>
-        {% endif %}
-
-        <p>Manage</p>
-        <ul>
-            <li><a href="http://www.srcf.net/phppgadmin">phpPgAdmin</a></li>
-            {% if member.pguser %}
-            <li>Type <code>psql {{ member.pgdbs[0] }}</code> to connect from the SRCF command line.</li>
-            {% endif %}
-        </ul>
-    {% else %}
-        <form action="{{ url_for('member.create_database', type='postgres') }}" method="post">
-          <div class="form-group">
-            <input type="submit" value="Create PostgreSQL Database">
-          </div>
-        </form>
-    {% endif %}
-
-    <h2>Mailing lists</h2>
-
-    {% if member.mailinglists %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Email address</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for list in member.mailinglists|sort %}
-                <tr>
-                    <td>{{ list }}<small>@srcf.net</small></td>
-                    <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>
-                    <td><a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}">Reset password</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-
-    <h3>New</h3>
-    <form action="{{ url_for('member.create_mailing_list') }}" method="post">
-        {{ member.crsid }}-<input name="listname" placeholder="List name">@srcf.net
-        <input type="Submit" value="Create">
+    {%- if member.mysqluser %}
+    <p>Login with the username <span class="data">{{ member.mysqluser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('member.reset_password', type='mysql') }}">Reset password</a></p>
+    <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
+    <pre>{{ member.crsid }}@pip $ mysql -u {{ member.mysqluser }} -p <em>database</em></pre>
+    <p>Here, <code>-u {{ member.mysqluser }}</code> specifies your username, <code>-p</code> prompts for your password, and <code><em>database</em></code> at the end switches to the database of that name.</p>
+      {%- if member.mysqldbs|length > 1 %}
+    <p>You currently have the following databases: {% for db in member.mysqldbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    <p>To connect to a database, replace <code><em>database</em></code> with its name, e.g. <code>mysql -u {{ member.mysqluser }} -p {{ member.mysqldbs[0] }}</code>.</p>
+      {%- elif member.mysqldbs|length == 1 %}
+    <p>The name of your database is <span class="data">{{ member.mysqldbs[0] }}</span>.  To connect to it, replace <code><em>database</em></code> with <code>{{ member.mysqldbs[0] }}</code> above, i.e. <code>mysql -u {{ member.mysqluser }} -p {{ member.mysqldbs[0] }}</code>.</p>
+      {%- else %}
+    <form action="{{ url_for('member.create_database', type='mysql') }}" method="post">
+        <p>You don't currently have a personal MySQL database. &mdash; <input type="submit" class="action" value="Create database"></p>
     </form>
-
+      {%- endif %}
+    {%- else %}
+    <form action="{{ url_for('member.create_database', type='mysql') }}" method="post">
+        <p>You don't currently have a MySQL user or database. &mdash; <input type="submit" class="action" value="Create database"></p>
+    </form>
+    {%- endif %}
+    <h3>PostgreSQL</h3>
+    {%- if member.pguser %}
+    <p>Login with the username <span class="data">{{ member.pguser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('member.reset_password', type='postgres') }}">Reset password</a></p>
+    <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
+    <pre>{{ member.crsid }}@pip $ psql <em>database</em></pre>
+    <p>Here, <code><em>database</em></code> switches to the database of that name.  You don't need to provide a password, authentication is handled by the currently logged in user (so scripts running as your account also do not need a password).</p>
+      {%- if member.pgdbs|length > 1 %}
+    <p>You currently have the following databases: {% for db in member.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    <p>To connect to a database, replace <code><em>database</em></code> with its name, e.g. <code>psql {{ member.pgdbs[0] }}</code>.</p>
+      {%- elif member.pgdbs|length == 1 %}
+    <p>The name of your database is <span class="data">{{ member.pgdbs[0] }}</span>.  To connect to it, replace <code><em>database</em></code> with <code>{{ member.pgdbs[0] }}</code> above, i.e. <code>psql {{ member.pgdbs[0] }}</code>.</p>
+      {%- else %}
+    <form action="{{ url_for('member.create_database', type='postgres') }}" method="post">
+        <p>You don't currently have a personal PostgreSQL database. &mdash; <input type="submit" class="action" value="Create database"></p>
+    </form>
+      {%- endif %}
+    {%- else %}
+    <form action="{{ url_for('member.create_database', type='postgres') }}" method="post">
+        <p>You don't currently have a PostgreSQL user or database. &mdash; <input type="submit" class="action" value="Create database"></p>
+    </form>
+    {%- endif %}
+    <h2>Mailing lists</h2>
+    {%- if member.mailinglists %}
+      {%- if member.mailinglists|length > 1 %}
+    <p>You currently manage {{ member.mailinglists|length }} mailing lists.  These are:</p>
+    <ul>
+        {%- for list in member.mailinglists|sort %}
+        <li><span class="data">{{ list }}</span>@srcf.net &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ list }}">Manage</a> &bullet; <a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}">Reset password</a></li>
+        {%- endfor %}
+    </ul>
+      {% else %}
+    <p>You currently manage the <span class="data">{{ member.mailinglists[0] }}</span>@srcf.net mailing list. &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ member.mailinglists[0] }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ member.mailinglists[0] }}">Manage</a> &bullet; <a href="{{ url_for('member.reset_mailing_list_password', listname=member.mailinglists[0]) }}">Reset password</a>
+      {%- endif %}
+    {%- endif %}
+    <p>If you want to create a new mailing list, enter the list name below.  Personal list addresses are of the form <span class="data">{{ member.crsid }}-<em>name</em></span>@srcf.net.</p>
+    <form action="{{ url_for('member.create_mailing_list') }}" method="post">
+        <p>{{ member.crsid }}-<input name="listname" placeholder="List name">@srcf.net <input type="Submit" value="Create">
+    </form>
 </div>
 {% endblock body %}
