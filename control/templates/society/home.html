@@ -2,191 +2,93 @@
 
 {% block body %}
 <div class="main">
-    <h1>{{ society.society }} &mdash; {{ society.description }}</h1>
-
-    <p>Created <span class="data">{{ society.joined.strftime('%b %G') }}</span></p>
-    <p><a href="{{ url_for("home.home") }}">Control panel home</a></p>
-
+    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; {{ society.society }} &bullet; {{ society.description }}</h1>
+    <p>Date created: <span class="data">{{ society.joined.strftime('%B %G') }}</span></p>
     <h2>Administrators</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>CRSid</th>
-                <th>Name</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {%- for admin in society.admins|sort(attribute='crsid') %}
-            <tr>
-                <td>{{ admin.crsid }}</td>
-                <td>{{ admin.name }}</td>
-                <td>
-                    {%- if admin != member -%}
-                    <a href='{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid ) }}'>Remove</a>
-                    {%- endif -%}
-                </td>
-            </tr>
-            {%- endfor %}
-        </tbody>
-    </table>
-
-    <h3>Add administrator</h3>
-
+    <p>Each society account administrator has full control of the account, including files in <span class="data">/societies/{{ society.society }}</span>, databases, and managing the list of administrators as shown below.</p>
+    <p>The current list of admins is as follows:</p>
+    <ul>
+    {%- for admin in society.admins|sort(attribute='crsid') %}
+        <li>{{ admin.crsid }} &bullet; {{ admin.name }}{% if admin != member %} &mdash; <a href='{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}'>Remove</a>{% endif %}</li>
+    {%- endfor %}
+    </ul>
+    <p>To add a new admin to the list, enter their CRSid below.</p>
     <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
-        <input name="crsid" placeholder="CRSid" />
-        <input type="submit" value="Add">
+        <p><input name="crsid" placeholder="CRSid" /> <input type="submit" value="Add"></p>
     </form>
-
-    {% if society.pending_admins %}
-    <h3>Pending Administrators</h3>
-
-    <p>
-        It has (in the past) been requested that these people be added as administrators,
-        however, they first need to create a SRCF account. They will be automatically added
-        when this is done.
-    </p>
-
-    <table>
-        <thead>
-            <tr><th>CRSid</th></tr>
-        </thead>
-        <tbody>
-            {% for admin in society.pending_admins|sort(attribute='crsid') %}
-            <tr><td>{{ admin.crsid }}</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {%- if society.pending_admins %}
+    <p>The following users are pending addition as administrators, because they do not currently have personal SRCF accounts:</p>
+    <ul>
+    {%- for admin in society.pending_admins|sort(attribute='crsid') %}
+        <li>{{ admin.crsid }}</li>
+    {%- endfor %}
+    </ul>
     {% endif %}
-
     <h2>Databases</h2>
-
     <h3>MySQL</h3>
-    {% if society.mysqldbs %}
-        <p>
-            Username: <code>{{ society.mysqluser }}</code>. <br>
-            The password will have been issued by email when the user was created. <br>
-            <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}">Reset password</a>.
-        </p>
-
-        {% if society.mysqldbs|length > 1 %}
-        <p>Databases:</p>
-        <ul>
-            {% for db in society.mysqldbs|sort %}
-            <li>{{ db }}</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>Database: {{ society.mysqldbs[0] }}</p>
-        {% endif %}
-
-        <p>Manage</p>
-        <ul>
-            <li><a href="http://www.srcf.net/phpmyadmin">phpMyAdmin</a></li>
-            {% if member.mysqluser %}
-            <li>
-                Type <code>mysql -p -D {{ society.mysqldbs[0] }}</code>
-                to connect from the SRCF command line using your personal MySQL password.
-            </li>
-            {% endif %}
-            <li>
-                Type <code>mysql -u {{ society.mysqluser }} -p -D {{ society.mysqldbs[0] }}</code>
-                to connect from the SRCF command line using the society MySQL password.
-            </li>
-        </ul>
-
-        {% if member.mysqluser %}
-        <p>
-            Note that your personal MySQL user (<code>{{ member.mysqluser }}</code>) can also be used
-            to manage the society database.
-            However, please do not use your personal user to connect society websites (Wordpress, etc.) to MySQL.
-            It makes it very difficult for us to manage the accounts, and in particular makes it far harder to hand over to a
-            new administrator if you wish to transfer ownership of the society account later.
-        </p>
-        {% endif %}
-    {% else %}
-        <form action="{{ url_for('society.create_database', society=society.society, type='mysql') }}" method="post">
-          <div class="form-group">
-            <input type="submit" value="Create MySQL Database">
-          </div>
-        </form>
-    {% endif %}
-
-    <h3>PostgreSQL</h3>
-    {% if society.pgdbs %}
-        <p>
-            Username: <code>{{ society.pguser }}</code>. <br>
-            A password will have been issued by email when the user was created, though it should
-            not be necessary when using PostgreSQL from the command line, scripts or websites: it will
-            authenticate automatically. <br>
-            <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}">Reset password</a>.
-        </p>
-
-        {% if society.pgdbs|length > 1 %}
-        <p>Databases:</p>
-        <ul>
-            {% for db in society.pgdbs|sort %}
-            <li>{{ db }}</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>Database: {{ society.pgdbs[0] }}</p>
-        {% endif %}
-
-        <p>Manage</p>
-        <ul>
-            <li><a href="http://www.srcf.net/phppgadmin">phpPgAdmin</a></li>
-            {% if member.pguser %}
-            <li>Type <code>psql {{ society.pgdbs[0] }}</code> to connect from the SRCF command line.</li>
-            {% endif %}
-        </ul>
-
-        {% if member.pguser %}
-        <p>
-            Note that your personal PostgreSQL user (<code>{{ member.pguser }}</code>) can also be used
-            to manage the society database.
-            However, please do not use your personal user to connect society websites to PostgreSQL.
-            It makes it very difficult for us to manage the accounts, and in particular makes it far harder to hand over to a
-            new administrator if you wish to transfer ownership of the society account later.
-        </p>
-        {% endif %}
-    {% else %}
-        <form action="{{ url_for('society.create_database', society=society.society, type='postgres') }}" method="post">
-          <div class="form-group">
-            <input type="submit" value="Create PostgreSQL Database">
-          </div>
-        </form>
-    {% endif %}
-
-    <h2>Mailing lists</h2>
-
-    {% if society.mailinglists %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Email address</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for list in society.mailinglists|sort %}
-                <tr>
-                    <td>{{ list }}<small>@srcf.net</small></td>
-                    <td><a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">Manage</a></td>
-		     <td><a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}">Reset password</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-
-    <h3>New</h3>
-    <form action="{{ url_for('society.create_mailing_list', society=society.society) }}" method="post">
-        {{ society.society }}-<input name="listname" placeholder="List name">@srcf.net
-        <input type="Submit" value="Create">
+    {%- if society.mysqluser %}
+    <p>Login with the username <span class="data">{{ society.mysqluser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}">Reset password</a></p>
+    <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
+    <pre>{{ member.crsid }}@pip $ mysql -u {{ society.mysqluser }} -p <em>database</em></pre>
+    <p>Here, <code>-u {{ society.mysqluser }}</code> specifies the society username, <code>-p</code> prompts for the password, and <code><em>database</em></code> at the end switches to the database of that name.</p>
+      {%- if society.mysqldbs|length > 1 %}
+    <p>This society currently have the following databases: {% for db in society.mysqldbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    <p>To connect to a database, replace <code><em>database</em></code> with its name, e.g. <code>mysql -u {{ society.mysqluser }} -p {{ society.mysqldbs[0] }}</code>.</p>
+      {%- elif society.mysqldbs|length == 1 %}
+    <p>The name of your database is <span class="data">{{ society.mysqldbs[0] }}</span>.  To connect to it, replace <code><em>database</em></code> with <code>{{ society.mysqldbs[0] }}</code> above, i.e. <code>mysql -u {{ society.mysqluser }} -p {{ society.mysqldbs[0] }}</code>.</p>
+      {%- else %}
+    <form action="{{ url_for('society.create_database', society=society.society, type='mysql') }}" method="post">
+        <p>This society doesn't currently have a MySQL database. &mdash; <input type="submit" class="action" value="Create database"></p>
     </form>
-
+      {%- endif %}
+      {%- if society.mysqldbs and member.mysqluser %}
+      <p>You can also connect using your personal MySQL account, however you should not do this in any society scripts or website config files &ndash; this makes it difficult for us to manage accounts, and will also make it harder to hand over society accounts to new administrators.</p>
+      {%- endif %}
+    {%- else %}
+    <form action="{{ url_for('society.create_database', society=society.society, type='mysql') }}" method="post">
+        <p>This society doesn't currently have a MySQL user or database. &mdash; <input type="submit" class="action" value="Create database"></p>
+    </form>
+    {%- endif %}
+    <h3>PostgreSQL</h3>
+    {%- if society.pguser %}
+    <p>Login with the username <span class="data">{{ society.pguser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}">Reset password</a></p>
+    <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
+    <pre>{{ member.crsid }}@pip $ psql <em>database</em></pre>
+    <p>Here, <code><em>database</em></code> switches to the database of that name.  You don't need to provide a password, authentication is handled by the currently logged in user (so scripts running as your account also do not need a password).</p>
+      {%- if society.pgdbs|length > 1 %}
+    <p>This society currently have the following databases: {% for db in society.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    <p>To connect to a database, replace <code><em>database</em></code> with its name, e.g. <code>psql {{ society.pgdbs[0] }}</code>.</p>
+      {%- elif society.pgdbs|length == 1 %}
+    <p>The name of your database is <span class="data">{{ society.pgdbs[0] }}</span>.  To connect to it, replace <code><em>database</em></code> with <code>{{ society.pgdbs[0] }}</code> above, i.e. <code>psql {{ society.pgdbs[0] }}</code>.</p>
+      {%- else %}
+    <form action="{{ url_for('society.create_database', society=society.society, type='postgres') }}" method="post">
+        <p>This society doesn't currently have a PostgreSQL database. &mdash; <input type="submit" class="action" value="Create database"></p>
+    </form>
+      {%- endif %}
+      {%- if society.pgdbs and member.pguser %}
+      <p>You can also connect using your personal PostgreSQL account, however you should not do this in any society scripts or website config files &ndash; this makes it difficult for us to manage accounts, and will also make it harder to hand over society accounts to new administrators.</p>
+      {%- endif %}
+    {%- else %}
+    <form action="{{ url_for('society.create_database', society=society.society, type='postgres') }}" method="post">
+        <p>This society doesn't currently have a PostgreSQL user or database. &mdash; <input type="submit" class="action" value="Create database"></p>
+    </form>
+    {%- endif %}
+    <h2>Mailing lists</h2>
+    {%- if society.mailinglists %}
+      {%- if society.mailinglists|length > 1 %}
+    <p>You currently manage {{ society.mailinglists|length }} mailing lists.  These are:</p>
+    <ul>
+        {%- for list in society.mailinglists|sort %}
+        <li><span class="data">{{ list }}</span>@srcf.net &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ list }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}">Reset password</a></li>
+        {%- endfor %}
+    </ul>
+      {% else %}
+    <p>You currently manage the <span class="data">{{ society.mailinglists[0] }}</span>@srcf.net mailing list. &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ society.mailinglists[0] }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ society.mailinglists[0] }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=society.mailinglists[0]) }}">Reset password</a>
+      {%- endif %}
+    {%- endif %}
+    <p>If you want to create a new mailing list, enter the list name below.  Society list addresses are of the form <span class="data">{{ society.society }}-<em>name</em></span>@srcf.net.</p>
+    <form action="{{ url_for('society.create_mailing_list', society=society.society) }}" method="post">
+        <p>{{ society.society }}-<input name="listname" placeholder="List name">@srcf.net <input type="Submit" value="Create">
+    </form>
 </div>
 {% endblock body %}
