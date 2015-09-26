@@ -79,7 +79,7 @@ def reset_mailing_list_password(listname):
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        args = {"mailing_list": listname,
+        args = {"crsid": crsid, "mailing_list": listname,
                 "action": url_for('member.reset_mailing_list_password', listname=listname)}
         return render_template("member/reset_mailing_list_password.html", **args)
 
@@ -105,7 +105,7 @@ def reset_password(type):
                          "postgres": "phpPgAdmin",
                          "srcf": ""}[type]
 
-        args = { "item": formatted_name,
+        args = { "crsid": crsid, "item": formatted_name,
                  "action": url_for('member.reset_password', type=type) }
 
         if type == "srcf":
