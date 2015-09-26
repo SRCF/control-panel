@@ -3,6 +3,10 @@ p.done {
 	font-weight: bold;
 	padding: 0.2em 0.4em;
 }
+ul.acctlist {
+    list-style-type: none;
+    padding-left: 0;
+}
 ul.acctlist div {
 	padding: 0.2em;
 }
