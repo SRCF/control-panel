@@ -160,6 +160,17 @@ class UpdateEmailAddress(Job):
     def __str__(self): return "Update Email Address: {0.owner.crsid} ({0.owner.email} to {0.email})".format(self)
     def __repr__(self): return "<UpdateEmailAddress {0.owner_crsid}>".format(self)
 
+    def run(self, sess):
+        crsid = self.owner.crsid
+
+        # Connect to database
+        db = pgdb.connect(database="sysadmins")
+        cursor = db.cursor()
+
+        cursor.execute("UPDATE members SET email = %s WHERE crsid = '" + crsid + "'", (self.email,))
+
+        return JobDone()
+
 @add_job
 class CreateUserMailingList(Job):
     JOB_TYPE = 'create_user_mailing_list'
