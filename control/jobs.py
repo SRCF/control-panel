@@ -162,12 +162,17 @@ class UpdateEmailAddress(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        old_email = self.owner.email
 
         # Connect to database
         db = pgdb.connect(database="sysadmins")
         cursor = db.cursor()
 
         cursor.execute("UPDATE members SET email = %s WHERE crsid = '" + crsid + "'", (self.email,))
+
+        mail_sysadmins("SRCF User Email Address Update",
+                       "Email address for {0.owner.crsid} changed from {1} to {0.email}"
+                       .format(self, old_email))
 
         return JobDone()
 
