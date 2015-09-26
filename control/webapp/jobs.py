@@ -12,6 +12,8 @@ bp = Blueprint("jobs", __name__)
 @bp.route('/jobs')
 def home():
     jobs = Job.of_user(sess, utils.raven.principal)
+    for job in jobs:
+        job.resolve_references(sess)
     return render_template("jobs/home.html", crsid=utils.raven.principal, jobs=jobs)
 
 @bp.route('/jobs/<int:id>')

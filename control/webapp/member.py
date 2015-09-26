@@ -44,7 +44,7 @@ def update_email_address():
             error = "That address doesn't look valid."
 
     if request.method == "POST" and not error:
-        j = jobs.UpdateEmailAddress.new(member=mem, email=request.form["email"])
+        j = jobs.UpdateEmailAddress.new(member=mem, email=email)
         sess.add(j.row)
         sess.commit()
         return redirect(url_for("jobs.status", id=j.job_id))

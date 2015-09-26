@@ -125,8 +125,7 @@ class Signup(Job):
     social         = property(lambda s: s.row.args["social"] == "y")
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
-    describe = property("Signup: {0.crsid} ({0.preferred_name} "
-                        "{0.surname}, {0.email})".format)
+    def __str__(self): return "Signup: {0.crsid} ({0.preferred_name} {0.surname}, {0.email})".format(self)
 
 @add_job
 class ResetUserPassword(Job):
@@ -141,7 +140,7 @@ class ResetUserPassword(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
-    describe = property("Reset User Password: {0.owner.crsid} ({0.owner.name})".format)
+    def __str__(self): return "Reset User Password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class UpdateEmailAddress(Job):
@@ -156,8 +155,10 @@ class UpdateEmailAddress(Job):
         require_approval = member.danger
         return cls.store(member, args, require_approval)
 
+    email = property(lambda s: s.row.args["email"])
+
+    def __str__(self): return "Update Email Address: {0.owner.crsid} ({0.owner.email} to {0.email})".format(self)
     def __repr__(self): return "<UpdateEmailAddress {0.owner_crsid}>".format(self)
-    describe = property("Update Email Address: {0.owner.crsid} ({0.owner.email} to {0.email})".format)
 
 @add_job
 class CreateUserMailingList(Job):
@@ -175,7 +176,7 @@ class CreateUserMailingList(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<CreateUserMailingList {0.owner_crsid}-{0.listname}>".format(self)
-    describe = property("Create User Mailing List: {0.owner_crsid}-{0.listname}".format)
+    def __str__(self): return "Create User Mailing List: {0.owner_crsid}-{0.listname}".format(self)
 
     def run(self, sess):
 
@@ -228,7 +229,7 @@ class ResetUserMailingListPassword(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<ResetUserMailingListPassword {0.owner_crsid} {0.listname}>".format(self)
-    describe = property("Reset User Mailing List Password: {0.owner_crsid} {0.listname}".format)
+    def __str__(self): return "Reset User Mailing List Password: {0.owner_crsid} {0.listname}".format(self)
 
     def run(self, sess):
 
@@ -279,7 +280,7 @@ class CreateSociety(Job):
     postgres     = property(lambda s: s.row.args["postgres"] == "y")
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
-    describe = property("Create Society: {0.society} ({0.description})".format)
+    def __str__(self): return "Create Society: {0.society} ({0.description})".format(self)
 
 @add_job
 class ChangeSocietyAdmin(Job):
@@ -318,8 +319,7 @@ class ChangeSocietyAdmin(Job):
         return "<ChangeSocietyAdmin {0.action} {0.society_society} " \
                "{0.target_member_crsid}>".format(self)
 
-    @property
-    def describe(self):
+    def __str__(self):
         verb = self.action.title()
         prep = "to" if self.action == "add" else "from"
         fmt = "{verb} {0.target_member.crsid} ({0.target_member.name}) "\
@@ -421,7 +421,7 @@ class CreateSocietyMailingList(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<CreateSocietyMailingList {0.society_society}-{0.listname}>".format(self)
-    describe = property("Create Society Mailing List: {0.society_society}-{0.listname}".format)
+    def __str__(self): return "Create Society Mailing List: {0.society_society}-{0.listname}".format(self)
 
     def run(self, sess):
 
@@ -482,7 +482,7 @@ class ResetSocietyMailingListPassword(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<ResetSocietyMailingListPassword {0.society_society} {0.listname}>".format(self)
-    describe = property("Reset Society Mailing List Password: {0.society.society} {0.listname}".format)
+    def __str__(self): return "Reset Society Mailing List Password: {0.society.society} {0.listname}".format(self)
 
     def run(self, sess):
 
@@ -512,7 +512,7 @@ class CreateMySQLUserDatabase(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<CreateMySQLUserDatabase {0.owner_crsid}>".format(self)
-    describe = property("Create MySQL User Database: {0.owner.crsid} ({0.owner.name})".format)
+    def __str__(self): return "Create MySQL User Database: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class ResetMySQLUserPassword(Job):
@@ -527,7 +527,7 @@ class ResetMySQLUserPassword(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<ResetMySQLUserPassword {0.owner_crsid}>".format(self)
-    describe = property("Reset MySQL User Password: {0.owner.crsid} ({0.owner.name})".format)
+    def __str__(self): return "Reset MySQL User Password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class CreateMySQLSocietyDatabase(Job):
@@ -548,8 +548,7 @@ class CreateMySQLSocietyDatabase(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<CreateMySQLSocietyDatabase {0.society_society}>".format(self)
-    describe = property("Create MySQL Society Database: "
-                        "{0.society.society} ({0.society.description})".format)
+    def __str__(self): return "Create MySQL Society Database: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
 class ResetMySQLSocietyPassword(Job):
@@ -570,8 +569,7 @@ class ResetMySQLSocietyPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<ResetMySQLSocietyPassword {0.society_society}>".format(self)
-    describe = property("Reset MySQL Society Password: "
-                        "{0.society.society} ({0.society.description})".format)
+    def __str__(self): return "Reset MySQL Society Password: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
 class CreatePostgresUserDatabase(Job):
@@ -648,8 +646,7 @@ class CreatePostgresUserDatabase(Job):
 
 
     def __repr__(self): return "<CreatePostgresUserDatabase {0.owner_crsid}>".format(self)
-    describe = property("Create Postgres User Database: "
-                        "{0.owner.crsid} ({0.owner.name})".format)
+    def __str__(self): return "Create Postgres User Database: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class ResetPostgresUserPassword(Job):
@@ -664,8 +661,7 @@ class ResetPostgresUserPassword(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<ResetPostgresUserPassword {0.owner_crsid}>".format(self)
-    describe = property("Reset Postgres User Password: "
-                        "{0.owner.crsid} ({0.owner.name})".format)
+    def __str__(self): return "Reset Postgres User Password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class CreatePostgresSocietyDatabase(Job):
@@ -686,8 +682,7 @@ class CreatePostgresSocietyDatabase(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<CreatePostgresSocietyDatabase {0.society_society}>".format(self)
-    describe = property("Create Postgres Society Database: "
-                        "{0.society.society} ({0.society.description})".format)
+    def __str__(self): return "Create Postgres Society Database: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
 class ResetPostgresSocietyPassword(Job):
@@ -708,5 +703,4 @@ class ResetPostgresSocietyPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<ResetPostgresSocietyPassword {0.society_society}>".format(self)
-    describe = property("Reset Postgres Society Password: "
-                        "{0.society.society} ({0.society.description})".format)
+    def __str__(self): return "Reset Postgres Society Password: {0.society.society} ({0.society.description})".format(self)
