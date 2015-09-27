@@ -17,17 +17,12 @@
                 <td>{{ key|title }}</td>
                 <td>{{ count }}</td>
                 <td>
-                    {%- if key in ("unapproved", "queued", "running") %}
                     <a href="{{ url_for('admin.view_jobs', state=key) }}">View</a>
-                    {%- endif %}
                 </td>
             </tr>
             {%- endfor %}
         </tbody>
     </table>
-    <p>
-        Please consult the logs for done or failed jobs.
-        <small>Or, if you have some spare time, implement pagination and add them here.</small>
-    </p>
+    <p><small>These pages needs pagination before the lists grow too long...</small></p>
 </div>
 {% endblock body %}
