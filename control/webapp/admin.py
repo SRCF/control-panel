@@ -42,6 +42,8 @@ def home():
 @bp.route('/admin/jobs/unapproved', defaults={"state": "unapproved"})
 @bp.route('/admin/jobs/queued',     defaults={"state": "queued"})
 @bp.route('/admin/jobs/running',    defaults={"state": "running"})
+@bp.route('/admin/jobs/done',       defaults={"state": "done"})
+@bp.route('/admin/jobs/failed',     defaults={"state": "failed"})
 def view_jobs(state):
     job_row = srcf.database.Job
     jobs = sess.query(job_row) \
