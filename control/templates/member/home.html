@@ -17,7 +17,6 @@
     {%- else %}
     <p>You don't currently have a website set up.  You can do this by uploading pages to your <span class="data">public_html</span> folder.  This will then become available at <span class="data">{{ member.crsid }}.user.srcf.net</span>.</p>
     {%- endif %}
-    <h2>Databases</h2>
     <h3>MySQL</h3>
     {%- if member.mysqluser %}
     <p>Login with the username <span class="data">{{ member.mysqluser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('member.reset_password', type='mysql') }}">Reset password</a></p>
@@ -60,7 +59,7 @@
         <p>You don't currently have a PostgreSQL user or database. &mdash; <input type="submit" class="action" value="Create database"></p>
     </form>
     {%- endif %}
-    <h2>Mailing lists</h2>
+    <h3>Mailing lists</h3>
     {%- if member.mailinglists %}
       {%- if member.mailinglists|length > 1 %}
     <p>You currently manage {{ member.mailinglists|length }} mailing lists.  These are:</p>

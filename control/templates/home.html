@@ -42,7 +42,7 @@
     {% if member.societies %}
     <p>You are currently listed as an administrator for {{ member.societies|length }} society account{{ "" if member.societies|length == 1 else "s" }}. &mdash; <a href="{{ url_for('signup.newsoc') }}">Create new</a></p>
     <ul class="acctlist">
-        {% for soc in member.societies %}
+        {% for soc in member.societies|sort(attribute='society') %}
         <li class="acct">
             <div class="head">
                 <span class="data">{{ soc.society }}</span> &bullet; <span class="data">{{ soc.description }}</span> &mdash; <a href="{{ url_for('society.home', society=soc.society) }}">Manage</a>

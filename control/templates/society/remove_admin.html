@@ -9,13 +9,13 @@
 
     <p>
         Are you sure you want to remove {{ mem_name_crsid(target) }}
-        from the society {{ soc_desc_soc(society) }}?
+        from the {{ soc_desc_soc(society) }} account?
     </p>
 
     <ul>
         <li>They will no longer be able to edit the files of the society website.</li>
-        <li>They will no longer be able to use their <i>personal</i> MySQL or PostgreSQL users to log into the society database.</li>
-        <li>If they know society database passwords or society mailing list passwords then they will still know, and be able to use them. You can reset these from the "manage society" page.</li>
+        <li>They will no longer be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
+        <li>If they know society database passwords or society mailing list passwords then they will still know, and be able to use them. You can reset these from the society management page.</li>
         <li>If they could log into a CMS/webapp/Wordpress, they will continue to be able to do so. You would have to remove their account separately.</li>
         <li>It is feasible for a malicious admin to leave back-doors; contact the sysadmins if you are concerned.</li>
     </ul>
