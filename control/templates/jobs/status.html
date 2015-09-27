@@ -20,7 +20,7 @@
     {%- elif job.state == "running" %}
     <h3>Running</h3>
       {%- if job.state_message %}
-    <h4>{{ job.state_message }}</h4>
+    <p>Status: {{ job.state_message }}</p>
       {%- endif %}
     <p>
         This job is being processed right now(!)
@@ -29,7 +29,7 @@
     {%- elif job.state == "done" %}
     <h3>Complete</h3>
       {%- if job.state_message %}
-    <h4>{{ job.state_message }}</h4>
+    <p>Response: {{ job.state_message }}</p>
       {%- endif %}
     <p>Job complete.</p>
     {%- elif job.state == "failed" %}

@@ -50,3 +50,11 @@ def view_jobs(state):
     jobs = [Job.of_row(r) for r in jobs]
     for j in jobs: j.resolve_references(sess)
     return render_template("admin/view_jobs.html", state=state, jobs=jobs)
+
+@bp.route('/admin/jobs/<int:id>')
+def status(id):
+    job = Job.find(sess, id)
+    if not job:
+        raise NotFound(id)
+
+    return render_template("jobs/status.html", job=job)

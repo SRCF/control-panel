@@ -21,7 +21,7 @@
                 <td>{{ job.owner_crsid }}</td>
                 <td>{{ job.JOB_TYPE }}</td>
                 <td>{{ job.state }}</td>
-                <td><a href="#todo">View</a></td>
+                <td><a href="{{ url_for('admin.status', id=job.job_id) }}">View</a></td>
             </tr>
             <tr>
                 <td></td>
