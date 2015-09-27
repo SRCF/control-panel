@@ -3,51 +3,45 @@
 
 {% block body %}
 <div class="main">
-    <h1>Job Status</h1>
-
-    <h2>{{ job }}</h2>
-
-    {% if job.state == "unapproved" %}
-        <h3>To be checked by a sysadmin</h3>
-        <p>
-            A SRCF sysadmin needs to review the job before it can proceed.
-            This should not take long, and you should receive an email when it is complete.
-        </p>
-    {% elif job.state == "queued" %}
-        <h3>Queued</h3>
-        <p>
-            This job is in the queue, and should be automatically completed soon.
-            Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.
-        </p>
-    {% elif job.state == "running" %}
-        <h3>Running</h3>
-        {% if job.state_message %}
-            <h4>{{ job.state_message }}</h4>
-        {% endif %}
-        <p>
-            This job is being processed right now(!)
-            Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.
-        </p>
-    {% elif job.state == "done" %}
-        <h3>Complete</h3>
-        {% if job.state_message %}
-            <h4>{{ job.state_message }}</h4>
-        {% endif %}
-        <p>Job complete.</p>
-    {% elif job.state == "failed" %}
-        <h3>Error</h3>
-        {% if job.state_message %}
-            <h4>{{ job.state_message }}</h4>
-        {% endif %}
-        <p>
-            The job failed to complete.
-            A SRCF sysadmin should hopefully notice and intervene, but you may like to email
-            <a href="mailto:sysadmins@srcf.net">sysadmins@srcf.net</a> for help.
-        </p>
-    {% endif %}
-
-    {% if job.JOB_TYPE != "signup" %}
-    <p><a href="{{ url_for("home.home") }}">Control panel home</a></p>
-    {% endif %}
+    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('jobs.home') }}" class="action">Job history for {{ job.owner.crsid }}</a> &rarr; Job #{{ job.job_id }}</h1>
+    <p>Description: {{ job }}</p>
+    {%- if job.state == "unapproved" %}
+    <h3>To be checked by a sysadmin</h3>
+    <p>
+        A SRCF sysadmin needs to review the job before it can proceed.
+        This should not take long, and you should receive an email when it is complete.
+    </p>
+    {%- elif job.state == "queued" %}
+    <h3>Queued</h3>
+    <p>
+        This job is in the queue, and should be automatically completed soon.
+        Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.
+    </p>
+    {%- elif job.state == "running" %}
+    <h3>Running</h3>
+      {%- if job.state_message %}
+    <h4>{{ job.state_message }}</h4>
+      {%- endif %}
+    <p>
+        This job is being processed right now(!)
+        Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.
+    </p>
+    {%- elif job.state == "done" %}
+    <h3>Complete</h3>
+      {%- if job.state_message %}
+    <h4>{{ job.state_message }}</h4>
+      {%- endif %}
+    <p>Job complete.</p>
+    {%- elif job.state == "failed" %}
+    <h3>Error</h3>
+    <p>
+        The job failed to complete.
+        A SRCF sysadmin should hopefully notice and intervene, but you may like to email
+        <a href="mailto:sysadmins@srcf.net">sysadmins@srcf.net</a> for help.
+    </p>
+      {%- if job.state_message %}
+    <p>Error reported: {{ job.state_message }}</p>
+      {%- endif %}
+    {%- endif %}
 </div>
 {% endblock %}

@@ -37,7 +37,7 @@
                 </p>
             </div>
         </div>
-        {% block body %}{% endblock %}
+        {%- filter indent(8) %}{% block body %}{% endblock %}{% endfilter %}
         <div class="modal-spinner"></div>
         <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.3.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='jquery.modal.min.js') }}"></script>

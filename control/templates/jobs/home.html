@@ -2,9 +2,8 @@
 
 {% block body %}
 <div class="main">
-    <h1>Jobs for {{ crsid }}</h1>
-
-    {% if jobs %}
+    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; Job history for {{ crsid }}</h1>
+    {%- if jobs %}
     <table>
         <thead>
             <tr>
@@ -15,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for job in jobs %}
+            {%- for job in jobs %}
             <tr>
                 <td>{{ job.job_id }}</td>
                 <td>{{ job.JOB_TYPE }}</td>
@@ -26,18 +25,17 @@
                 <td></td>
                 <td colspan="4">{{ job }}</td>
             </tr>
-            {% if job.state_message %}
+            {%- if job.state_message %}
             <tr>
                 <td>State</td>
                 <td colspan="4">{{ job.state_message }}</td>
             </tr>
-            {% endif %}
-            {% endfor %}
+            {%- endif %}
+            {%- endfor %}
         </tbody>
     </table>
-    {% else %}
+    {%- else %}
     <p>No jobs to show.</p>
-    {% endif %}
-
+    {%- endif %}
 </div>
 {% endblock body %}

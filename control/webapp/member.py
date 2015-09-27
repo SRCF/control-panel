@@ -40,6 +40,8 @@ def update_email_address():
         email = request.form.get("email")
         if not email:
             error = "Please enter your email address."
+        elif mem.email == email:
+            error = "That's the address we already have."
         elif not utils.email_re.match(email):
             error = "That address doesn't look valid."
 
