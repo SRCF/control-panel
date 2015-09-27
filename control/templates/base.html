@@ -3,6 +3,7 @@
     <head>
         <title>Student-Run Computing Facility (SRCF) - SRCF control panel</title>
         <link rel="stylesheet" href="/_srcf/style.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='jquery.modal.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
@@ -37,5 +38,9 @@
             </div>
         </div>
         {% block body %}{% endblock %}
+        <div class="modal-spinner"></div>
+        <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.3.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='jquery.modal.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='script.js') }}"></script>
     </body>
 </html>

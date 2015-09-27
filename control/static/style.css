@@ -37,6 +37,13 @@ span.error {
 h1 a.action {
     color: #0099ff;
 }
+input[type="text"], input[type="email"] {
+    font: inherit;
+    padding: 0.2em;
+}
+div.form-group {
+    margin-bottom: 1em;
+}
 button.action, input[type="submit"].action {
     background: none;
     border: none;
@@ -45,6 +52,9 @@ button.action, input[type="submit"].action {
     color: #747474;
     text-decoration: underline;
     cursor: pointer;
+}
+.modal {
+    width: 700px;
 }
 
 .signup-form p.help-block {

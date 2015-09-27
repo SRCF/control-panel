@@ -10,10 +10,10 @@
     <p>The current list of admins is as follows:</p>
     <ul>
     {%- for admin in society.admins|sort(attribute='crsid') %}
-        <li>{{ mem_name_crsid(admin) }}{% if admin != member %} &mdash; <a href='{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}'>Remove</a>{% endif %}</li>
+        <li>{{ mem_name_crsid(admin) }}{% if admin != member %} &mdash; <a href="{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}" rel="modal">Remove</a>{% endif %}</li>
     {%- endfor %}
     </ul>
-    <p>You can also elect additional administrators to manage the account. &mdash; <a href="{{ url_for('society.add_admin', society=society.society) }}">Add</a></p>
+    <p>You can also elect additional administrators to manage the account. &mdash; <a href="{{ url_for('society.add_admin', society=society.society) }}" rel="modal">Add</a></p>
     {%- if society.pending_admins %}
     <p>The following users are pending addition as administrators, because they do not currently have personal SRCF accounts:</p>
     <ul>
@@ -30,7 +30,7 @@
     {%- endif %}
     <h3>MySQL</h3>
     {%- if society.mysqluser %}
-    <p>Login with the username <span class="data">{{ society.mysqluser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}">Reset password</a></p>
+    <p>Login with the username <span class="data">{{ society.mysqluser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}" rel="modal">Reset password</a></p>
     <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
     <pre>{{ member.crsid }}@pip $ mysql -u {{ society.mysqluser }} -p <em>database</em></pre>
     <p>Here, <code>-u {{ society.mysqluser }}</code> specifies the society username, <code>-p</code> prompts for the password, and <code><em>database</em></code> at the end switches to the database of that name.</p>
@@ -54,7 +54,7 @@
     {%- endif %}
     <h3>PostgreSQL</h3>
     {%- if society.pguser %}
-    <p>Login with the username <span class="data">{{ society.pguser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}">Reset password</a></p>
+    <p>Login with the username <span class="data">{{ society.pguser }}</span>.  Your password will have been issued when the user was first created. &mdash; <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}" rel="modal">Reset password</a></p>
     <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
     <pre>{{ member.crsid }}@pip $ psql <em>database</em></pre>
     <p>Here, <code><em>database</em></code> switches to the database of that name.  You don't need to provide a password, authentication is handled by the currently logged in user (so scripts running as your account also do not need a password).</p>
@@ -82,11 +82,11 @@
     <p>This society currently manages {{ society.mailinglists|length }} mailing lists.  These are:</p>
     <ul>
         {%- for list in society.mailinglists|sort %}
-        <li><span class="data">{{ list }}</span>@srcf.net &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ list }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}">Reset password</a></li>
+        <li><span class="data">{{ list }}</span>@srcf.net &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ list }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}" rel="modal">Reset password</a></li>
         {%- endfor %}
     </ul>
-      {% else %}
-    <p>This society currently manages the <span class="data">{{ society.mailinglists[0] }}</span>@srcf.net mailing list. &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ society.mailinglists[0] }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ society.mailinglists[0] }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=society.mailinglists[0]) }}">Reset password</a>
+      {%- else %}
+    <p>This society currently manages the <span class="data">{{ society.mailinglists[0] }}</span>@srcf.net mailing list. &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ society.mailinglists[0] }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ society.mailinglists[0] }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=society.mailinglists[0]) }}" rel="modal">Reset password</a>
       {%- endif %}
     {%- endif %}
     <p>If you want to create a new mailing list, enter the list name below.  Society list addresses are of the form <span class="data">{{ society.society }}-<em>name</em></span>@srcf.net.</p>
