@@ -1,9 +1,11 @@
 from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 
 from sqlalchemy import func as sql_func
 
 import srcf.database
+
+import math
 
 from .utils import srcf_db_sess as sess
 from . import utils
@@ -39,19 +41,24 @@ def home():
     counts = q.all()
     return render_template("admin/home.html", job_counts=counts)
 
+per_page = 10
+
 @bp.route('/admin/jobs/unapproved', defaults={"state": "unapproved"})
 @bp.route('/admin/jobs/queued',     defaults={"state": "queued"})
 @bp.route('/admin/jobs/running',    defaults={"state": "running"})
 @bp.route('/admin/jobs/done',       defaults={"state": "done"})
 @bp.route('/admin/jobs/failed',     defaults={"state": "failed"})
 def view_jobs(state):
+    page = int(request.args["page"]) if "page" in request.args else 1
     job_row = srcf.database.Job
     jobs = sess.query(job_row) \
                     .filter(job_row.state == state) \
                     .order_by(job_row.job_id)
     jobs = [Job.of_row(r) for r in jobs]
+    max_pages = int(math.ceil(len(jobs) / float(per_page)))
+    jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for j in jobs: j.resolve_references(sess)
-    return render_template("admin/view_jobs.html", state=state, jobs=jobs)
+    return render_template("admin/view_jobs.html", state=state, jobs=jobs, page=page, max_pages=max_pages)
 
 @bp.route('/admin/jobs/<int:id>')
 def status(id):
