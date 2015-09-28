@@ -6,21 +6,17 @@
     <table>
         <thead>
             <tr>
-                <th>State</th>
-                <th>Count</th>
-                <th></th>
+                {%- for key, count in job_counts %}
+                <th>{{ key|title }}</th>
+                {%- endfor %}
             </tr>
         </thead>
         <tbody>
-            {%- for key, count in job_counts %}
             <tr>
-                <td>{{ key|title }}</td>
-                <td>{{ count }}</td>
-                <td>
-                    <a href="{{ url_for('admin.view_jobs', state=key) }}">View</a>
-                </td>
+                {%- for key, count in job_counts %}
+                <td><a href="{{ url_for('admin.view_jobs', state=key) }}">{{ count }}</a></td>
+                {%- endfor %}
             </tr>
-            {%- endfor %}
         </tbody>
     </table>
 </div>

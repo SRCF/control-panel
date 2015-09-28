@@ -41,7 +41,7 @@ def home():
     counts = q.all()
     return render_template("admin/home.html", job_counts=counts)
 
-per_page = 10
+per_page = 25
 
 @bp.route('/admin/jobs/unapproved', defaults={"state": "unapproved"})
 @bp.route('/admin/jobs/queued',     defaults={"state": "queued"})

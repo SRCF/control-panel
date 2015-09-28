@@ -3,7 +3,9 @@
 {% block body %}
 <div class="main">
     <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('admin.home') }}" class="action">Administration</a> &rarr; {{ state|title }}</h1>
+    {%- if max_pages > 1 %}
     <p>Page: {% for i in range(1, max_pages + 1) %}{% if i == page %}<strong>{{ i }}</strong>{% else %}<a href="?page={{ i }}">{{ i }}</a>{% endif %}{% if not loop.last %} {% endif %}{% endfor %}</p>
+    {%- endif %}
     {%- if jobs %}
     <table>
         <thead>
@@ -11,29 +13,17 @@
                 <th>ID</th>
                 <th>Owner</th>
                 <th>Type</th>
-                <th>State</th>
-                <th></th>
+                <th>Message</th>
             </tr>
         </thead>
         <tbody>
             {%- for job in jobs %}
             <tr>
-                <td>{{ job.job_id }}</td>
+                <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
                 <td>{{ job.owner_crsid }}</td>
-                <td>{{ job.JOB_TYPE }}</td>
-                <td>{{ job.state }}</td>
-                <td><a href="{{ url_for('admin.status', id=job.job_id) }}">View</a></td>
+                <td>{{ job.JOB_TYPE }}<br>{{ job }}</td>
+                <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
             </tr>
-            <tr>
-                <td></td>
-                <td colspan="4">{{ job }}</td>
-            </tr>
-            {%- if job.state_message %}
-            <tr>
-                <td>State</td>
-                <td colspan="4">{{ job.state_message }}</td>
-            </tr>
-            {%- endif %}
             {%- endfor %}
         </tbody>
     </table>
