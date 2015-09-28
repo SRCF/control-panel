@@ -1,6 +1,8 @@
 import subprocess
 import sys
 
+from flask import url_for
+
 from srcf import database, pwgen
 from srcf.database import queries
 from srcf.mail import mail_sysadmins, send_mail, template
@@ -72,12 +74,24 @@ class Job(object):
 
     @classmethod
     def store(cls, owner, args, require_approval=False):
-        return cls(database.Job(
+        job = cls(database.Job(
             type=cls.JOB_TYPE,
             owner=owner,
             state="unapproved" if require_approval else "queued",
             args=args
         ))
+
+        if require_approval:
+            old_LOGNAME = os.environ.get("LOGNAME")
+            os.environ["LOGNAME"] = "sysadmins" # TODO: this works for the wrong reasons
+            mail_sysadmins("Job pending approval: {0}".format(job),
+               "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True)))
+            if old_LOGNAME:
+                os.environ["LOGNAME"] = old_LOGNAME
+            else:
+                del os.environ["LOGNAME"]
+
+        return job
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""
