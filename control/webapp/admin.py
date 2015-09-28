@@ -1,5 +1,5 @@
 from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
 
 from sqlalchemy import func as sql_func
 
@@ -67,3 +67,22 @@ def status(id):
         raise NotFound(id)
 
     return render_template("jobs/status.html", job=job)
+
+@bp.route('/admin/jobs/<int:id>/approve', defaults={"approved": True})
+@bp.route('/admin/jobs/<int:id>/reject',  defaults={"approved": False})
+def approve(id, approved):
+    job = Job.find(sess, id)
+    if not job:
+        raise NotFound(id)
+    if not job.state == "unapproved":
+        raise Forbidden(id)
+
+    if approved:
+        job.set_state("queued")
+    else:
+        job.set_state("failed", "Job rejected by sysadmin")
+
+    sess.add(job.row)
+    sess.commit()
+
+    return redirect(url_for("admin.view_jobs", state="unapproved"))
