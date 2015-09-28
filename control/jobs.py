@@ -18,6 +18,9 @@ def parse_mail_template(temp, obj):
     keys = template.substitutions(obj)
     return template.replace(text, keys)
 
+def mail_notify(subj, msg=""):
+    mail_sysadmins("[Control Panel] {0}".format(subj), msg)
+
 all_jobs = {}
 
 def add_job(cls):
@@ -84,8 +87,8 @@ class Job(object):
         if require_approval:
             old_LOGNAME = os.environ.get("LOGNAME")
             os.environ["LOGNAME"] = "sysadmins" # TODO: this works for the wrong reasons
-            mail_sysadmins("Job pending approval: {0}".format(job),
-               "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True)))
+            mail_notify("Job pending approval -- {0}".format(job),
+                    "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True)))
             if old_LOGNAME:
                 os.environ["LOGNAME"] = old_LOGNAME
             else:
@@ -130,7 +133,7 @@ class Signup(Job):
             "social": "y" if social else "n"
         }
         # note that we can't set owner because the Member doesn't exist yet
-        return cls.store(None, args)
+        return cls.store(None, args, True)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])
@@ -154,7 +157,7 @@ class ResetUserPassword(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
-    def __str__(self): return "Reset User Password: {0.owner.crsid} ({0.owner.name})".format(self)
+    def __str__(self): return "Reset user password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class UpdateEmailAddress(Job):
@@ -171,8 +174,8 @@ class UpdateEmailAddress(Job):
 
     email = property(lambda s: s.row.args["email"])
 
-    def __str__(self): return "Update Email Address: {0.owner.crsid} ({0.owner.email} to {0.email})".format(self)
     def __repr__(self): return "<UpdateEmailAddress {0.owner_crsid}>".format(self)
+    def __str__(self): return "Update email address: {0.owner.crsid} ({0.owner.email} to {0.email})".format(self)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -184,9 +187,7 @@ class UpdateEmailAddress(Job):
 
         cursor.execute("UPDATE members SET email = %s WHERE crsid = '" + crsid + "'", (self.email,))
 
-        mail_sysadmins("SRCF User Email Address Update",
-                       "Email address for {0.owner.crsid} changed from {1} to {0.email}"
-                       .format(self, old_email))
+        mail_notify("Email address change for {0.owner.crsid}: {1} to {0.email}".format(self, old_email))
 
         return JobDone()
 
@@ -206,7 +207,7 @@ class CreateUserMailingList(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<CreateUserMailingList {0.owner_crsid}-{0.listname}>".format(self)
-    def __str__(self): return "Create User Mailing List: {0.owner_crsid}-{0.listname}".format(self)
+    def __str__(self): return "Create user mailing list: {0.owner_crsid}-{0.listname}".format(self)
 
     def run(self, sess):
 
@@ -237,9 +238,7 @@ class CreateUserMailingList(Job):
         if genalias.returncode != 0:
             return JobFailed("Failed at genalias")
 
-        mail_sysadmins("SRCF User List Creation",
-                       "{0} created for {1.owner.crsid} ({1.owner.name})"
-                       .format(full_listname, self))
+        mail_notify("Mailing list created for {0.owner.crsid}: {1}".format(self, full_listname))
 
         return JobDone()
 
@@ -259,7 +258,7 @@ class ResetUserMailingListPassword(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<ResetUserMailingListPassword {0.owner_crsid} {0.listname}>".format(self)
-    def __str__(self): return "Reset User Mailing List Password: {0.owner_crsid} {0.listname}".format(self)
+    def __str__(self): return "Reset user mailing list password: {0.owner_crsid} {0.listname}".format(self)
 
     def run(self, sess):
 
@@ -270,9 +269,7 @@ class ResetUserMailingListPassword(Job):
         if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
 
-        mail_sysadmins("SRCF User List Password Reset",
-                       "{0.listname} password reset for {0.owner.crsid} ({0.owner.name})"
-                       .format(self))
+        mail_notify("Mailing list password reset for {0.owner.crsid}: {0.listname}".format(self))
 
         return JobDone()
 
@@ -310,7 +307,7 @@ class CreateSociety(Job):
     postgres     = property(lambda s: s.row.args["postgres"] == "y")
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
-    def __str__(self): return "Create Society: {0.society} ({0.description})".format(self)
+    def __str__(self): return "Create society: {0.society} ({0.description})".format(self)
 
 @add_job
 class ChangeSocietyAdmin(Job):
@@ -352,7 +349,7 @@ class ChangeSocietyAdmin(Job):
     def __str__(self):
         verb = self.action.title()
         prep = "to" if self.action == "add" else "from"
-        fmt = "{verb} {0.target_member.crsid} ({0.target_member.name}) "\
+        fmt = "{verb} society admin: {0.target_member.crsid} ({0.target_member.name}) "\
                 "{prep} {0.society.society} ({0.society.description})"
         return fmt.format(self, verb=verb, prep=prep)
 
@@ -384,7 +381,9 @@ class ChangeSocietyAdmin(Job):
                   "{0.target_member.crsid} ({0.target_member.name}) added to "
                   "{0.society.society} ({0.society.description}) "
                   "at request of {0.owner.crsid} ({0.owner.name})"
-                  .format(self))
+                  .format(self), copy_sysadmins=False)
+
+        mail_notify("Admin change at request of {0.owner.crsid}: {0.target_member.crsid} added to {0.society.society}".format(self))
 
         return JobDone()
 
@@ -414,7 +413,9 @@ class ChangeSocietyAdmin(Job):
                   "{0.target_member.crsid} ({0.target_member.name}) removed from "
                   "{0.society.society} ({0.society.description}) "
                   "at request of {0.owner.crsid} ({0.owner.name})"
-                  .format(self))
+                  .format(self), copy_sysadmins=False)
+
+        mail_notify("Admin change at request of {0.owner.crsid}: {0.target_member.crsid} removed from {0.society.society}".format(self))
 
         return JobDone()
 
@@ -451,7 +452,7 @@ class CreateSocietyMailingList(Job):
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<CreateSocietyMailingList {0.society_society}-{0.listname}>".format(self)
-    def __str__(self): return "Create Society Mailing List: {0.society_society}-{0.listname}".format(self)
+    def __str__(self): return "Create society mailing list: {0.society_society}-{0.listname}".format(self)
 
     def run(self, sess):
 
@@ -482,9 +483,7 @@ class CreateSocietyMailingList(Job):
         if genalias.returncode != 0:
             return JobFailed("Failed at genalias")
 
-        mail_sysadmins("SRCF Society List Creation",
-                       "{0} created for {1.society_society} ({1.society.description})"
-                       .format(full_listname, self))
+        mail_notify("Mailing list created for {0.society.society}: {1}".format(self, full_listname))
 
         return JobDone()
 
@@ -511,8 +510,8 @@ class ResetSocietyMailingListPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
 
-    def __repr__(self): return "<ResetSocietyMailingListPassword {0.society_society} {0.listname}>".format(self)
-    def __str__(self): return "Reset Society Mailing List Password: {0.society.society} {0.listname}".format(self)
+    def __repr__(self): return "<ResetSocietyMailingListPassword {0.society_society}-{0.listname}>".format(self)
+    def __str__(self): return "Reset society mailing list password: {0.society.society}-{0.listname}".format(self)
 
     def run(self, sess):
 
@@ -523,9 +522,7 @@ class ResetSocietyMailingListPassword(Job):
         if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
 
-        mail_sysadmins("SRCF Society List Password Reset",
-                       "{0.listname} password reset for {0.society_society} ({0.society.description})"
-                       .format(self))
+        mail_notify("Mailing list password reset for {0.society.society}: {1}".format(self, full_listname))
 
         return JobDone()
 
@@ -542,7 +539,7 @@ class CreateMySQLUserDatabase(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<CreateMySQLUserDatabase {0.owner_crsid}>".format(self)
-    def __str__(self): return "Create MySQL User Database: {0.owner.crsid} ({0.owner.name})".format(self)
+    def __str__(self): return "Create user MySQL database: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class ResetMySQLUserPassword(Job):
@@ -557,7 +554,7 @@ class ResetMySQLUserPassword(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<ResetMySQLUserPassword {0.owner_crsid}>".format(self)
-    def __str__(self): return "Reset MySQL User Password: {0.owner.crsid} ({0.owner.name})".format(self)
+    def __str__(self): return "Reset user MySQL password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class CreateMySQLSocietyDatabase(Job):
@@ -578,7 +575,7 @@ class CreateMySQLSocietyDatabase(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<CreateMySQLSocietyDatabase {0.society_society}>".format(self)
-    def __str__(self): return "Create MySQL Society Database: {0.society.society} ({0.society.description})".format(self)
+    def __str__(self): return "Create society MySQL database: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
 class ResetMySQLSocietyPassword(Job):
@@ -599,7 +596,7 @@ class ResetMySQLSocietyPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<ResetMySQLSocietyPassword {0.society_society}>".format(self)
-    def __str__(self): return "Reset MySQL Society Password: {0.society.society} ({0.society.description})".format(self)
+    def __str__(self): return "Reset society MySQL password: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
 class CreatePostgresUserDatabase(Job):
@@ -668,15 +665,15 @@ class CreatePostgresUserDatabase(Job):
                    "Regards,\n\n" \
                    "The Sysadmins\n"
         send_mail((self.owner.name, crsid + "@srcf.net"), "PostgreSQL database created for " + crsid, message, copy_sysadmins=False)
-        mail_sysadmins("PostgreSQL database created for " + crsid, "")
 
+        mail_notify("PostgreSQL database created for {0.owner.crsid}".format(self))
 
         return JobDone()
 
 
 
     def __repr__(self): return "<CreatePostgresUserDatabase {0.owner_crsid}>".format(self)
-    def __str__(self): return "Create Postgres User Database: {0.owner.crsid} ({0.owner.name})".format(self)
+    def __str__(self): return "Create user PostgreSQL database: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class ResetPostgresUserPassword(Job):
@@ -691,7 +688,7 @@ class ResetPostgresUserPassword(Job):
         return cls.store(member, {}, require_approval)
 
     def __repr__(self): return "<ResetPostgresUserPassword {0.owner_crsid}>".format(self)
-    def __str__(self): return "Reset Postgres User Password: {0.owner.crsid} ({0.owner.name})".format(self)
+    def __str__(self): return "Reset user PostgreSQL password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
 class CreatePostgresSocietyDatabase(Job):
@@ -712,7 +709,7 @@ class CreatePostgresSocietyDatabase(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<CreatePostgresSocietyDatabase {0.society_society}>".format(self)
-    def __str__(self): return "Create Postgres Society Database: {0.society.society} ({0.society.description})".format(self)
+    def __str__(self): return "Create society PostgreSQL database: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
 class ResetPostgresSocietyPassword(Job):
@@ -733,4 +730,4 @@ class ResetPostgresSocietyPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def __repr__(self): return "<ResetPostgresSocietyPassword {0.society_society}>".format(self)
-    def __str__(self): return "Reset Postgres Society Password: {0.society.society} ({0.society.description})".format(self)
+    def __str__(self): return "Reset society PostgreSQL password: {0.society.society} ({0.society.description})".format(self)
