@@ -257,8 +257,8 @@ class ResetUserMailingListPassword(Job):
 
     listname = property(lambda s: s.row.args["listname"])
 
-    def __repr__(self): return "<ResetUserMailingListPassword {0.owner_crsid} {0.listname}>".format(self)
-    def __str__(self): return "Reset user mailing list password: {0.owner_crsid} {0.listname}".format(self)
+    def __repr__(self): return "<ResetUserMailingListPassword {0.listname}>".format(self)
+    def __str__(self): return "Reset user mailing list password: {0.listname}".format(self)
 
     def run(self, sess):
 
@@ -510,8 +510,8 @@ class ResetSocietyMailingListPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
 
-    def __repr__(self): return "<ResetSocietyMailingListPassword {0.society_society}-{0.listname}>".format(self)
-    def __str__(self): return "Reset society mailing list password: {0.society.society}-{0.listname}".format(self)
+    def __repr__(self): return "<ResetSocietyMailingListPassword {0.listname}>".format(self)
+    def __str__(self): return "Reset society mailing list password: {0.listname}".format(self)
 
     def run(self, sess):
 

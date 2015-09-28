@@ -24,7 +24,7 @@
             <tr>
                 <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
                 <td>{{ job.owner_crsid }}</td>
-                <td>{{ job.JOB_TYPE }}<br>{{ job }}</td>
+                <td>{{ job }}</td>
                 <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
                 {%- if state == "unapproved" %}
                 <td><a href="{{ url_for('admin.approve', id=job.job_id, approved=True) }}">Yes</a> &bullet; <a href="{{ url_for('admin.approve', id=job.job_id, approved=False) }}">No</a></td>

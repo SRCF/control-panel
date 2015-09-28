@@ -1,20 +1,26 @@
 from werkzeug.exceptions import NotFound
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 
 from .utils import srcf_db_sess as sess
 from . import utils
 from ..jobs import Job
 
+import math
+
 
 bp = Blueprint("jobs", __name__)
 
 
+per_page = 25
+
 @bp.route('/jobs')
 def home():
+    page = int(request.args["page"]) if "page" in request.args else 1
     jobs = Job.of_user(sess, utils.raven.principal)
-    for job in jobs:
-        job.resolve_references(sess)
-    return render_template("jobs/home.html", crsid=utils.raven.principal, jobs=jobs)
+    max_pages = int(math.ceil(len(jobs) / float(per_page)))
+    jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
+    for job in jobs: job.resolve_references(sess)
+    return render_template("jobs/home.html", crsid=utils.raven.principal, jobs=jobs, page=page, max_pages=max_pages)
 
 @bp.route('/jobs/<int:id>')
 def status(id):
