@@ -72,9 +72,6 @@
     <p>You currently manage the <span class="data">{{ member.mailinglists[0] }}</span>@srcf.net mailing list. &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ member.mailinglists[0] }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ member.mailinglists[0] }}">Manage</a> &bullet; <a href="{{ url_for('member.reset_mailing_list_password', listname=member.mailinglists[0]) }}" rel="modal">Reset password</a>
       {%- endif %}
     {%- endif %}
-    <p>If you want to create a new mailing list, enter the list name below.  Personal list addresses are of the form <span class="data">{{ member.crsid }}-<em>name</em></span>@srcf.net.</p>
-    <form action="{{ url_for('member.create_mailing_list') }}" method="post">
-        <p>{{ member.crsid }}-<input name="listname" placeholder="List name">@srcf.net <input type="Submit" value="Create">
-    </form>
+    <p>If you want to create a new mailing list, personal list addresses are of the form <span class="data">{{ member.crsid }}-<em>name</em></span>@srcf.net. &mdash; <a href="{{ url_for('member.create_mailing_list') }}" rel="modal">Create</a></p>
 </div>
 {% endblock body %}

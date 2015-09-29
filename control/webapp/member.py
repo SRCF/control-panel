@@ -5,6 +5,8 @@ from .utils import srcf_db_sess as sess
 from . import utils, inspect_services
 from .. import jobs
 
+import re
+
 def find_member():
     """ Gets a CRSID and member object from the Raven authentication data """
     crsid = utils.raven.principal
@@ -54,7 +56,7 @@ def update_email_address():
         args = {"crsid": crsid, "email": email, "error": error}
         return render_template("member/update_email_address.html", **args)
 
-@bp.route("/member/mailinglist", methods=["POST"])
+@bp.route("/member/mailinglist", methods=["GET", "POST"])
 def create_mailing_list():
     crsid = utils.raven.principal
     try:
@@ -62,10 +64,23 @@ def create_mailing_list():
     except KeyError:
         raise NotFound
 
-    j = jobs.CreateUserMailingList.new(member=mem, listname=request.form["listname"])
-    sess.add(j.row)
-    sess.commit()
-    return redirect(url_for('jobs.status', id=j.job_id))
+    listname = ""
+    error = None
+    if request.method == "POST":
+        listname = request.form.get("listname")
+        if not listname:
+            error = "Please enter a list name."
+        elif re.search(r"[^a-z0-9_-]", listname):
+            error = "List names can only contain letters, numbers, hyphens and underscores."
+
+    if request.method == "POST" and not error:
+        j = jobs.CreateUserMailingList.new(member=mem, listname=request.form["listname"])
+        sess.add(j.row)
+        sess.commit()
+        return redirect(url_for('jobs.status', id=j.job_id))
+    else:
+        args = {"crsid": crsid, "listname": listname, "error": error}
+        return render_template("member/create_mailing_list.html", **args)
 
 @bp.route("/member/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(listname):

@@ -1,9 +1,11 @@
 from werkzeug.exceptions import NotFound, Forbidden
 from flask import Blueprint, render_template, request, redirect, url_for 
+
 from .utils import srcf_db_sess as sess
 from . import utils, inspect_services
 from .. import jobs
 
+import re
 
 bp = Blueprint("society", __name__)
 
@@ -90,14 +92,27 @@ def remove_admin(society, target_crsid):
     else:
         return render_template("society/remove_admin.html", society=soc, target=tgt)
 
-@bp.route("/societies/<society>/mailinglist", methods=["POST"])
+@bp.route("/societies/<society>/mailinglist", methods=["GET", "POST"])
 def create_mailing_list(society):
     mem, soc = find_mem_society(society)
 
-    j = jobs.CreateSocietyMailingList.new(member=mem, society=soc, listname=request.form["listname"])
-    sess.add(j.row)
-    sess.commit()
-    return redirect(url_for('jobs.status', id=j.job_id))
+    listname = ""
+    error = None
+    if request.method == "POST":
+        listname = request.form.get("listname")
+        if not listname:
+            error = "Please enter a list name."
+        elif re.search(r"[^a-z0-9_-]", listname):
+            error = "List names can only contain letters, numbers, hyphens and underscores."
+
+    if request.method == "POST" and not error:
+        j = jobs.CreateSocietyMailingList.new(member=mem, society=soc, listname=listname)
+        sess.add(j.row)
+        sess.commit()
+        return redirect(url_for('jobs.status', id=j.job_id))
+    else:
+        args = {"society": soc, "listname": listname, "error": error}
+        return render_template("society/create_mailing_list.html", **args)
 
 @bp.route("/societies/<society>/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(society, listname):
