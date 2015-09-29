@@ -12,6 +12,7 @@ $(document).ready(function() {
                     ev.preventDefault();
                 });
                 $modal.appendTo("body").modal();
+                $modal.find("input").first().focus();
             },
             error: function(jqXHR, status, error) {
                 $spinner.hide();

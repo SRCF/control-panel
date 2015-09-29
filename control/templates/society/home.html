@@ -89,6 +89,6 @@
     <p>This society currently manages the <span class="data">{{ society.mailinglists[0] }}</span>@srcf.net mailing list. &mdash; <a href="https://www.srcf.net/mailman/listinfo/{{ society.mailinglists[0] }}">List info</a> &bullet; <a href="https://www.srcf.net/mailman/admin/{{ society.mailinglists[0] }}">Manage</a> &bullet; <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=society.mailinglists[0]) }}" rel="modal">Reset password</a>
       {%- endif %}
     {%- endif %}
-    <p>If you want to create a new mailing list, personal list addresses are of the form <span class="data">{{ society.society }}-<em>name</em></span>@srcf.net. &mdash; <a href="{{ url_for('society.create_mailing_list', society=society.society) }}" rel="modal">Create</a></p>
+    <p>If you want to create a new mailing list, society list addresses are of the form <span class="data">{{ society.society }}-<em>name</em></span>@srcf.net. &mdash; <a href="{{ url_for('society.create_mailing_list', society=society.society) }}" rel="modal">Create</a></p>
 </div>
 {% endblock body %}

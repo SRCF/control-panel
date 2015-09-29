@@ -30,11 +30,7 @@ def home():
 
 @bp.route("/member/email", methods=["GET", "POST"])
 def update_email_address():
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
+    crsid, mem = find_member()
 
     email = mem.email
     error = None
@@ -53,16 +49,11 @@ def update_email_address():
         sess.commit()
         return redirect(url_for("jobs.status", id=j.job_id))
     else:
-        args = {"crsid": crsid, "email": email, "error": error}
-        return render_template("member/update_email_address.html", **args)
+        return render_template("member/update_email_address.html", member=mem, email=email, error=error)
 
 @bp.route("/member/mailinglist", methods=["GET", "POST"])
 def create_mailing_list():
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
+    crsid, mem = find_member()
 
     listname = ""
     error = None
@@ -79,26 +70,19 @@ def create_mailing_list():
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        args = {"crsid": crsid, "listname": listname, "error": error}
-        return render_template("member/create_mailing_list.html", **args)
+        return render_template("member/create_mailing_list.html", member=mem, listname=listname, error=error)
 
 @bp.route("/member/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(listname):
     crsid, mem = find_member()
 
-    kwargs = {"member": mem,
-              "listname": listname,
-              }
-
     if request.method == "POST":
-        j = jobs.ResetUserMailingListPassword.new(**kwargs)
+        j = jobs.ResetUserMailingListPassword.new(member=mem, listname=listname)
         sess.add(j.row)
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        args = {"crsid": crsid, "mailing_list": listname,
-                "action": url_for('member.reset_mailing_list_password', listname=listname)}
-        return render_template("member/reset_mailing_list_password.html", **args)
+        return render_template("member/reset_mailing_list_password.html", member=mem, listname=listname)
 
 @bp.route("/member/srcf/password", methods=["GET", "POST"], defaults={"type": "srcf"})
 @bp.route("/member/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
@@ -107,10 +91,9 @@ def reset_password(type):
     crsid, mem = find_member()
 
     if request.method == "POST":
-        j = {"mysql": jobs.ResetMySQLUserPassword.new(member=mem),
-             "postgres": jobs.ResetPostgresUserPassword.new(member=mem),
-             "srcf": jobs.ResetUserPassword.new(member=mem)
-             }[type].new(member=mem)
+        j = {"mysql": jobs.ResetMySQLUserPassword,
+             "postgres": jobs.ResetPostgresUserPassword,
+             "srcf": jobs.ResetUserPassword}[type].new(member=mem)
         sess.add(j.row)
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
@@ -122,15 +105,12 @@ def reset_password(type):
                          "postgres": "phpPgAdmin",
                          "srcf": ""}[type]
 
-        args = { "crsid": crsid, "item": formatted_name,
-                 "action": url_for('member.reset_password', type=type) }
-
         if type == "srcf":
-            args["affects"] = "password-based access to the shell service, graphical desktop and SFTP"
+            affects = "password-based access to the shell service, graphical desktop and SFTP"
         else:
-            args["affects"] = "access to " + web_interface + ", as well as any scripts that access databases using your account"
+            affects = "access to " + web_interface + ", as well as any scripts that access databases using your account"
 
-        return render_template("member/reset_password.html", **args)
+        return render_template("member/reset_password.html", member=mem, type=type, name=formatted_name, affects=affects)
 
 @bp.route("/member/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/create", methods=["POST"], defaults={"type": "postgres"})
@@ -138,9 +118,7 @@ def create_database(type):
     crsid, mem = find_member()
 
     j = {"mysql": jobs.CreateMySQLUserDatabase,
-         "postgres": jobs.CreatePostgresUserDatabase,
-         }[type].new(member=mem)
-
+         "postgres": jobs.CreatePostgresUserDatabase}[type].new(member=mem)
     sess.add(j.row)
     sess.commit()
     return redirect(url_for('jobs.status', id=j.job_id))

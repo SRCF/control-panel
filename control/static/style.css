@@ -37,6 +37,9 @@ span.error {
 h1 a.action {
     color: #0099ff;
 }
+abbr {
+    cursor: help;
+}
 input[type="text"], input[type="email"] {
     font: inherit;
     padding: 0.2em;

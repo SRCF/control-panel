@@ -4,29 +4,18 @@
 {% block body %}
 <div class="main">
     <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('society.home', society=society.society) }}" class="action">{{ society.society }}</a> &rarr; Add Admin</h1>
-
-    <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
-
     <p>Society accounts are managed by users with personal SRCF accounts.  You can elect an additional administrator, who will be given shared access to the {{ soc_desc_soc(society) }} account.</p>
-
     <ul>
         <li>They will be able to edit the files of the society website.</li>
         <li>They will be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
         <li>They will not be provided with existing society account passwords (for example, databases and lists).  You can reset these from the society management page if needed.</li>
     </ul>
-
-    <p>
-    New administrator:
-    <input name="crsid" type="text"{% if error %} class="error"{% endif %} value="{{ crsid }}" placeholder="CRSid">
-    {% if error %}<br>
-    <span class="error">{{ error }}</span>{% endif %}
-    </p>
-
-    <div class="form-group">
-        <input type="submit" value="Confirm">
-        <a href="{{ url_for('society.home', society=society.society) }}" class="cancel">Cancel</a>
-    </div>
-
+    <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
+        <p><label>New administrator: <input name="crsid" type="text"{% if error %} class="error"{% endif %} value="{{ crsid }}" placeholder="CRSid"></label>{% if error %}<br><span class="error">{{ error }}</span>{% endif %}</p>
+        <div class="form-group">
+            <input type="submit" value="Confirm">
+            <a href="{{ url_for('society.home', society=society.society) }}" class="cancel">Cancel</a>
+        </div>
     </form>
 </div>
 {% endblock %}

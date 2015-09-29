@@ -111,25 +111,19 @@ def create_mailing_list(society):
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        args = {"society": soc, "listname": listname, "error": error}
-        return render_template("society/create_mailing_list.html", **args)
+        return render_template("society/create_mailing_list.html", society=soc, listname=listname, error=error)
 
 @bp.route("/societies/<society>/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(society, listname):
     mem, soc = find_mem_society(society)
 
-    kwargs = { "society": soc,
-               "member": mem,
-               "listname": listname,
-               }
-
     if request.method == "POST":
-        j = jobs.ResetSocietyMailingListPassword.new(**kwargs)
+        j = jobs.ResetSocietyMailingListPassword.new(member=mem, society=soc, listname=listname)
         sess.add(j.row)
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
     else:
-        return render_template("society/reset_mailing_list_password.html", **kwargs)
+        return render_template("society/reset_mailing_list_password.html", member=mem, society=soc, listname=listname)
 
 @bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
@@ -138,9 +132,7 @@ def reset_database_password(society, type):
 
     if request.method == "POST":
         j = {"mysql": jobs.ResetMySQLSocietyPassword,
-         "postgres": jobs.ResetPostgresSocietyPassword,
-         }[type].new(society=soc, member=mem)
-
+             "postgres": jobs.ResetPostgresSocietyPassword}[type].new(society=soc, member=mem)
         sess.add(j.row)
         sess.commit()
         return redirect(url_for('jobs.status', id=j.job_id))
@@ -150,12 +142,7 @@ def reset_database_password(society, type):
         web_interface = {"mysql": "phpMyAdmin",
                          "postgres": "phpPgAdmin"}[type]
 
-        args = { "item": formatted_name,
-                 "web_interface": web_interface,
-                 "action": url_for('society.reset_database_password', society=society, type=type)
-                 }
-
-        return render_template("society/reset_database_password.html", society=soc, member=mem, **args)
+        return render_template("society/reset_database_password.html", society=soc, member=mem, type=type, name=formatted_name, web_interface=web_interface)
 
 @bp.route("/societies/<society>/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
 @bp.route("/societies/<society>/postgres/create", methods=["POST"], defaults={"type": "postgres"})
@@ -163,8 +150,7 @@ def create_database(society, type):
     mem, soc = find_mem_society(society)
 
     j = {"mysql": jobs.CreateMySQLSocietyDatabase,
-         "postgres": jobs.CreatePostgresSocietyDatabase,
-         }[type].new(member=mem, society=soc)
+         "postgres": jobs.CreatePostgresSocietyDatabase}[type].new(member=mem, society=soc)
 
     sess.add(j.row)
     sess.commit()

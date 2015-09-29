@@ -80,6 +80,7 @@ def lookup_all(obj):
     * pguser : string | None
     * pgdbs : string list
     * mailinglists : string list
+    * website: bool
 
     """
     if isinstance(obj, srcf.database.Member):
