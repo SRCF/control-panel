@@ -150,6 +150,8 @@ def main():
         sess.add(job.row)
         sess.commit()
 
+        jobs.mail_notify(job)
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger.info("starting %s", runner_id_string)

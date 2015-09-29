@@ -18,8 +18,11 @@ def parse_mail_template(temp, obj):
     keys = template.substitutions(obj)
     return template.replace(text, keys)
 
-def mail_notify(subj, msg=""):
-    mail_sysadmins("[Control Panel] {0}".format(subj), msg)
+def mail_notify(job):
+    body = job.state_message or ""
+    if job.state == "unapproved":
+        body = "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True))
+    mail_sysadmins("[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(job), body)
 
 all_jobs = {}
 
@@ -87,8 +90,7 @@ class Job(object):
         if require_approval:
             old_LOGNAME = os.environ.get("LOGNAME")
             os.environ["LOGNAME"] = "sysadmins" # TODO: this works for the wrong reasons
-            mail_notify("Job pending approval -- {0}".format(job),
-                    "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True)))
+            mail_notify(job)
             if old_LOGNAME:
                 os.environ["LOGNAME"] = old_LOGNAME
             else:
@@ -238,8 +240,6 @@ class CreateUserMailingList(Job):
         if genalias.returncode != 0:
             return JobFailed("Failed at genalias")
 
-        mail_notify("Mailing list created for {0.owner.crsid}: {1}".format(self, full_listname))
-
         return JobDone()
 
 @add_job
@@ -268,8 +268,6 @@ class ResetUserMailingListPassword(Job):
         newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
         if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
-
-        mail_notify("Mailing list password reset for {0.owner.crsid}: {0.listname}".format(self))
 
         return JobDone()
 
@@ -374,7 +372,7 @@ class ChangeSocietyAdmin(Job):
                   "for {0.target_member.crsid}".format(self),
                   parse_mail_template("/usr/local/share/srcf/mailtemplates/user-added2soc", self.society),
                   copy_sysadmins=False)
-                
+
         send_mail((self.society.description + " Admins", self.society.society + "-admins@srcf.net"), 
                   "Access granted to society {0.society.society} "
                   "for {0.target_member.crsid}".format(self),
@@ -382,8 +380,6 @@ class ChangeSocietyAdmin(Job):
                   "{0.society.society} ({0.society.description}) "
                   "at request of {0.owner.crsid} ({0.owner.name})"
                   .format(self), copy_sysadmins=False)
-
-        mail_notify("Admin change at request of {0.owner.crsid}: {0.target_member.crsid} added to {0.society.society}".format(self))
 
         return JobDone()
 
@@ -414,8 +410,6 @@ class ChangeSocietyAdmin(Job):
                   "{0.society.society} ({0.society.description}) "
                   "at request of {0.owner.crsid} ({0.owner.name})"
                   .format(self), copy_sysadmins=False)
-
-        mail_notify("Admin change at request of {0.owner.crsid}: {0.target_member.crsid} removed from {0.society.society}".format(self))
 
         return JobDone()
 
@@ -483,8 +477,6 @@ class CreateSocietyMailingList(Job):
         if genalias.returncode != 0:
             return JobFailed("Failed at genalias")
 
-        mail_notify("Mailing list created for {0.society.society}: {1}".format(self, full_listname))
-
         return JobDone()
 
 @add_job
@@ -521,8 +513,6 @@ class ResetSocietyMailingListPassword(Job):
         newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
         if "New {} password".format(self.listname) not in newpasswd:
             return JobFailed("Failed at new password")
-
-        mail_notify("Mailing list password reset for {0.society.society}: {1}".format(self, full_listname))
 
         return JobDone()
 
@@ -637,7 +627,7 @@ class CreatePostgresUserDatabase(Job):
 
         cursor.execute("SELECT datname FROM pg_database WHERE datname = '" + crsid + "'")
         results = cursor.fetchall()
-        
+
         if len(results) == 0:
             cursor.execute("COMMIT")
             cursor.execute("CREATE DATABASE " + crsid + " OWNER " + crsid)
@@ -665,8 +655,6 @@ class CreatePostgresUserDatabase(Job):
                    "Regards,\n\n" \
                    "The Sysadmins\n"
         send_mail((self.owner.name, crsid + "@srcf.net"), "PostgreSQL database created for " + crsid, message, copy_sysadmins=False)
-
-        mail_notify("PostgreSQL database created for {0.owner.crsid}".format(self))
 
         return JobDone()
 
