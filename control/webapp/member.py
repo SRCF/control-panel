@@ -35,11 +35,11 @@ def update_email_address():
     email = mem.email
     error = None
     if request.method == "POST":
-        email = request.form.get("email")
+        email = request.form.get("email", "").strip()
         if not email:
             error = "Please enter your email address."
         elif mem.email == email:
-            error = "That's the address we already have."
+            error = "That's the address we have already."
         elif not utils.email_re.match(email):
             error = "That address doesn't look valid."
 
@@ -58,7 +58,7 @@ def create_mailing_list():
     listname = ""
     error = None
     if request.method == "POST":
-        listname = request.form.get("listname")
+        listname = request.form.get("listname", "").strip()
         if not listname:
             error = "Please enter a list name."
         elif re.search(r"[^a-z0-9_-]", listname):

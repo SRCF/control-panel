@@ -22,28 +22,34 @@ def signup():
         mem = utils.get_member(crsid)
     except KeyError:
         pass
-    else:
-        #        return redirect(url_for('home.home'))
-        pass
+    # else:
+    #     return redirect(url_for('home.home'))
 
     if request.method == 'POST':
         values = {}
         for key in ("preferred_name", "surname", "email"):
-            values[key] = request.form.get(key, "")
+            values[key] = request.form.get(key, "").strip()
         for key in ("dpa", "tos", "social"):
             values[key] = bool(request.form.get(key, False))
 
         errors = {
-            "preferred_name": "Preferred name must be non-empty" if \
-                    values["preferred_name"] == "" else False,
-            "surname": "Surname must be non-empty" if \
-                    values["surname"] == "" else False,
-            "email": False if utils.email_re.match(values["email"]) \
-                    else "Invalid email address",
+            "preferred_name": False,
+            "surname": False,
             "dpa": not values["dpa"],
             "tos": not values["tos"],
             "social": False
         }
+
+        # don't allow initials
+        if len(re.sub(r"[^a-z]", "", values["preferred_name"], re.IGNORECASE)) <= 1:
+            errors["preferred_name"] = "Please tell us your full preferred name."
+        if len(re.sub(r"[^a-z]", "", values["surname"], re.IGNORECASE)) <= 1:
+            errors["surname"] = "Please tell us your surname."
+
+        if not values["email"]:
+            errors["email"] = "Please enter your email address."
+        elif not utils.email_re.match(values["email"]):
+            errors["email"] = "That address doesn't look valid."
 
         any_error = False
         for i in errors:
@@ -52,7 +58,7 @@ def signup():
                 break
 
         if any_error:
-            return render_template("signup.html", crsid=crsid, errors=errors, **values)
+            return render_template("signup/signup.html", crsid=crsid, errors=errors, **values)
         else:
             del values["dpa"], values["tos"]
             j = jobs.Signup.new(crsid=crsid, **values)
@@ -62,22 +68,28 @@ def signup():
 
     else:
         try:
-            surname = utils.ldapsearch(crsid)["sn"][0]
+            lookup_user = utils.ldapsearch(crsid)
+            surname = lookup_user["sn"][0]
+            if lookup_user["cn"][0] != lookup_user["displayName"][0]:
+                # user customised their name, maybe they added a first name?
+                preferred_name = lookup_user["displayName"][0].replace(surname, "").strip()
         except KeyError:
+            preferred_name = ""
             surname = ""
 
         # defaults
         values = {
-            "preferred_name": "",
+            "preferred_name": preferred_name,
             "surname": surname,
             "email": crsid + "@cam.ac.uk",
             "dpa": False,
             "tos": False,
-            "social": True }
+            "social": True
+        }
 
-        return render_template("signup.html", crsid=crsid, errors={}, **values)
+        return render_template("signup/signup.html", crsid=crsid, errors={}, **values)
 
-@bp.route("/newsoc", methods=["get", "post"])
+@bp.route("/signup/society", methods=["get", "post"])
 def newsoc():
     crsid = utils.raven.principal
 
@@ -90,43 +102,38 @@ def newsoc():
         values = {}
         for key in ("society", "description"):
             values[key] = request.form.get(key, "").strip()
-        for key in ("mysql", "postgres"):
-            values[key] = bool(request.form.get(key, False))
-        values["admins"] = request.form.get("admins", "").splitlines()
+        values["admins"] = re.findall("\w+", request.form.get("admins", ""))
 
         errors = {}
 
-        expect_admins = len(values["admins"])
-        values["admins"] = [ x.strip() for x in values["admins"] ]
+        if crsid not in values["admins"]:
+            errors["admins"] = "You need to add yourself as an admin."
 
-        values["admins"] = \
-            sess.query(Member) \
+        current_admins = sess.query(Member) \
                 .filter(Member.crsid.in_(values["admins"])) \
                 .all()
+        current_admin_crsids = [x.crsid for x in current_admins]
 
-        # Check admin list
-        if mem not in values["admins"]:
-            errors["admins"] = "You must be an admin yourself"
+        if len(values["admins"]) != len(current_admin_crsids):
+            errors["admins"] = "The following admins do not have personal SRCF accounts: {0}" \
+                    .format(", ".join(x for x in values["admins"] if x not in current_admin_crsids))
 
-        if len(values["admins"]) != expect_admins:
-            errors["admins"] = "Some admins listed are not users of SRCF"
-
-        # Check society
         try:
             soc = utils.get_society(values["society"])
         except KeyError:
             pass
         else:
-            errors["society"] = "Society name already taken"
+            errors["society"] = "A society with this name already exists."
 
-        if len(values["society"]) == 0 or len(values["society"]) > 16:
-            errors["society"] = "Society name must be 0 to 16 characters long"
+        if not values["society"]:
+            errors["society"] = "Please enter a society short name."
+        elif len(values["society"]) > 16:
+            errors["society"] = "Society short names must be no longer than 16 characters."
         elif not SOC_SOCIETY_RE.match(values["society"]):
-            errors["society"] = "Society must consist of lower case letters only"
+            errors["society"] = "Society short names may only contain lowercase letters."
 
-        # Check description
-        if len(values["description"]) == 0:
-            errors["description"] = "Society full name must be non-empty"
+        if not values["description"]:
+            errors["description"] = "Please enter the full name of the society."
 
         any_error = False
         for i in errors:
@@ -135,7 +142,7 @@ def newsoc():
                 break
 
         if any_error:
-            return render_template("newsoc.html", errors=errors, **values)
+            return render_template("signup/newsoc.html", errors=errors, **values)
         else:
             j = jobs.CreateSociety.new(member=mem, **values)
             sess.add(j.row)
@@ -147,9 +154,7 @@ def newsoc():
         values = {
             "description": "",
             "society": "",
-            "admins": [mem],
-            "mysql": False,
-            "postgres": False
+            "admins": [crsid]
         }
 
-        return render_template("newsoc.html", errors={}, **values)
+        return render_template("signup/newsoc.html", errors={}, **values)

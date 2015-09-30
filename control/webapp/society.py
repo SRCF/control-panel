@@ -42,7 +42,7 @@ def add_admin(society):
     error = None
 
     if request.method == "POST":
-        crsid = request.form["crsid"]
+        crsid = request.form.get("crsid", "").strip()
         if not crsid:
             error = "Please enter the new administrator's CRSid."
         else:
@@ -50,7 +50,9 @@ def add_admin(society):
                 tgt = utils.get_member(crsid)
             except KeyError:
                 error = "{0} doesn't appear to be a current user.".format(crsid)
-            if tgt in soc.admins:
+            if tgt == mem:
+                error = "You are already an administrator."
+            elif tgt in soc.admins:
                 error = "{0} is already an administrator.".format(crsid)
 
     if request.method == "POST" and not error:
@@ -99,7 +101,7 @@ def create_mailing_list(society):
     listname = ""
     error = None
     if request.method == "POST":
-        listname = request.form.get("listname")
+        listname = request.form.get("listname", "").strip()
         if not listname:
             error = "Please enter a list name."
         elif re.search(r"[^a-z0-9_-]", listname):

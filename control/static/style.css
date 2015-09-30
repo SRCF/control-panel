@@ -28,26 +28,42 @@ ul.acctlist li.acct ul.acctattribs li {
 .data {
 	font-weight: bold;
 }
-input.error {
-    border: 1px solid red;
-}
-span.error {
-    color: red;
-}
 h1 a.action {
-    color: #0099ff;
+    color: #09f;
 }
 abbr {
     cursor: help;
 }
-input[type="text"], input[type="email"] {
+input, textarea {
     font: inherit;
-    padding: 0.2em;
 }
-div.form-group {
+input[type="text"], input[type="email"], textarea {
+    padding: 0.2em;
+    border: 1px solid #747474;
+}
+textarea {
+    margin-top: 0.3em;
+}
+.form-group {
     margin-bottom: 1em;
 }
-button.action, input[type="submit"].action {
+.form-group.error {
+    color: red;
+}
+.form-group.error input, .form-group.error textarea {
+    border: 1px solid red;
+}
+p.help-block, p.error-help-block {
+    margin: 0;
+    font-size: 0.9em;
+}
+p.help-block {
+    font-style: italic;
+}
+.form-group.error span.no-error, .form-group.error p.help-block {
+    color: #404040;
+}
+input[type="submit"].action {
     background: none;
     border: none;
     padding: 0;
@@ -58,17 +74,6 @@ button.action, input[type="submit"].action {
 }
 .modal {
     width: 700px;
-}
-
-.signup-form p.help-block {
-    margin: 0;
-    font-style: italic;
-}
-.signup-form .form-group {
-    margin: 20px 0;
-}
-.form-group.error label {
-    color: red;
 }
 th {
     text-align: left
