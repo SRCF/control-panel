@@ -8,7 +8,7 @@
     <form action="{{ url_for('signup.signup') }}" method="post" class="signup-form">
         <div class="form-group">
             <label>CRSid: {{ crsid }}</label>
-            <p class="help-block">This is the part before the <span class="data">@cam.ac.uk</span> in your University of Cambridge email address.
+            <p class="help-block">This is the part before the "@cam.ac.uk" in your University of Cambridge email address.
         </div>
         <div class="form-group{{ sif(errors.preferred_name, ' error') }}">
             <label>Preferred name: <input type="text" name="preferred_name" value="{{ preferred_name }}" autofocus required></label>

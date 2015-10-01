@@ -40,7 +40,7 @@
     <pre>{{ member.crsid }}@pip $ mysql -u {{ society.mysqluser }} -p <em>database</em></pre>
     <p>Here, <code>-u {{ society.mysqluser }}</code> specifies the society username, <code>-p</code> prompts for the password, and <code><em>database</em></code> at the end switches to the database of that name.</p>
       {%- if society.mysqldbs|length > 1 %}
-    <p>This society currently have the following databases: {% for db in society.mysqldbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    <p>This society currently has the following databases: {% for db in society.mysqldbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
     <p>To connect to a database, replace <code><em>database</em></code> with its name, e.g. <code>mysql -u {{ society.mysqluser }} -p {{ society.mysqldbs[0] }}</code>.</p>
       {%- elif society.mysqldbs|length == 1 %}
     <p>The name of your database is <span class="data">{{ society.mysqldbs[0] }}</span>.  To connect to it, replace <code><em>database</em></code> with <code>{{ society.mysqldbs[0] }}</code> above, i.e. <code>mysql -u {{ society.mysqluser }} -p {{ society.mysqldbs[0] }}</code>.</p>
@@ -50,7 +50,7 @@
     </form>
       {%- endif %}
       {%- if society.mysqldbs and member.mysqluser %}
-      <p>You can also connect using your personal MySQL account, however you should not do this in any society scripts or website config files &ndash; this makes it difficult for us to manage accounts, and will also make it harder to hand over society accounts to new administrators.</p>
+    <p>You can also connect using your personal MySQL account, however you should not do this in any society scripts or website config files &ndash; this makes it difficult for us to manage accounts, and will also make it harder to hand over society accounts to new administrators.</p>
       {%- endif %}
     {%- else %}
     <form action="{{ url_for('society.create_database', society=society.society, type='mysql') }}" method="post">
@@ -64,7 +64,7 @@
     <pre>{{ member.crsid }}@pip $ psql <em>database</em></pre>
     <p>Here, <code><em>database</em></code> switches to the database of that name.  You don't need to provide a password, authentication is handled by the currently logged in user (so scripts running as your account also do not need a password).</p>
       {%- if society.pgdbs|length > 1 %}
-    <p>This society currently have the following databases: {% for db in society.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    <p>This society currently has the following databases: {% for db in society.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
     <p>To connect to a database, replace <code><em>database</em></code> with its name, e.g. <code>psql {{ society.pgdbs[0] }}</code>.</p>
       {%- elif society.pgdbs|length == 1 %}
     <p>The name of your database is <span class="data">{{ society.pgdbs[0] }}</span>.  To connect to it, replace <code><em>database</em></code> with <code>{{ society.pgdbs[0] }}</code> above, i.e. <code>psql {{ society.pgdbs[0] }}</code>.</p>
@@ -74,7 +74,7 @@
     </form>
       {%- endif %}
       {%- if society.pgdbs and member.pguser %}
-      <p>You can also connect using your personal PostgreSQL account, however you should not do this in any society scripts or website config files &ndash; this makes it difficult for us to manage accounts, and will also make it harder to hand over society accounts to new administrators.</p>
+    <p>You can also connect using your personal PostgreSQL account, however you should not do this in any society scripts or website config files &ndash; this makes it difficult for us to manage accounts, and will also make it harder to hand over society accounts to new administrators.</p>
       {%- endif %}
     {%- else %}
     <form action="{{ url_for('society.create_database', society=society.society, type='postgres') }}" method="post">

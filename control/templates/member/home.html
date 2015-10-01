@@ -14,11 +14,11 @@
     <h3>Website</h3>
     {%- if member.website.exists %}
     <p>You currently have a website set up at <a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a>.  This is managed by uploading pages to your <span class="data">public_html</span> folder.</p>
-    {%- if member.website.state == "legacy" %}
+      {%- if member.website.state == "legacy" %}
     <p>However, we are currently also serving your site from <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new URL scheme as default (with a redirect from old to new).</p>
-    {%- elif member.website.state == "legacyredirect" %}
+      {%- elif member.website.state == "legacyredirect" %}
     <p>We are also redirecting requests for <span class="data">www.srcf.ucam.org/~{{ member.crsid }}/</span> to your new URL.</p>
-    {%- endif %}
+      {%- endif %}
     {%- else %}
     <p>You don't currently have a website set up.  You can do this by uploading pages to your <span class="data">public_html</span> folder.  This will then become available at <span class="data">{{ member.crsid }}.user.srcf.net</span>.</p>
     {%- endif %}
