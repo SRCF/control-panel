@@ -734,6 +734,92 @@ class CreatePostgresSocietyDatabase(Job):
 
     society_society = property(lambda s: s.row.args["society"])
 
+    def run(self, sess):
+        crsid = self.owner.crsid
+        socname = self.society_society
+        userpassword = pwgen(8)
+        socpassword = pwgen(8)
+
+        # Connect to database
+        db = pgdb.connect(database='template1')
+        cursor = db.cursor()
+
+        # Create user
+        usercreated = False
+
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
+        results = cursor.fetchall()
+
+        if len(results) == 0:
+            cursor.execute("COMMIT")
+            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD '" + userpassword + "' NOCREATEDB NOCREATEUSER")
+            usercreated = True
+        else:
+            # Just in case the user exists but is disabled
+            cursor.execute("ALTER ROLE " + crsid + " LOGIN")
+
+        # Create society user
+        socusercreated = False
+
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + socname + "'")
+        results = cursor.fetchall()
+
+        if len(results) == 0:
+            cursor.execute("COMMIT")
+            cursor.execute("CREATE USER " + socname + " ENCRYPTED PASSWORD '" + password + "' NOCREATEDB NOCREATEUSER")
+            usercreated = True
+        else:
+            # Just in case the user exists but is disabled
+            cursor.execute("ALTER ROLE " + socname + " LOGIN")
+
+        # Create database
+        dbcreated = False
+
+        cursor.execute("SELECT datname FROM pg_database WHERE datname = '" + socname + "'")
+        results = cursor.fetchall()
+
+        if len(results) == 0:
+            cursor.execute("COMMIT")
+            cursor.execute("CREATE DATABASE " + socname + " OWNER " + socname)
+            dbcreated = True
+
+        # Grant user access to database
+        cursor.execute("GRANT " + socname + " TO " + crsid)
+
+        db.close()
+
+        if not dbcreated and not usercreated and not socusercreated:
+            return JobFailed(socname + " already has a functioning database")
+
+        # Email society
+        message = "A PostgreSQL database "' + society + '" has been created for you.\n\n" \
+                  "PostgreSQL username: ' + society + '\n" \
+                  "PostgreSQL password: ' + password + '\n\n" \
+                  "I have also granted access for your personal username:\n\n" \
+                  "PostgreSQL username: ' + user + '\n"
+        if usercreated == 1:
+            message += "PostgreSQL password: ' + userpassword + '\n\n"
+        else:
+            message += "(PostgreSQL password unchanged)\n\n"
+        message += "Do not let anyone other than approved society admins know the society\n" \
+                   "password, and don\'t tell anyone your personal password including the\n" \
+                   "system administrators (they do not need to know it to administer your\n" \
+                   "account). In particular, if you reply to this message, DO NOT quote\n" \
+                   "the passwords in your reply.\n\n" \
+                   "To access the database via a web interface (phpPgAdmin), visit:\n" \
+                   "  https://www.srcf.net/phppgadmin\n\n" \
+                   "To access the database from the shell, use the following command:\n" \
+                   "  psql ' + society + '\n" \
+                   "You will be automatically identified so no password is required.\n\n" \
+                   "To change the password issue the SQL command:\n" \
+                   "  ALTER USER "' + society + '" PASSWORD \'new password\';\n\n" \
+                   "Regards,\n\n" \
+                   "The Sysadmins"
+
+        send_mail((self.owner.name, socname + "-admins@srcf.net"), "PostgreSQL database created for " + socname, message, copy_sysadmins=False)
+
+        return JobDone()
+
     def __repr__(self): return "<CreatePostgresSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society PostgreSQL database: {0.society.society} ({0.society.description})".format(self)
 
@@ -775,7 +861,7 @@ class ResetPostgresSocietyPassword(Job):
 
         db.close()
 
-        # Email user
+        # Email society
         message = "The password for your PostgreSQL database " + socname + " has been reset.\n" \
                   "The new password is \"" + password + "\".\n\n" \
                   "You can change your PostgreSQL password with the following SQL command:\n" \
