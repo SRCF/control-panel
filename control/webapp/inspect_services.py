@@ -34,27 +34,27 @@ def lookup_mysqldbs(prefix):
     finally:
         cur.close()
 
-def lookup_pguser(crsid_or_society):
+def lookup_pguser(prefix):
     """Does this PostgreSQL user exist?"""
     q = sess.execute('SELECT rolname FROM pg_roles WHERE rolname = :user',
-                     {"user": crsid_or_society})
+                     {"user": prefix})
     assert q.rowcount in {0, 1}
     q.fetchall()
     if q.rowcount:
-        return crsid_or_society
+        return prefix
     else:
         return None
 
-def lookup_mysqluser(crsid_or_society):
+def lookup_mysqluser(prefix):
     """Does this MySQL user exist?"""
     try:
         cur = utils.temp_mysql_conn().cursor()
-        crsid_or_society = crsid_or_society.replace("-", "_")
+        prefix = prefix.replace("-", "_")
         q = "SELECT User from mysql.user WHERE User = %s"
-        cur.execute(q, (crsid_or_society, ))
+        cur.execute(q, (prefix, ))
         assert cur.rowcount in {0, 1}
         if cur.rowcount:
-            return crsid_or_society
+            return prefix
         else:
             return None
     finally:
@@ -65,10 +65,18 @@ def lookup_mailinglists(prefix):
     patterns = "/var/lib/mailman/lists/%s-*" % prefix
     return [os.path.basename(ldir) for ldir in glob.iglob(patterns)]
 
-def lookup_website(user):
+def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
-    path = os.path.join(os.path.expanduser("~" + user), "public_html")
-    return os.path.exists(path) and len(os.listdir(path)) > 0
+    path = os.path.join(os.path.expanduser("~" + prefix), "public_html")
+    web = {"exists": (os.path.exists(path) and len(os.listdir(path)) > 0), "state": None}
+    if web["exists"]:
+        with open("/societies/srcf-admin/{0}webstatus".format("member" if is_member else "soc")) as f:
+            for line in f:
+                username, state = line.strip().split(":")
+                if username == prefix:
+                    web["state"] = state
+                    break
+    return web
 
 def lookup_all(obj):
     """
@@ -80,7 +88,7 @@ def lookup_all(obj):
     * pguser : string | None
     * pgdbs : string list
     * mailinglists : string list
-    * website: bool
+    * website: {exists: bool[, state: str]}
 
     """
     if isinstance(obj, srcf.database.Member):
@@ -95,4 +103,4 @@ def lookup_all(obj):
     obj.pguser = lookup_pguser(prefix)
     obj.pgdbs = lookup_pgdbs(prefix)
     obj.mailinglists = lookup_mailinglists(prefix)
-    obj.website = lookup_website(prefix)
+    obj.website = lookup_website(prefix, isinstance(obj, srcf.database.Member))

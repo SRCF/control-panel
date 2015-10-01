@@ -12,7 +12,7 @@
                 <li class="meta">Date joined: <span class="data">{{ member.joined.strftime('%B %G') }}</span></li>
                 <li class="meta">Email address: <span class="data">{{ member.email }}</span></li>
                 {%- if member.website %}
-                <li>Website: <a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a></li>
+                <li>Website: <a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a>{% if member.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>){% endif %}</li>
                 {%- endif %}
                 {%- if member.mysqldbs %}
                 <li>MySQL databases:
@@ -54,8 +54,8 @@
                     <abbr title="{{ admin.name }}" class="data">{{ admin.crsid }}</abbr>{% if not loop.last %},{% endif %}
                     {%- endfor %}
                 </li>
-                {%- if soc.website %}
-                <li>Website: <a href="http://{{ soc.society }}.soc.srcf.net" class="data">{{ soc.society }}.soc.srcf.net</a></li>
+                {%- if soc.website.exists %}
+                <li>Website: <a href="http://{{ soc.society }}.soc.srcf.net" class="data">{{ soc.society }}.soc.srcf.net</a>{% if soc.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/{{ soc.society }}/">www.srcf.ucam.org/{{ soc.society }}/</a>){% endif %}</li>
                 {%- endif %}
                 {%- if soc.mysqldbs %}
                 <li>MySQL databases:
