@@ -633,6 +633,8 @@ class CreatePostgresUserDatabase(Job):
             cursor.execute("CREATE DATABASE " + crsid + " OWNER " + crsid)
             dbcreated = True
 
+        db.close()
+
         if not dbcreated and not usercreated:
             return JobFailed(crsid + " already has a functioning database")
 
@@ -675,8 +677,47 @@ class ResetPostgresUserPassword(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
+    def run(self, sess):
+        crsid = self.owner.crsid
+        password = pwgen(8)
+
+        # Connect to database
+        db = pgdb.connect(database='template1')
+        cursor = db.cursor()
+
+        # Check if the user exists
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
+        results = cursor.fetchall()
+        if len(results) == 0:
+            return JobFailed(crsid + " does not have a Postgres user")
+
+        # Reset the password
+        cursor.execute('COMMIT')
+        cursor.execute("ALTER USER " + crsid + " PASSWORD '" + password + "'")
+
+        db.close()
+
+        print 'Reset database password for ' + crsid
+        print 'Sending mail...'
+
+        # Email user
+        message = "The password for your PostgreSQL database " + crsid + " has been reset.\n" \
+                  "The new password is \"" + password + "\".\n\n" \
+                  "You can change your PostgreSQL password with the following SQL command:\n" \
+                  "  ALTER USER " + crsid + " PASSWORD \"new_password\";\n\n" \
+                  "Do not let anyone else know your password, including the system\n" \
+                  "administrators (they do not need to know it to administer your\n" \
+                  "account). In particular, if you reply to this message, DO NOT quote\n" \
+                  "your password in the reply.\n\n" \
+                  "Regards,\n\n" \
+                  "The Sysadmins"
+        send_mail((self.owner.name, crsid + "@srcf.net"), "New PostgreSQL database password", message, copy_sysadmins=False)
+
+        return JobDone()
+
     def __repr__(self): return "<ResetPostgresUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user PostgreSQL password: {0.owner.crsid} ({0.owner.name})".format(self)
+
 
 @add_job
 class CreatePostgresSocietyDatabase(Job):
