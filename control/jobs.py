@@ -154,7 +154,7 @@ class Signup(Job):
 
         name = (self.preferred_name + " " + self.surname).strip()
 
-        subprocess.call(["srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email])
+        subprocess.call(["/usr/local/sbin/srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email])
 
         subprocess.call(["adduser", "--disabled-password", "--gecos", name, crsid])
         subprocess.call(["set_quota", crsid])
@@ -168,13 +168,13 @@ class Signup(Job):
         gid = grp.getgrnam(crsid).gr_gid
         os.chown(path, uid, gid)
 
-        subprocess.call(["srcf-updateapachegroups"])
+        subprocess.call(["/usr/local/sbin/srcf-updateapachegroups"])
 
         entry = '"{name}" <{email}>'.format(name=name, email=self.email)
         if social:
-            subprocess.call(["srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, "soc-srcf-social:" + entry])
+            subprocess.call(["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, "soc-srcf-social:" + entry])
         else:
-            subprocess.call(["srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry])
+            subprocess.call(["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry])
 
         subprocess.call(["/usr/local/sbin/srcf-memberdb-export"])
 
@@ -332,13 +332,76 @@ class CreateSociety(Job):
         args = {
             "society": society,
             "description": description,
-            "admins": ",".join(a.crsid for a in admins),
+            "admins": ",".join(a for a in admins),
         }
         return cls.store(member, args)
 
     society      = property(lambda s: s.row.args["society"])
     description  = property(lambda s: s.row.args["description"])
     admin_crsids = property(lambda s: s.row.args["admins"].split(","))
+
+    def run(self, sess):
+        society = self.society
+        description = self.description
+        admin_crsids = self.admin_crsids
+
+        subprocess.call(["/usr/local/sbin/srcf-memberdb-cli", "society", society, "insert", description] + admin_crsids)
+        subprocess.call(["/usr/sbin/addgroup", "--force-badname", society])
+        for admin in admin_crsids:
+            subprocess.call(["/usr/sbin/adduser", admin, society])
+
+            try:
+                os.symlink("/societies/" + society, "/home/" + admin + "/" + society)
+            except:
+                pass
+
+        gid = grp.getgrnam(society).gr_gid
+        uid = gid + 50000
+
+        subprocess.call(["/usr/sbin/adduser", "--force-badname", "--no-create-home", "--uid", str(uid), "--gid", str(gid), "--gecos", description, "--disabled-password", "--system", society])
+        subprocess.call(["/usr/sbin/usermod", "-d", "/societies/" + society, society])
+
+        os.makedirs("/societies/" + society + "/public_html", 0775)
+        os.makedirs("/societies/" + society + "/cgi-bin", 0775)
+
+        os.chown("/societies/" + society + "/public_html", -1, gid)
+        os.chown("/societies/" + society + "/cgi-bin", -1, gid)
+        subprocess.call(["chmod", "-R", "2775", "/societies/" + society])
+
+        with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
+            myfile.write(society + ":subdomain")
+
+        subprocess.call(["/usr/local/sbin/set_quota", society])
+        subprocess.call(["/usr/local/sbin/srcf-generate-society-sudoers"])
+        subprocess.call(["/usr/local/sbin/srcf-memberdb-export"])
+
+        msg = """\
+Hi,
+
+You have been granted access to the {society} shared account on the SRCF.
+You will find a link in your home directory with the name of your society.
+In here you will find a public_html and a cgi-bin directory into which you
+can put web content which will then appear as
+   http://{society}.soc.srcf.net/
+(however it may take up to 20 minutes between uploading a new site and it
+being published at this address).
+
+The FAQ introducing the various services provided by the SRCF is at
+http://www.srcf.net/faq .
+
+If you have any further queries, feel free to e-mail the admins at
+sysadmins@srcf.net.  Please also remember that the SRCF is a
+volunteer-run organisation which must ultimately rely on the generosity and
+support of its members.
+
+Best wishes,
+
+SRCF sysadmins
+""".format(society=society)
+
+        send_mail((description + " admins", society + "-admins@srcf.net"), "Society " + description + " created", msg, copy_sysadmins=False)
+
+        return JobDone()
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
     def __str__(self): return "Create society: {0.society} ({0.description})".format(self)
