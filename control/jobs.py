@@ -769,6 +769,43 @@ class ResetMySQLSocietyPassword(Job):
 
     society_society = property(lambda s: s.row.args["society"])
 
+    def run(self, sess):
+        password = pwgen(8)
+
+        pwfh = open('/root/mysql-root-password', 'r')
+        rootpw = pwfh.readline()
+        rootpw = rootpw.rstrip()
+        pwfh.close()
+
+        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        cursor = db.cursor()
+
+        # create database for the user
+        try:
+            cursor.execute("set password for " + self.society_society + "@localhost= password('" + password + "')")
+        except Exception, e:
+            return JobFailed('Failed to reset password for ' + self.society_society)
+
+        # Mailing user
+        msg = """\
+The password for your MySQL database {society} on the SRCF server
+has been reset. The new password is {password}.
+
+Do not let anyone else know your password, including the system
+administrators (they do not need to know it to administer your
+account). In particular, if you reply to this message, DO NOT quote
+your password in the reply.
+
+Regards,
+
+The SysAdmins""".format(society=self.society_society, password=password)
+
+        send_mail((self.owner.name, socname + "-admins@srcf.net"), "New MySQL database password", message, copy_sysadmins=False)
+
+        db.close()
+
+        return JobDone()
+
     def __repr__(self): return "<ResetMySQLSocietyPassword {0.society_society}>".format(self)
     def __str__(self): return "Reset society MySQL password: {0.society.society} ({0.society.description})".format(self)
 
