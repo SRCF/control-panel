@@ -9,6 +9,7 @@ from srcf.mail import mail_sysadmins, send_mail, template
 import os
 import srcf.database
 import pgdb
+import pwd, grp
 import MySQLdb
 
 def parse_mail_template(temp, obj):
@@ -135,14 +136,47 @@ class Signup(Job):
             "email": email,
             "social": "y" if social else "n"
         }
-        # note that we can't set owner because the Member doesn't exist yet
-        return cls.store(None, args, True)
+        res = subprocess.check_output(["finger", crsid + "@hermes.cam.ac.uk"])
+        require_approval = ("no such user" in res) or ("cancelled" in res)
+        return cls.store(requesting_member, args, require_approval)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])
     surname        = property(lambda s: s.row.args["surname"])
     email          = property(lambda s: s.row.args["email"])
     social         = property(lambda s: s.row.args["social"] == "y")
+
+    def run(self, sess):
+        crsid = self.crsid
+
+        if queries.list_members().get(crsid):
+            return JobFailed(crsid + " is already a user")
+
+        name = (self.preferred_name + " " + self.surname).strip()
+
+        subprocess.call(["srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email])
+
+        subprocess.call(["adduser", "--disabled-password", "--gecos", name, crsid])
+        subprocess.call(["set_quota", crsid])
+
+        path = "/home/" + crsid + "/.forward"
+        f = open(path, "w")
+        f.write(self.email + "\n")
+        f.close()
+
+        uid = pwd.getpwnam(crsid).pw_uid
+        gid = grp.getgrnam(crsid).gr_gid
+        os.chown(path, uid, gid)
+
+        subprocess.call(["srcf-updateapachegroups"])
+
+        entry = '"{name}" <{email}>'.format(name=name, email=self.email)
+        if social:
+            subprocess.call(["srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, "soc-srcf-social:" + entry])
+        else:
+            subprocess.call(["srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry])
+
+        subprocess.call(["/usr/local/sbin/srcf-memberdb-export"])
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
     def __str__(self): return "Signup: {0.crsid} ({0.preferred_name} {0.surname}, {0.email})".format(self)
