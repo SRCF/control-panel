@@ -9,6 +9,7 @@ from srcf.mail import mail_sysadmins, send_mail, template
 import os
 import srcf.database
 import pgdb
+import MySQLdb
 
 def parse_mail_template(temp, obj):
     f = open(temp, "r")
@@ -158,6 +159,14 @@ class ResetUserPassword(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
+    def run(self, sess):
+        try:
+            subprocess.check_call(["/usr/local/sbin/srcf-passwd", self.owner.crsid])
+        except:
+            return JobFailed("srcf-passwd script failed!")
+
+        return JobDone()
+
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user password: {0.owner.crsid} ({0.owner.name})".format(self)
 
@@ -188,8 +197,6 @@ class UpdateEmailAddress(Job):
         cursor = db.cursor()
 
         cursor.execute("UPDATE members SET email = %s WHERE crsid = '" + crsid + "'", (self.email,))
-
-        mail_notify("Email address change for {0.owner.crsid}: {1} to {0.email}".format(self, old_email))
 
         return JobDone()
 
@@ -528,6 +535,65 @@ class CreateMySQLUserDatabase(Job):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
 
+    def run(self, sess):
+        crsid = self.owner.crsid
+
+        password = pwgen(8)
+
+        pwfh = open('/root/mysql-root-password', 'r')
+        rootpw = pwfh.readline()
+        rootpw = rootpw.rstrip()
+        pwfh.close()
+
+        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        cursor = db.cursor()
+
+        # create database for the user
+        try:
+            cursor.execute('create database ' + crsid)
+        except Exception, e:
+            return JobFailed('Failed to create database for ' + crsid)
+
+        # grant permissions
+        #sql = 'grant select, insert, update, delete, index, alter, create, drop on ' + user + '.* to ' + user + '@localhost identified by \'' + password + '\''
+        sql = 'grant all privileges on ' +  crsid + '.* to ' + crsid + '@localhost'
+        cursor.execute(sql)
+        sql = 'grant all privileges on `' +  crsid + '/%`.* to ' + crsid + '@localhost'
+        cursor.execute(sql)
+        cursor.execute('set password for ' + crsid + '@localhost = password(\'' + password + '\')')
+
+        # Mailing user
+
+        msg = """\
+A MySQL database "{user}" has been created for you.
+
+MySQL username:  {user}
+MySQL password:  {password}
+
+Do not let anyone else know your password, including the system
+administrators (they do not need to know it to administer your
+account). In particular, if you reply to this message, DO NOT quote
+your password in the reply.
+
+To access the database via a web interface (phpMyAdmin), visit:
+  https://www.srcf.net/phpmyadmin
+
+To access the database from the shell, use the command:
+  mysql -u {user} -p {user}
+
+You can change your MySQL password via phpMyAdmin or by issuing the
+following SQL command:
+
+  SET PASSWORD = PASSWORD(\'new password\');
+
+Regards,
+
+The SysAdmins""".format(user=crsid, password=password);
+
+        send_mail((self.owner.name, self.owner.email), "MySQL database password reset", msg, copy_sysadmins=False)
+
+        db.close()
+
     def __repr__(self): return "<CreateMySQLUserDatabase {0.owner_crsid}>".format(self)
     def __str__(self): return "Create user MySQL database: {0.owner.crsid} ({0.owner.name})".format(self)
 
@@ -542,6 +608,45 @@ class ResetMySQLUserPassword(Job):
     def new(cls, member):
         require_approval = member.danger
         return cls.store(member, {}, require_approval)
+
+    def run(self, sess):
+        crsid = self.owner.crsid
+
+        password = pwgen(8)
+
+        pwfh = open('/root/mysql-root-password', 'r')
+        rootpw = pwfh.readline()
+        rootpw = rootpw.rstrip()
+        pwfh.close()
+
+        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        cursor = db.cursor()
+
+        # create database for the user
+        try:
+            cursor.execute("set password for " + crsid + "@localhost= password('" + password + "')")
+        except Exception, e:
+            return JobFailed('Failed to reset password for ' + crsid)
+
+        # Mailing user
+        msg = """\
+The password for your MySQL database {crsid} on the SRCF server
+has been reset. The new password is {password}.
+
+Do not let anyone else know your password, including the system
+administrators (they do not need to know it to administer your
+account). In particular, if you reply to this message, DO NOT quote
+your password in the reply.
+
+Regards,
+
+The SysAdmins""".format(crsid=crsid, password=password)
+
+        send_mail((self.owner.name, self.owner.email), "MySQL database password reset", msg, copy_sysadmins=False)
+
+        db.close()
+
+        return JobDone()
 
     def __repr__(self): return "<ResetMySQLUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user MySQL password: {0.owner.crsid} ({0.owner.name})".format(self)
