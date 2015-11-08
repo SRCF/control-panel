@@ -230,7 +230,10 @@ class UpdateEmailAddress(Job):
         db = pgdb.connect(database="sysadmins")
         cursor = db.cursor()
 
-        cursor.execute("UPDATE members SET email = %s WHERE crsid = '" + crsid + "'", (self.email,))
+        cursor.execute("UPDATE members SET email = %s WHERE crsid = %s", (self.email, crsid))
+
+        db.commit()
+        db.close()
 
         return JobDone()
 
@@ -933,7 +936,6 @@ class CreatePostgresUserDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("COMMIT")
             cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD '" + password + "' NOCREATEDB NOCREATEUSER")
             usercreated = True
         else:
@@ -947,14 +949,14 @@ class CreatePostgresUserDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("COMMIT")
             cursor.execute("CREATE DATABASE " + crsid + " OWNER " + crsid)
             dbcreated = True
 
-        db.close()
-
         if not dbcreated and not usercreated:
             return JobFailed(crsid + " already has a functioning database")
+
+        db.commit()
+        db.close()
 
         # Email user
         message = ""
@@ -1010,9 +1012,9 @@ class ResetPostgresUserPassword(Job):
             return JobFailed(crsid + " does not have a Postgres user")
 
         # Reset the password
-        cursor.execute('COMMIT')
         cursor.execute("ALTER USER " + crsid + " PASSWORD '" + password + "'")
 
+        db.commit()
         db.close()
 
         # Email user
@@ -1069,7 +1071,6 @@ class CreatePostgresSocietyDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("COMMIT")
             cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD '" + userpassword + "' NOCREATEDB NOCREATEUSER")
             usercreated = True
         else:
@@ -1083,7 +1084,6 @@ class CreatePostgresSocietyDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("COMMIT")
             cursor.execute("CREATE USER " + socname + " ENCRYPTED PASSWORD '" + password + "' NOCREATEDB NOCREATEUSER")
             usercreated = True
         else:
@@ -1097,17 +1097,17 @@ class CreatePostgresSocietyDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("COMMIT")
             cursor.execute("CREATE DATABASE " + socname + " OWNER " + socname)
             dbcreated = True
 
         # Grant user access to database
         cursor.execute("GRANT " + socname + " TO " + crsid)
 
-        db.close()
-
         if not dbcreated and not usercreated and not socusercreated:
             return JobFailed(socname + " already has a functioning database")
+
+        db.commit()
+        db.close()
 
         # Email society
         message = "A PostgreSQL database "' + society + '" has been created for you.\n\n" \
@@ -1174,9 +1174,9 @@ class ResetPostgresSocietyPassword(Job):
             return JobFailed(socname + " does not have a Postgres user")
 
         # Reset the password
-        cursor.execute('COMMIT')
         cursor.execute("ALTER USER " + socname + " PASSWORD '" + password + "'")
 
+        db.commit()
         db.close()
 
         # Email society
