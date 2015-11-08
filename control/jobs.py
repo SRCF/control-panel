@@ -219,27 +219,7 @@ class ResetUserPassword(Job):
         subprocess.call(["make", "-C", "/var/yp"])
         subprocess.call(["srcf-descrypt-cron"])
 
-        msg = """\
-Hello!
-
-The password for the SRCF account of {crsid} has been reissued.
-
-Your password is: {password}
-
-Do not tell anyone else your password, including the system
-administrators (they do not need to know it to administer your
-account). In particular, if you reply to this message, DO NOT quote
-your password in the reply.
-
-If you have any queries, mail the admins at:
-
-soc-srcf-admin@lists.cam.ac.uk
-
-[Legal note: use of the SRCF constitutes acceptance of our "Terms of
-Service", at http://www.srcf.net/tos ]
-""".format(crsid=crsid, password=password)
-
-        send_mail((self.owner.name, self.owner.email), "SRCF account password reset", msg, copy_sysadmins=False)
+        mail_users(self.owner, "SRCF account password reset", "member/reset-password.txt", password=password)
 
         return JobDone()
 
