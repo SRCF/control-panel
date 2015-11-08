@@ -2,15 +2,24 @@ import subprocess
 import sys
 
 from flask import url_for
+from jinja2 import Environment, FileSystemLoader
 
 from srcf import database, pwgen
 from srcf.database import queries
+from srcf.database.schema import Member, Society
 from srcf.mail import mail_sysadmins, send_mail, template
 import os
 import srcf.database
 import pgdb
 import pwd, grp
 import MySQLdb
+
+emails = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "emails")))
+email_headers = {
+    "mem": emails.get_template("header-mem.txt"),
+    "soc": emails.get_template("header-soc.txt")
+}
+email_footer = emails.get_template("footer.txt").render()
 
 def parse_mail_template(temp, obj):
     f = open(temp, "r")
@@ -25,6 +34,15 @@ def mail_notify(job):
     if job.state == "unapproved":
         body = "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True))
     mail_sysadmins("[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(job), body)
+
+def mail_users(target, subject, template, **kwargs):
+    target_type = "mem" if isinstance(target, Member) else "soc"
+    content = "\n\n".join([
+        email_headers[target_type].render(target=target),
+        emails.get_template(template).render(target=target, **kwargs),
+        email_footer
+    ])
+    send_mail((target.name, target.email), "[SRCF] " + subject, content, copy_sysadmins=False)
 
 all_jobs = {}
 
@@ -234,6 +252,8 @@ class UpdateEmailAddress(Job):
 
         db.commit()
         db.close()
+
+        mail_users(self.owner, "Email address updated", "member/email.txt", old_email=old_email, new_email=self.email)
 
         return JobDone()
 
