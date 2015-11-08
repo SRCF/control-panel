@@ -615,10 +615,8 @@ class CreateMySQLUserDatabase(Job):
 
         password = pwgen(8)
 
-        pwfh = open('/root/mysql-root-password', 'r')
-        rootpw = pwfh.readline()
-        rootpw = rootpw.rstrip()
-        pwfh.close()
+        with open("/root/mysql-root-password", "r") as pwfh:
+            rootpw = pwfh.readline().rstrip()
 
         db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
         cursor = db.cursor()
@@ -630,7 +628,6 @@ class CreateMySQLUserDatabase(Job):
             return JobFailed('Failed to create database for ' + crsid)
 
         # grant permissions
-        #sql = 'grant select, insert, update, delete, index, alter, create, drop on ' + user + '.* to ' + user + '@localhost identified by \'' + password + '\''
         sqls = [
             'grant all privileges on ' +  crsid + '.* to ' + crsid + '@localhost',
             'grant all privileges on `' +  crsid + '/%`.* to ' + crsid + '@localhost',
@@ -639,37 +636,9 @@ class CreateMySQLUserDatabase(Job):
         for sql in sqls:
             cursor.execute(sql)
 
-        # Mailing user
-
-        msg = """\
-A MySQL database "{user}" has been created for you.
-
-MySQL username:  {user}
-MySQL password:  {password}
-
-Do not let anyone else know your password, including the system
-administrators (they do not need to know it to administer your
-account). In particular, if you reply to this message, DO NOT quote
-your password in the reply.
-
-To access the database via a web interface (phpMyAdmin), visit:
-  https://www.srcf.net/phpmyadmin
-
-To access the database from the shell, use the command:
-  mysql -u {user} -p {user}
-
-You can change your MySQL password via phpMyAdmin or by issuing the
-following SQL command:
-
-  SET PASSWORD = PASSWORD(\'new password\');
-
-Regards,
-
-The SysAdmins""".format(user=crsid, password=password);
-
-        send_mail((self.owner.name, self.owner.email), "MySQL database password reset", msg, copy_sysadmins=False)
-
         db.close()
+
+        mail_users(self.owner, "MySQL database created", "member/mysql-create.txt", password=password)
 
         return JobDone()
 
@@ -693,10 +662,8 @@ class ResetMySQLUserPassword(Job):
 
         password = pwgen(8)
 
-        pwfh = open('/root/mysql-root-password', 'r')
-        rootpw = pwfh.readline()
-        rootpw = rootpw.rstrip()
-        pwfh.close()
+        with open("/root/mysql-root-password", "r") as pwfh:
+            rootpw = pwfh.readline().rstrip()
 
         db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
         cursor = db.cursor()
@@ -707,23 +674,9 @@ class ResetMySQLUserPassword(Job):
         except Exception, e:
             return JobFailed('Failed to reset password for ' + crsid)
 
-        # Mailing user
-        msg = """\
-The password for your MySQL database {crsid} on the SRCF server
-has been reset. The new password is {password}.
-
-Do not let anyone else know your password, including the system
-administrators (they do not need to know it to administer your
-account). In particular, if you reply to this message, DO NOT quote
-your password in the reply.
-
-Regards,
-
-The SysAdmins""".format(crsid=crsid, password=password)
-
-        send_mail((self.owner.name, self.owner.email), "MySQL database password reset", msg, copy_sysadmins=False)
-
         db.close()
+
+        mail_users(self.owner, "MySQL database password reset", "member/mysql-password.txt", password=password)
 
         return JobDone()
 
@@ -751,10 +704,8 @@ class CreateMySQLSocietyDatabase(Job):
     def run(self, sess):
         password = pwgen(8)
 
-        pwfh = open('/root/mysql-root-password', 'r')
-        rootpw = pwfh.readline()
-        rootpw = rootpw.rstrip()
-        pwfh.close()
+        with open("/root/mysql-root-password", "r") as pwfh:
+            rootpw = pwfh.readline().rstrip()
 
         db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
         cursor = db.cursor()
@@ -773,7 +724,6 @@ class CreateMySQLSocietyDatabase(Job):
             cursor.execute('set password for ' + self.owner.crsid + '@localhost = password(\'' + password + '\')')
 
         # grant permissions
-        #sql = 'grant select, insert, update, delete, index, alter, create, drop on ' + user + '.* to ' + user + '@localhost identified by \'' + password + '\''
         sqls = [
             'grant all privileges on ' +  self.society_society + '.* to ' + self.society_society + '@localhost',
             'grant all privileges on `' +  self.society_society + '/%`.* to ' + self.society_society + '@localhost',
@@ -784,47 +734,11 @@ class CreateMySQLSocietyDatabase(Job):
         for sql in sqls:
             cursor.execute(sql)
 
-        # Mailing society
-        msg = """\
-A MySQL database '$db' has been created for you.
-
-MySQL username: {society}
-MySQL password: {password}
-
-I have also granted access for your personal username:
-
-MySQL username: {user}
-MySQL password: {usrpassword}
-
-(The intention is for you to use the username '$db' in society
-scripts, and your personal username '$user' when you maintain
-the database yourself.)
-
-Do not let anyone else know your personal password, including the
-system administrators (they do not need to know it to administer your
-account). In particular, if you reply to this message, DO NOT quote
-the password in your reply.
-
-To access the database via a web interface (phpMyAdmin), visit:
-
-  https://www.srcf.net/phpmyadmin
-
-To access the database from the shell, use the following command:
-
-  mysql -u $user -p $db
-
-You can change your MySQL password using phpMyAdmin, or by issuing
-the SQL command:
-
-  SET PASSWORD = PASSWORD('new password');
-
-Regards,
-
-the SysAdmins""".format(society=self.society_society, password=password, user=crsid, usrpassword=usrpassword or "[unchanged]");
-
-        send_mail((self.owner.name, self.owner.email), "MySQL database created", msg, copy_sysadmins=False)
-
         db.close()
+
+        mail_users(self.society, "MySQL database created", "society/mysql-create.txt", password=password, requester=self.owner)
+        if usrpassword:
+            mail_users(self.owner, "MySQL database created", "member/mysql-create.txt", password=usrpassword)
 
         return JobDone()
 
@@ -852,10 +766,8 @@ class ResetMySQLSocietyPassword(Job):
     def run(self, sess):
         password = pwgen(8)
 
-        pwfh = open('/root/mysql-root-password', 'r')
-        rootpw = pwfh.readline()
-        rootpw = rootpw.rstrip()
-        pwfh.close()
+        with open("/root/mysql-root-password", "r") as pwfh:
+            rootpw = pwfh.readline().rstrip()
 
         db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
         cursor = db.cursor()
@@ -866,23 +778,9 @@ class ResetMySQLSocietyPassword(Job):
         except Exception, e:
             return JobFailed('Failed to reset password for ' + self.society_society)
 
-        # Mailing user
-        msg = """\
-The password for your MySQL database {society} on the SRCF server
-has been reset. The new password is {password}.
-
-Do not let anyone else know your password, including the system
-administrators (they do not need to know it to administer your
-account). In particular, if you reply to this message, DO NOT quote
-your password in the reply.
-
-Regards,
-
-The SysAdmins""".format(society=self.society_society, password=password)
-
-        send_mail((self.owner.name, socname + "-admins@srcf.net"), "New MySQL database password", message, copy_sysadmins=False)
-
         db.close()
+
+        mail_users(self.society, "MySQL database password reset", "society/mysql-password.txt", password=password, requester=self.owner)
 
         return JobDone()
 
@@ -938,29 +836,9 @@ class CreatePostgresUserDatabase(Job):
         db.commit()
         db.close()
 
-        # Email user
-        message = ""
-        if usercreated:
-            message += "A postgreSQL database '" + crsid + "' has been created for you\n" \
-                       "PostgreSQL username:  " + crsid + "\n" \
-                       "PostgreSQl password:  " + password + "\n\n" \
-                       "Do not let anyone know your password, including the system\n" \
-                       "administrators (they do not need to know it to administer your\n" \
-                       "account). In particular, if you reply to this message, DO NOT quote\n" \
-                       "your password in the reply\n\n"
-
-        message += "To access the database via a web interface (phpPgAdmin), visit:\n" \
-                   "  https://www.srcf.net/phpgadmin\n\n" \
-                   "To access the database from the shell, use the following command:\n" \
-                   "  psql " + crsid + "\n" \
-                   "You will be automatically identified so no password is required.\n\n" \
-                   "Regards,\n\n" \
-                   "The Sysadmins\n"
-        send_mail((self.owner.name, crsid + "@srcf.net"), "PostgreSQL database created for " + crsid, message, copy_sysadmins=False)
+        mail_users(self.owner, "PostgreSQL database created", "member/postgres-create.txt", password=password)
 
         return JobDone()
-
-
 
     def __repr__(self): return "<CreatePostgresUserDatabase {0.owner_crsid}>".format(self)
     def __str__(self): return "Create user PostgreSQL database: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -997,18 +875,7 @@ class ResetPostgresUserPassword(Job):
         db.commit()
         db.close()
 
-        # Email user
-        message = "The password for your PostgreSQL database " + crsid + " has been reset.\n" \
-                  "The new password is \"" + password + "\".\n\n" \
-                  "You can change your PostgreSQL password with the following SQL command:\n" \
-                  "  ALTER USER " + crsid + " PASSWORD \"new_password\";\n\n" \
-                  "Do not let anyone else know your password, including the system\n" \
-                  "administrators (they do not need to know it to administer your\n" \
-                  "account). In particular, if you reply to this message, DO NOT quote\n" \
-                  "your password in the reply.\n\n" \
-                  "Regards,\n\n" \
-                  "The Sysadmins"
-        send_mail((self.owner.name, crsid + "@srcf.net"), "New PostgreSQL database password", message, copy_sysadmins=False)
+        mail_users(self.owner, "PostgreSQL database password reset", "member/postgres-password.txt", password=password)
 
         return JobDone()
 
@@ -1089,32 +956,9 @@ class CreatePostgresSocietyDatabase(Job):
         db.commit()
         db.close()
 
-        # Email society
-        message = "A PostgreSQL database "' + society + '" has been created for you.\n\n" \
-                  "PostgreSQL username: ' + society + '\n" \
-                  "PostgreSQL password: ' + password + '\n\n" \
-                  "I have also granted access for your personal username:\n\n" \
-                  "PostgreSQL username: ' + user + '\n"
-        if usercreated == 1:
-            message += "PostgreSQL password: ' + userpassword + '\n\n"
-        else:
-            message += "(PostgreSQL password unchanged)\n\n"
-        message += "Do not let anyone other than approved society admins know the society\n" \
-                   "password, and don\'t tell anyone your personal password including the\n" \
-                   "system administrators (they do not need to know it to administer your\n" \
-                   "account). In particular, if you reply to this message, DO NOT quote\n" \
-                   "the passwords in your reply.\n\n" \
-                   "To access the database via a web interface (phpPgAdmin), visit:\n" \
-                   "  https://www.srcf.net/phppgadmin\n\n" \
-                   "To access the database from the shell, use the following command:\n" \
-                   "  psql ' + society + '\n" \
-                   "You will be automatically identified so no password is required.\n\n" \
-                   "To change the password issue the SQL command:\n" \
-                   "  ALTER USER "' + society + '" PASSWORD \'new password\';\n\n" \
-                   "Regards,\n\n" \
-                   "The Sysadmins"
-
-        send_mail((self.owner.name, socname + "-admins@srcf.net"), "PostgreSQL database created for " + socname, message, copy_sysadmins=False)
+        mail_users(self.society, "PostgreSQL database created", "society/postgres-create.txt", password=socpassword, requester=self.owner)
+        if usercreated:
+            mail_users(self.owner, "PostgreSQL database created", "member/postgres-create.txt", password=userpassword)
 
         return JobDone()
 
@@ -1159,18 +1003,7 @@ class ResetPostgresSocietyPassword(Job):
         db.commit()
         db.close()
 
-        # Email society
-        message = "The password for your PostgreSQL database " + socname + " has been reset.\n" \
-                  "The new password is \"" + password + "\".\n\n" \
-                  "You can change your PostgreSQL password with the following SQL command:\n" \
-                  "  ALTER USER " + socname + " PASSWORD \"new_password\";\n\n" \
-                  "Do not let anyone else know your password, including the system\n" \
-                  "administrators (they do not need to know it to administer your\n" \
-                  "account). In particular, if you reply to this message, DO NOT quote\n" \
-                  "your password in the reply.\n\n" \
-                  "Regards,\n\n" \
-                  "The Sysadmins"
-        send_mail((self.owner.name, socname + "-admins@srcf.net"), "New PostgreSQL database password", message, copy_sysadmins=False)
+        mail_users(self.society, "PostgreSQL database password reset", "society/postgres-password.txt", password=password, requester=self.owner)
 
         return JobDone()
 

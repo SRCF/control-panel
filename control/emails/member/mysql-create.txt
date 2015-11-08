@@ -1,0 +1,18 @@
+A MySQL database '{{ target.crsid }}' has been created for you.
+
+MySQL username: {{ target.crsid }}
+MySQL password: {{ password }}
+
+Do not let anyone else know your password, including the system administrators (they do not need to know it to administer your account).  In particular, if you reply to this message, DO NOT quote your password in the reply.
+
+To access the database via a web interface (phpMyAdmin):
+
+    https://www.srcf.net/phpmyadmin
+
+To access the database from the shell, use the following command:
+
+    mysql -u {{ target.crsid }} -p {{ target.crsid }}
+
+You can change your MySQL password via phpMyAdmin or by issuing the following SQL command:
+
+    SET PASSWORD = PASSWORD('new password');

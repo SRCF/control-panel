@@ -1,0 +1,16 @@
+A PostgreSQL database '{{ target.society }}' has been created for your shared account, at the request of {{ requester.name }} ({{ requester.crsid }}).
+
+PostgreSQL username: {{ target.society }}
+PostgreSQL password: {{ password }}
+
+Do not let anyone else know your password, including the system administrators (they do not need to know it to administer your account).  In particular, if you reply to this message, DO NOT quote your password in the reply.
+
+To access the database via a web interface (phpPgAdmin):
+
+    https://www.srcf.net/phppgadmin
+
+To access the database from the shell, use the following command:
+
+    psql {{ target.society }}
+
+Authentication is handled by the current shell user, so no password is required.

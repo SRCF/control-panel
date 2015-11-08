@@ -1,1 +1,1 @@
-{{ removed.name }} ({{ removed.crsid }}) no longer has access to the '{{ target.society }}' shared account{% if requester %}, at the request of {{ requester.name }} ({{ requester.crsid }}){% endif %}.
+{{ removed.name }} ({{ removed.crsid }}) no longer has access to the '{{ target.society }}' shared account, at the request of {{ requester.name }} ({{ requester.crsid }}).

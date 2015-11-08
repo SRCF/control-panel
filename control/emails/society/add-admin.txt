@@ -4,6 +4,8 @@ You have been granted access to the '{{ society.society }}' shared account on th
 
 (However, it may take up to 20 minutes between uploading a new site and it being published.)
 
-The FAQ introducing the various services provided by the SRCF can be found here: https://www.srcf.net/faq
+The FAQ introducing the various services provided by the SRCF can be found here:
+
+    https://www.srcf.net/faq
 
 If you have any further queries, feel free to e-mail the admins at sysadmins@srcf.net.  Please also remember that the SRCF is a volunteer-run organisation which must ultimately rely on the generosity and support of its members.
