@@ -217,7 +217,7 @@ class ResetUserPassword(Job):
         pipe.communicate(crsid + ":" + password)
         pipe.stdin.close()
         subprocess.call(["make", "-C", "/var/yp"])
-        subprocess.call(["srcf-descrypt-cron"])
+        subprocess.call(["/usr/local/sbin/srcf-descrypt-cron"])
 
         mail_users(self.owner, "SRCF account password reset", "member/reset-password.txt", password=password)
 
