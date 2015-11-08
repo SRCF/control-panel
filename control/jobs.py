@@ -15,10 +15,7 @@ import pwd, grp
 import MySQLdb
 
 emails = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "emails")))
-email_headers = {
-    "mem": emails.get_template("header-mem.txt"),
-    "soc": emails.get_template("header-soc.txt")
-}
+email_headers = {k: emails.get_template("header-{0}.txt".format(k)) for k in ("mem", "soc")}
 email_footer = emails.get_template("footer.txt").render()
 
 def parse_mail_template(temp, obj):
@@ -37,12 +34,14 @@ def mail_notify(job):
 
 def mail_users(target, subject, template, **kwargs):
     target_type = "mem" if isinstance(target, Member) else "soc"
+    to = (target.name if target_type == "mem" else target.description, target.email)
+    subject = "[SRCF] " + (target.society + ": " if target_type == "soc" else "") + subject
     content = "\n\n".join([
         email_headers[target_type].render(target=target),
         emails.get_template(template).render(target=target, **kwargs),
         email_footer
     ])
-    send_mail((target.name, target.email), "[SRCF] " + subject, content, copy_sysadmins=False)
+    send_mail(to, subject, content, copy_sysadmins=False)
 
 all_jobs = {}
 
@@ -398,31 +397,8 @@ class CreateSociety(Job):
         subprocess.call(["/usr/local/sbin/srcf-generate-society-sudoers"])
         subprocess.call(["/usr/local/sbin/srcf-memberdb-export"])
 
-        msg = """\
-Hi,
-
-You have been granted access to the {society} shared account on the SRCF.
-You will find a link in your home directory with the name of your society.
-In here you will find a public_html and a cgi-bin directory into which you
-can put web content which will then appear as
-   http://{society}.soc.srcf.net/
-(however it may take up to 20 minutes between uploading a new site and it
-being published at this address).
-
-The FAQ introducing the various services provided by the SRCF is at
-http://www.srcf.net/faq .
-
-If you have any further queries, feel free to e-mail the admins at
-sysadmins@srcf.net.  Please also remember that the SRCF is a
-volunteer-run organisation which must ultimately rely on the generosity and
-support of its members.
-
-Best wishes,
-
-SRCF sysadmins
-""".format(society=society)
-
-        send_mail((description + " admins", society + "-admins@srcf.net"), "Society " + description + " created", msg, copy_sysadmins=False)
+        newsoc = queries.get_society(society, session=sess)
+        mail_users(newsoc, "New shared account created", "society/signup.txt")
 
         return JobDone()
 
@@ -489,19 +465,9 @@ class ChangeSocietyAdmin(Job):
         if not os.path.exists(target_ln):
             os.symlink(source_ln, target_ln)
 
-        send_mail((self.target_member.name, self.target_member.crsid + "@srcf.net"),
-                  "Access granted to society {0.society.society} "
-                  "for {0.target_member.crsid}".format(self),
-                  parse_mail_template("/usr/local/share/srcf/mailtemplates/user-added2soc", self.society),
-                  copy_sysadmins=False)
-
-        send_mail((self.society.description + " Admins", self.society.society + "-admins@srcf.net"), 
-                  "Access granted to society {0.society.society} "
-                  "for {0.target_member.crsid}".format(self),
-                  "{0.target_member.crsid} ({0.target_member.name}) added to "
-                  "{0.society.society} ({0.society.description}) "
-                  "at request of {0.owner.crsid} ({0.owner.name})"
-                  .format(self), copy_sysadmins=False)
+        mail_users(self.target_member, "Access granted to " + self.society_society, "society/add-admin.txt", society=self.society)
+        mail_users(self.society, "Access granted for " + self.target_member.crsid, "society/add-admin-short.txt",
+                added=self.target_member, requester=self.requesting_member)
 
         return JobDone()
 
@@ -524,14 +490,8 @@ class ChangeSocietyAdmin(Job):
         if os.path.islink(target_ln) and os.path.samefile(target_ln, source_ln):
             os.remove(target_ln)
 
-        send_mail([(self.society.description + " Admins", self.society.society + "-admins@srcf.net"),
-                   (self.target_member.name, self.target_member.crsid + "@srcf.net")], 
-                  "Access to society {0.society.society} removed "
-                  "for {0.target_member.crsid}".format(self),
-                  "{0.target_member.crsid} ({0.target_member.name}) removed from "
-                  "{0.society.society} ({0.society.description}) "
-                  "at request of {0.owner.crsid} ({0.owner.name})"
-                  .format(self), copy_sysadmins=False)
+        mail_users(self.society, "Access removed for " + self.target_member.crsid, "society/remove-admin-short.txt",
+                removed=self.target_member, requester=self.requesting_member)
 
         return JobDone()
 

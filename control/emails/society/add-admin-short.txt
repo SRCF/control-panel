@@ -1,0 +1,1 @@
+{{ added.name }} ({{ added.crsid }}) has now been granted access to the '{{ target.society }}' shared account{% if requester %}, at the request of {{ requester.name }} ({{ requester.crsid }}){% endif %}.
