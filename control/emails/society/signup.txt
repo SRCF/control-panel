@@ -8,4 +8,4 @@ The FAQ introducing the various services provided by the SRCF can be found here:
 
     https://www.srcf.net/faq
 
-If you have any further queries, feel free to e-mail the admins at sysadmins@srcf.net.  Please also remember that the SRCF is a volunteer-run organisation which must ultimately rely on the generosity and support of its members.
+If you have any further queries, feel free to email the sysadmins.  Please also remember that the SRCF is a volunteer-run organisation which must ultimately rely on the generosity and support of its members.

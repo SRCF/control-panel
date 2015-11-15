@@ -15,8 +15,8 @@ import pwd, grp
 import MySQLdb
 
 emails = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "emails")))
-email_headers = {k: emails.get_template("header-{0}.txt".format(k)) for k in ("mem", "soc")}
-email_footer = emails.get_template("footer.txt").render()
+email_headers = {k: emails.get_template("common/header-{0}.txt".format(k)) for k in ("member", "society")}
+email_footer = emails.get_template("common/footer.txt").render()
 
 def mysql_conn():
     with open("/root/mysql-root-password", "r") as pwfh:
@@ -40,14 +40,13 @@ def mail_notify(job):
     mail_sysadmins("[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(job), body)
 
 def mail_users(target, subject, template, **kwargs):
-    target_type = "mem" if isinstance(target, Member) else "soc"
-    to = (target.name if target_type == "mem" else target.description, target.email)
-    subject = "[SRCF] " + (target.society + ": " if target_type == "soc" else "") + subject
+    target_type = "member" if isinstance(target, Member) else "society"
+    to = (target.name if target_type == "member" else target.description, target.email)
+    subject = "[SRCF] " + (target.society + ": " if target_type == "society" else "") + subject
     content = "\n\n".join([
         email_headers[target_type].render(target=target),
-        emails.get_template(template).render(target=target, **kwargs),
-        email_footer
-    ])
+        emails.get_template(target_type + "/" + template + ".txt").render(target=target, **kwargs),
+        email_footer])
     send_mail(to, subject, content, copy_sysadmins=False)
 
 all_jobs = {}
@@ -218,8 +217,8 @@ class ResetUserPassword(Job):
         subproc_check_multi(
             ("make", ["make", "-C", "/var/yp"]),
             ("descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
-        mail_users(self.owner, "SRCF account password reset", "member/reset-password.txt", password=password)
 
+        mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -255,7 +254,7 @@ class UpdateEmailAddress(Job):
         db.commit()
         db.close()
 
-        mail_users(self.owner, "Email address updated", "member/email.txt", old_email=old_email, new_email=self.email)
+        mail_users(self.owner, "Email address updated", "email", old_email=old_email, new_email=self.email)
 
 @add_job
 class CreateUserMailingList(Job):
@@ -395,7 +394,7 @@ class CreateSociety(Job):
             ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
 
         newsoc = queries.get_society(society, session=sess)
-        mail_users(newsoc, "New shared account created", "society/signup.txt")
+        mail_users(newsoc, "New shared account created", "signup")
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
     def __str__(self): return "Create society: {0.society} ({0.description})".format(self)
@@ -483,7 +482,7 @@ class ChangeSocietyAdmin(Job):
         if os.path.islink(target_ln) and os.path.samefile(target_ln, source_ln):
             os.remove(target_ln)
 
-        mail_users(self.society, "Access removed for " + self.target_member.crsid, "society/remove-admin-short.txt",
+        mail_users(self.society, "Access removed for " + self.target_member.crsid, "remove-admin",
                 removed=self.target_member, requester=self.requesting_member)
 
     def run(self, sess):
@@ -616,7 +615,7 @@ class CreateMySQLUserDatabase(Job):
 
         db.close()
 
-        mail_users(self.owner, "MySQL database created", "member/mysql-create.txt", password=password)
+        mail_users(self.owner, "MySQL database created", "mysql-create", password=password)
 
     def __repr__(self): return "<CreateMySQLUserDatabase {0.owner_crsid}>".format(self)
     def __str__(self): return "Create user MySQL database: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -649,7 +648,7 @@ class ResetMySQLUserPassword(Job):
 
         db.close()
 
-        mail_users(self.owner, "MySQL database password reset", "member/mysql-password.txt", password=password)
+        mail_users(self.owner, "MySQL database password reset", "mysql-password", password=password)
 
     def __repr__(self): return "<ResetMySQLUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user MySQL password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -703,9 +702,9 @@ class CreateMySQLSocietyDatabase(Job):
 
         db.close()
 
-        mail_users(self.society, "MySQL database created", "society/mysql-create.txt", password=password, requester=self.owner)
+        mail_users(self.society, "MySQL database created", "mysql-create", password=password, requester=self.owner)
         if usrpassword:
-            mail_users(self.owner, "MySQL database created", "member/mysql-create.txt", password=usrpassword)
+            mail_users(self.owner, "MySQL database created", "mysql-create", password=usrpassword)
 
     def __repr__(self): return "<CreateMySQLSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society MySQL database: {0.society.society} ({0.society.description})".format(self)
@@ -742,7 +741,7 @@ class ResetMySQLSocietyPassword(Job):
 
         db.close()
 
-        mail_users(self.society, "MySQL database password reset", "society/mysql-password.txt", password=password, requester=self.owner)
+        mail_users(self.society, "MySQL database password reset", "mysql-password", password=password, requester=self.owner)
 
     def __repr__(self): return "<ResetMySQLSocietyPassword {0.society_society}>".format(self)
     def __str__(self): return "Reset society MySQL password: {0.society.society} ({0.society.description})".format(self)
@@ -796,7 +795,7 @@ class CreatePostgresUserDatabase(Job):
         db.commit()
         db.close()
 
-        mail_users(self.owner, "PostgreSQL database created", "member/postgres-create.txt", password=password)
+        mail_users(self.owner, "PostgreSQL database created", "postgres-create", password=password)
 
     def __repr__(self): return "<CreatePostgresUserDatabase {0.owner_crsid}>".format(self)
     def __str__(self): return "Create user PostgreSQL database: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -833,7 +832,7 @@ class ResetPostgresUserPassword(Job):
         db.commit()
         db.close()
 
-        mail_users(self.owner, "PostgreSQL database password reset", "member/postgres-password.txt", password=password)
+        mail_users(self.owner, "PostgreSQL database password reset", "postgres-password", password=password)
 
     def __repr__(self): return "<ResetPostgresUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user PostgreSQL password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -912,9 +911,9 @@ class CreatePostgresSocietyDatabase(Job):
         db.commit()
         db.close()
 
-        mail_users(self.society, "PostgreSQL database created", "society/postgres-create.txt", password=socpassword, requester=self.owner)
+        mail_users(self.society, "PostgreSQL database created", "postgres-create", password=socpassword, requester=self.owner)
         if usercreated:
-            mail_users(self.owner, "PostgreSQL database created", "member/postgres-create.txt", password=userpassword)
+            mail_users(self.owner, "PostgreSQL database created", "postgres-create", password=userpassword)
 
     def __repr__(self): return "<CreatePostgresSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society PostgreSQL database: {0.society.society} ({0.society.description})".format(self)
@@ -957,7 +956,7 @@ class ResetPostgresSocietyPassword(Job):
         db.commit()
         db.close()
 
-        mail_users(self.society, "PostgreSQL database password reset", "society/postgres-password.txt", password=password, requester=self.owner)
+        mail_users(self.society, "PostgreSQL database password reset", "postgres-password", password=password, requester=self.owner)
 
     def __repr__(self): return "<ResetPostgresSocietyPassword {0.society_society}>".format(self)
     def __str__(self): return "Reset society PostgreSQL password: {0.society.society} ({0.society.description})".format(self)
