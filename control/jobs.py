@@ -396,7 +396,7 @@ class CreateSociety(Job):
         subprocess.call(["chmod", "-R", "2775", "/societies/" + society])
 
         with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
-            myfile.write(society + ":subdomain")
+            myfile.write(society + ":subdomain\n")
 
         subprocess.call(["/usr/local/sbin/set_quota", society])
         subprocess.call(["/usr/local/sbin/srcf-generate-society-sudoers"])
