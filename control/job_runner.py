@@ -125,8 +125,15 @@ def main():
         sess.add(job.row)
         sess.commit()
 
+        run_state = "failed"
+        run_message = None
+
         try:
-            run_result = job.run(sess=sess)
+            job.run(sess=sess)
+            run_state = "done"
+
+        except jobs.JobFailed as e:
+            run_message = e.message
 
         except:
             logger.exception("job %s unhandled exception", job.job_id)
@@ -136,17 +143,12 @@ def main():
             job = jobs.Job.find(id=i, sess=sess)
 
             exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
-            run_result = jobs.JobFailed(exc)
-            
+            run_message = exc
+
         else:
-            if not hasattr(run_result, 'state'):
-                raise RuntimeError("job.run() did not return a result")
-            if run_result.state not in {"done", "failed"}:
-                raise RuntimeError("job.run() did not return done or failed")
+            logger.info("job %s ran; finished %s %s", job.job_id, run_state, run_message)
 
-            logger.info("job %s ran; finished %s %s", job.job_id, run_result.state, run_result.message)
-
-        job.set_state(run_result.state, run_result.message)
+        job.set_state(run_state, run_message)
         sess.add(job.row)
         sess.commit()
 

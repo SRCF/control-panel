@@ -23,8 +23,15 @@ def mysql_conn():
         rootpw = pwfh.readline().rstrip()
     return MySQLdb.connect(user="root", host="localhost", passwd=rootpw, db="mysql")
 
-def postgres_conn():
-    return pgdb.connect(database="template1")
+def postgres_conn(db="template1"):
+    return pgdb.connect(database=db)
+
+def subproc_check_multi(*tasks):
+    for desc, task in tasks:
+        try:
+            subprocess.check_call(task)
+        except subprocess.CalledProcessError:
+            raise JobFailed("Failed at " + desc)
 
 def mail_notify(job):
     body = job.state_message or ""
@@ -49,14 +56,8 @@ def add_job(cls):
     all_jobs[cls.JOB_TYPE] = cls
     return cls
 
-class JobDone(object):
+class JobFailed(Exception):
     def __init__(self, message=None):
-        self.state = "done"
-        self.message = message
-
-class JobFailed(object):
-    def __init__(self, message=None):
-        self.state = "failed"
         self.message = message
 
 
@@ -119,7 +120,7 @@ class Job(object):
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""
-        return JobFailed("not implemented")
+        raise JobFailed("not implemented")
 
     job_id = property(lambda s: s.row.job_id)
     owner = property(lambda s: s.row.owner)
@@ -167,14 +168,14 @@ class Signup(Job):
         crsid = self.crsid
 
         if queries.list_members().get(crsid):
-            return JobFailed(crsid + " is already a user")
+            raise JobFailed(crsid + " is already a user")
 
         name = (self.preferred_name + " " + self.surname).strip()
 
-        subprocess.call(["/usr/local/sbin/srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email])
-
-        subprocess.call(["adduser", "--disabled-password", "--gecos", name, crsid])
-        subprocess.call(["set_quota", crsid])
+        subproc_check_multi(
+            ("add to memberdb", ["/usr/local/sbin/srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email]),
+            ("add user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
+            ("set quota", ["set_quota", crsid]))
 
         path = "/home/" + crsid + "/.forward"
         f = open(path, "w")
@@ -185,15 +186,11 @@ class Signup(Job):
         gid = grp.getgrnam(crsid).gr_gid
         os.chown(path, uid, gid)
 
-        subprocess.call(["/usr/local/sbin/srcf-updateapachegroups"])
-
-        entry = '"{name}" <{email}>'.format(name=name, email=self.email)
-        if social:
-            subprocess.call(["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, "soc-srcf-social:" + entry])
-        else:
-            subprocess.call(["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry])
-
-        subprocess.call(["/usr/local/sbin/srcf-memberdb-export"])
+        ml_entry = '"{name}" <{email}>'.format(name=name, email=self.email)
+        subproc_check_multi(
+            ("Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"]),
+            ("queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, ("soc-srcf-social:" + entry) if social else ""]),
+            ("export memberdb", ["/usr/local/sbin/srcf-memberdb-export"]))
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
     def __str__(self): return "Signup: {0.crsid} ({0.preferred_name} {0.surname}, {0.email})".format(self)
@@ -213,15 +210,16 @@ class ResetUserPassword(Job):
     def run(self, sess):
         crsid = self.owner.crsid
         password = pwgen(8)
+
         pipe = subprocess.Popen(["/usr/sbin/chpasswd"], stdin=subprocess.PIPE)
         pipe.communicate(crsid + ":" + password)
         pipe.stdin.close()
-        subprocess.call(["make", "-C", "/var/yp"])
-        subprocess.call(["/usr/local/sbin/srcf-descrypt-cron"])
 
+        subproc_check_multi(
+            ("make", ["make", "-C", "/var/yp"]),
+            ("descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
         mail_users(self.owner, "SRCF account password reset", "member/reset-password.txt", password=password)
 
-        return JobDone()
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -249,7 +247,7 @@ class UpdateEmailAddress(Job):
         old_email = self.owner.email
 
         # Connect to database
-        db = pgdb.connect(database="sysadmins")
+        db = postgres_conn("sysadmins")
         cursor = db.cursor()
 
         cursor.execute("UPDATE members SET email = %s WHERE crsid = %s", (self.email, crsid))
@@ -258,8 +256,6 @@ class UpdateEmailAddress(Job):
         db.close()
 
         mail_users(self.owner, "Email address updated", "member/email.txt", old_email=old_email, new_email=self.email)
-
-        return JobDone()
 
 @add_job
 class CreateUserMailingList(Job):
@@ -287,7 +283,7 @@ class CreateUserMailingList(Job):
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
-            return JobFailed("Invalid list name {}".format(full_listname))
+            raise JobFailed("Invalid list name {}".format(full_listname))
 
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
@@ -297,18 +293,11 @@ class CreateUserMailingList(Job):
                         % (full_listname, self.owner.crsid + "@srcf.net"), shell=True)
         newlist.wait()
         if newlist.returncode != 0:
-            return JobFailed("Failed at newlist")
-        configlist = subprocess.Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
-                            full_listname])
-        configlist.wait()
-        if configlist.returncode != 0:
-            return JobFailed("Failed at configlist")
-        genalias = subprocess.Popen(["gen_alias", full_listname])
-        genalias.wait()
-        if genalias.returncode != 0:
-            return JobFailed("Failed at genalias")
+            raise JobFailed("Failed at new list")
 
-        return JobDone()
+        subproc_check_multi(
+            ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
+            ("generate alias", ["gen_alias", full_listname]))
 
 @add_job
 class ResetUserMailingListPassword(Job):
@@ -332,12 +321,10 @@ class ResetUserMailingListPassword(Job):
 
         resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
         if "owner =" not in resetadmins:
-            return JobFailed("Failed at reset admins")
+            raise JobFailed("Failed at reset admins")
         newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
         if "New {} password".format(self.listname) not in newpasswd:
-            return JobFailed("Failed at new password")
-
-        return JobDone()
+            raise JobFailed("Failed at new password")
 
 @add_job
 class CreateSociety(Job):
@@ -372,10 +359,12 @@ class CreateSociety(Job):
         description = self.description
         admin_crsids = self.admin_crsids
 
-        subprocess.call(["/usr/local/sbin/srcf-memberdb-cli", "society", society, "insert", description] + admin_crsids)
-        subprocess.call(["/usr/sbin/addgroup", "--force-badname", society])
+        subproc_check_multi(
+            ("add to memberdb", ["/usr/local/sbin/srcf-memberdb-cli", "society", society, "insert", description] + admin_crsids),
+            ("add group", ["/usr/sbin/addgroup", "--force-badname", society]))
+
         for admin in admin_crsids:
-            subprocess.call(["/usr/sbin/adduser", admin, society])
+            subproc_check_multi(("add user " + admin, ["/usr/sbin/adduser", admin, society]))
 
             try:
                 os.symlink("/societies/" + society, "/home/" + admin + "/" + society)
@@ -385,27 +374,28 @@ class CreateSociety(Job):
         gid = grp.getgrnam(society).gr_gid
         uid = gid + 50000
 
-        subprocess.call(["/usr/sbin/adduser", "--force-badname", "--no-create-home", "--uid", str(uid), "--gid", str(gid), "--gecos", description, "--disabled-password", "--system", society])
-        subprocess.call(["/usr/sbin/usermod", "-d", "/societies/" + society, society])
+        subproc_check_multi(
+            ("add user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home", "--uid", str(uid), "--gid", str(gid), "--gecos", description, "--disabled-password", "--system", society]),
+            ("set home", ["/usr/sbin/usermod", "-d", "/societies/" + society, society]))
 
         os.makedirs("/societies/" + society + "/public_html", 0775)
         os.makedirs("/societies/" + society + "/cgi-bin", 0775)
 
         os.chown("/societies/" + society + "/public_html", -1, gid)
         os.chown("/societies/" + society + "/cgi-bin", -1, gid)
-        subprocess.call(["chmod", "-R", "2775", "/societies/" + society])
+
+        subproc_check_multi(("chmod home", ["chmod", "-R", "2775", "/societies/" + society]))
 
         with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
             myfile.write(society + ":subdomain\n")
 
-        subprocess.call(["/usr/local/sbin/set_quota", society])
-        subprocess.call(["/usr/local/sbin/srcf-generate-society-sudoers"])
-        subprocess.call(["/usr/local/sbin/srcf-memberdb-export"])
+        subproc_check_multi(
+            ("set quota", ["/usr/local/sbin/set_quota", society]),
+            ("generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"]),
+            ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
 
         newsoc = queries.get_society(society, session=sess)
         mail_users(newsoc, "New shared account created", "society/signup.txt")
-
-        return JobDone()
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
     def __str__(self): return "Create society: {0.society} ({0.description})".format(self)
@@ -456,39 +446,37 @@ class ChangeSocietyAdmin(Job):
 
     def add_admin(self, sess):
         if self.target_member in self.society.admins:
-            return JobFailed("{0.target_member.crsid} is already an admin of {0.society}".format(self))
+            raise JobFailed("{0.target_member.crsid} is already an admin of {0.society}".format(self))
 
         # Get the recipient lists before adding because we are sending the new admin a separate email.
         recipients = [(x.name, x.crsid + "@srcf.net") for x in self.society.admins]
 
         self.society.admins.add(self.target_member)
 
-        subprocess.check_call(["adduser", self.target_member.crsid, self.society.society])
+        subproc_check_multi(("add user", ["adduser", self.target_member.crsid, self.society.society]))
 
         target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
         source_ln = "/societies/{0.society.society}/".format(self)
         if not os.path.exists(target_ln):
             os.symlink(source_ln, target_ln)
 
-        mail_users(self.target_member, "Access granted to " + self.society_society, "society/add-admin.txt", society=self.society)
-        mail_users(self.society, "Access granted for " + self.target_member.crsid, "society/add-admin-short.txt",
+        mail_users(self.target_member, "Access granted to " + self.society_society, "add-admin", society=self.society)
+        mail_users(self.society, "Access granted for " + self.target_member.crsid, "add-admin",
                 added=self.target_member, requester=self.requesting_member)
-
-        return JobDone()
 
 
     def rm_admin(self, sess):
         if self.target_member not in self.society.admins:
-            return JobFailed("{0.target_member.crsid} is not an admin of {0.society.society}".format(self))
+            raise JobFailed("{0.target_member.crsid} is not an admin of {0.society.society}".format(self))
 
         if len(self.society.admins) == 1:
-            return JobFailed("removing all admins not implemented")
+            raise JobFailed("removing all admins not implemented")
 
         # Get the recipient lists before removing because we want to notify the user removed
         recipients = [(x.name, x.crsid + "@srcf.net") for x in self.society.admins]
 
         self.society.admins.remove(self.target_member)
-        subprocess.check_call(["deluser", self.target_member.crsid, self.society.society])
+        subproc_check_multi(("del user", ["deluser", self.target_member.crsid, self.society.society]))
 
         target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
         source_ln = "/societies/{0.society.society}/".format(self)
@@ -498,16 +486,14 @@ class ChangeSocietyAdmin(Job):
         mail_users(self.society, "Access removed for " + self.target_member.crsid, "society/remove-admin-short.txt",
                 removed=self.target_member, requester=self.requesting_member)
 
-        return JobDone()
-
     def run(self, sess):
         if self.owner not in self.society.admins:
-            return JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
+            raise JobFailed("{0.owner.crsid} is not permitted to change the admins of {0.society.society}".format(self))
 
         if self.action == "add":
-            return self.add_admin(sess)
+            self.add_admin(sess)
         else:
-            return self.rm_admin(sess)
+            self.rm_admin(sess)
 
 @add_job
 class CreateSocietyMailingList(Job):
@@ -543,7 +529,7 @@ class CreateSocietyMailingList(Job):
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
-            return JobFailed("Invalid list name {}".format(full_listname))
+            raise JobFailed("Invalid list name {}".format(full_listname))
 
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
@@ -553,18 +539,11 @@ class CreateSocietyMailingList(Job):
                         % (full_listname, self.society_society + "-admins@srcf.net"), shell=True)
         newlist.wait()
         if newlist.returncode != 0:
-            return JobFailed("Failed at newlist")
-        configlist = subprocess.Popen(["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults",
-                            full_listname])
-        configlist.wait()
-        if configlist.returncode != 0:
-            return JobFailed("Failed at configlist")
-        genalias = subprocess.Popen(["gen_alias", full_listname])
-        genalias.wait()
-        if genalias.returncode != 0:
-            return JobFailed("Failed at genalias")
+            raise JobFailed("Failed at newlist")
 
-        return JobDone()
+        subproc_check_multi(
+            ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
+            ("generate alias", ["gen_alias", full_listname]))
 
 @add_job
 class ResetSocietyMailingListPassword(Job):
@@ -596,12 +575,10 @@ class ResetSocietyMailingListPassword(Job):
 
         resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
         if "owner =" not in resetadmins:
-            return JobFailed("Failed at reset admins")
+            raise JobFailed("Failed at reset admins")
         newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
         if "New {} password".format(self.listname) not in newpasswd:
-            return JobFailed("Failed at new password")
-
-        return JobDone()
+            raise JobFailed("Failed at new password")
 
 @add_job
 class CreateMySQLUserDatabase(Job):
@@ -627,22 +604,19 @@ class CreateMySQLUserDatabase(Job):
         try:
             cursor.execute('create database ' + crsid)
         except Exception, e:
-            return JobFailed('Failed to create database for ' + crsid)
+            raise JobFailed('Failed to create database for ' + crsid)
 
         # grant permissions
-        sqls = [
+        sqls = (
             'grant all privileges on ' +  crsid + '.* to ' + crsid + '@localhost',
             'grant all privileges on `' +  crsid + '/%`.* to ' + crsid + '@localhost',
-            'set password for ' + crsid + '@localhost = password(\'' + password + '\')'
-        ]
+            'set password for ' + crsid + '@localhost = password(\'' + password + '\')')
         for sql in sqls:
             cursor.execute(sql)
 
         db.close()
 
         mail_users(self.owner, "MySQL database created", "member/mysql-create.txt", password=password)
-
-        return JobDone()
 
     def __repr__(self): return "<CreateMySQLUserDatabase {0.owner_crsid}>".format(self)
     def __str__(self): return "Create user MySQL database: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -671,13 +645,11 @@ class ResetMySQLUserPassword(Job):
         try:
             cursor.execute("set password for " + crsid + "@localhost= password('" + password + "')")
         except Exception, e:
-            return JobFailed('Failed to reset password for ' + crsid)
+            raise JobFailed('Failed to reset password for ' + crsid)
 
         db.close()
 
         mail_users(self.owner, "MySQL database password reset", "member/mysql-password.txt", password=password)
-
-        return JobDone()
 
     def __repr__(self): return "<ResetMySQLUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user MySQL password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -710,7 +682,7 @@ class CreateMySQLSocietyDatabase(Job):
         try:
             cursor.execute('create database ' + self.society_society)
         except Exception, e:
-            return JobFailed('Failed to create database for ' + self.society_society)
+            raise JobFailed('Failed to create database for ' + self.society_society)
 
         # set password for requesting user if no MySQL account already
         usrpassword = None
@@ -720,13 +692,12 @@ class CreateMySQLSocietyDatabase(Job):
             cursor.execute('set password for ' + self.owner.crsid + '@localhost = password(\'' + password + '\')')
 
         # grant permissions
-        sqls = [
+        sqls = (
             'grant all privileges on ' +  self.society_society + '.* to ' + self.society_society + '@localhost',
             'grant all privileges on `' +  self.society_society + '/%`.* to ' + self.society_society + '@localhost',
             'grant all privileges on ' +  self.society_society + '.* to ' + self.owner.crsid + '@localhost',
             'grant all privileges on `' +  self.society_society + '/%`.* to ' + self.owner.crsid + '@localhost',
-            'set password for ' + self.society_society + '@localhost = password(\'' + password + '\')'
-        ]
+            'set password for ' + self.society_society + '@localhost = password(\'' + password + '\')')
         for sql in sqls:
             cursor.execute(sql)
 
@@ -735,8 +706,6 @@ class CreateMySQLSocietyDatabase(Job):
         mail_users(self.society, "MySQL database created", "society/mysql-create.txt", password=password, requester=self.owner)
         if usrpassword:
             mail_users(self.owner, "MySQL database created", "member/mysql-create.txt", password=usrpassword)
-
-        return JobDone()
 
     def __repr__(self): return "<CreateMySQLSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society MySQL database: {0.society.society} ({0.society.description})".format(self)
@@ -769,13 +738,11 @@ class ResetMySQLSocietyPassword(Job):
         try:
             cursor.execute("set password for " + self.society_society + "@localhost= password('" + password + "')")
         except Exception, e:
-            return JobFailed('Failed to reset password for ' + self.society_society)
+            raise JobFailed('Failed to reset password for ' + self.society_society)
 
         db.close()
 
         mail_users(self.society, "MySQL database password reset", "society/mysql-password.txt", password=password, requester=self.owner)
-
-        return JobDone()
 
     def __repr__(self): return "<ResetMySQLSocietyPassword {0.society_society}>".format(self)
     def __str__(self): return "Reset society MySQL password: {0.society.society} ({0.society.description})".format(self)
@@ -824,14 +791,12 @@ class CreatePostgresUserDatabase(Job):
             dbcreated = True
 
         if not dbcreated and not usercreated:
-            return JobFailed(crsid + " already has a functioning database")
+            raise JobFailed(crsid + " already has a functioning database")
 
         db.commit()
         db.close()
 
         mail_users(self.owner, "PostgreSQL database created", "member/postgres-create.txt", password=password)
-
-        return JobDone()
 
     def __repr__(self): return "<CreatePostgresUserDatabase {0.owner_crsid}>".format(self)
     def __str__(self): return "Create user PostgreSQL database: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -860,7 +825,7 @@ class ResetPostgresUserPassword(Job):
         cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
         results = cursor.fetchall()
         if len(results) == 0:
-            return JobFailed(crsid + " does not have a Postgres user")
+            raise JobFailed(crsid + " does not have a Postgres user")
 
         # Reset the password
         cursor.execute("ALTER USER " + crsid + " PASSWORD '" + password + "'")
@@ -869,8 +834,6 @@ class ResetPostgresUserPassword(Job):
         db.close()
 
         mail_users(self.owner, "PostgreSQL database password reset", "member/postgres-password.txt", password=password)
-
-        return JobDone()
 
     def __repr__(self): return "<ResetPostgresUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user PostgreSQL password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -944,7 +907,7 @@ class CreatePostgresSocietyDatabase(Job):
         cursor.execute("GRANT " + socname + " TO " + crsid)
 
         if not dbcreated and not usercreated and not socusercreated:
-            return JobFailed(socname + " already has a functioning database")
+            raise JobFailed(socname + " already has a functioning database")
 
         db.commit()
         db.close()
@@ -952,8 +915,6 @@ class CreatePostgresSocietyDatabase(Job):
         mail_users(self.society, "PostgreSQL database created", "society/postgres-create.txt", password=socpassword, requester=self.owner)
         if usercreated:
             mail_users(self.owner, "PostgreSQL database created", "member/postgres-create.txt", password=userpassword)
-
-        return JobDone()
 
     def __repr__(self): return "<CreatePostgresSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society PostgreSQL database: {0.society.society} ({0.society.description})".format(self)
@@ -988,7 +949,7 @@ class ResetPostgresSocietyPassword(Job):
         cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + socname + "'")
         results = cursor.fetchall()
         if len(results) == 0:
-            return JobFailed(socname + " does not have a Postgres user")
+            raise JobFailed(socname + " does not have a Postgres user")
 
         # Reset the password
         cursor.execute("ALTER USER " + socname + " PASSWORD '" + password + "'")
@@ -997,8 +958,6 @@ class ResetPostgresSocietyPassword(Job):
         db.close()
 
         mail_users(self.society, "PostgreSQL database password reset", "society/postgres-password.txt", password=password, requester=self.owner)
-
-        return JobDone()
 
     def __repr__(self): return "<ResetPostgresSocietyPassword {0.society_society}>".format(self)
     def __str__(self): return "Reset society PostgreSQL password: {0.society.society} ({0.society.description})".format(self)
