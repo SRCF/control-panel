@@ -18,13 +18,13 @@ emails = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file
 email_headers = {k: emails.get_template("header-{0}.txt".format(k)) for k in ("mem", "soc")}
 email_footer = emails.get_template("footer.txt").render()
 
-def parse_mail_template(temp, obj):
-    f = open(temp, "r")
-    text = f.read()
-    f.close()
+def mysql_conn():
+    with open("/root/mysql-root-password", "r") as pwfh:
+        rootpw = pwfh.readline().rstrip()
+    return MySQLdb.connect(user="root", host="localhost", passwd=rootpw, db="mysql")
 
-    keys = template.substitutions(obj)
-    return template.replace(text, keys)
+def postgres_conn():
+    return pgdb.connect(database="template1")
 
 def mail_notify(job):
     body = job.state_message or ""
@@ -620,10 +620,7 @@ class CreateMySQLUserDatabase(Job):
 
         password = pwgen(8)
 
-        with open("/root/mysql-root-password", "r") as pwfh:
-            rootpw = pwfh.readline().rstrip()
-
-        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        db = mysql_conn()
         cursor = db.cursor()
 
         # create database for the user
@@ -667,10 +664,7 @@ class ResetMySQLUserPassword(Job):
 
         password = pwgen(8)
 
-        with open("/root/mysql-root-password", "r") as pwfh:
-            rootpw = pwfh.readline().rstrip()
-
-        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        db = mysql_conn()
         cursor = db.cursor()
 
         # create database for the user
@@ -709,10 +703,7 @@ class CreateMySQLSocietyDatabase(Job):
     def run(self, sess):
         password = pwgen(8)
 
-        with open("/root/mysql-root-password", "r") as pwfh:
-            rootpw = pwfh.readline().rstrip()
-
-        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        db = mysql_conn()
         cursor = db.cursor()
 
         # create database for the user
@@ -771,10 +762,7 @@ class ResetMySQLSocietyPassword(Job):
     def run(self, sess):
         password = pwgen(8)
 
-        with open("/root/mysql-root-password", "r") as pwfh:
-            rootpw = pwfh.readline().rstrip()
-
-        db = MySQLdb.connect(user='root', host='localhost', passwd=rootpw, db='mysql')
+        db = mysql_conn()
         cursor = db.cursor()
 
         # create database for the user
@@ -809,7 +797,7 @@ class CreatePostgresUserDatabase(Job):
         password = pwgen(8)
 
         # Connect to database
-        db = pgdb.connect(database='template1')
+        db = postgres_conn()
         cursor = db.cursor()
 
         # Create user
@@ -865,7 +853,7 @@ class ResetPostgresUserPassword(Job):
         password = pwgen(8)
 
         # Connect to database
-        db = pgdb.connect(database='template1')
+        db = postgres_conn()
         cursor = db.cursor()
 
         # Check if the user exists
@@ -913,7 +901,7 @@ class CreatePostgresSocietyDatabase(Job):
         socpassword = pwgen(8)
 
         # Connect to database
-        db = pgdb.connect(database='template1')
+        db = postgres_conn()
         cursor = db.cursor()
 
         # Create user
@@ -993,7 +981,7 @@ class ResetPostgresSocietyPassword(Job):
         password = pwgen(8)
 
         # Connect to database
-        db = pgdb.connect(database='template1')
+        db = postgres_conn()
         cursor = db.cursor()
 
         # Check if the user exists
