@@ -129,10 +129,12 @@ def main():
         run_message = None
 
         try:
-            job.run(sess=sess)
+            run_message = job.run(sess=sess)
+            logger.info("job %s done", job.job_id)
             run_state = "done"
 
         except jobs.JobFailed as e:
+            logger.warning("job %s failed", job.job_id)
             run_message = e.message
 
         except:

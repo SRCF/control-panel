@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="/_srcf/style.css">
         <link rel="stylesheet" href="{{ url_for('static', filename='jquery.modal.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        {%- filter indent(8) %}{% block head %}{% endblock %}{% endfilter %}
     </head>
     <body>
         <div class="topbox" style="overflow: auto;">

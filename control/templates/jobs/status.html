@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% from "macros.html" import mem_name_crsid, soc_desc_soc %}
+
+{% block head %}
+{%- if job.state in ["queued", "running"] %}
+<meta http-equiv="refresh" content="{{ "5" if job.state == "queued" else "3" }}">
+{%- endif %}
+{% endblock %}
 
 {% block body %}
 <div class="main">
@@ -7,38 +12,28 @@
     <p>Description: {{ job }}</p>
     {%- if job.state == "unapproved" %}
     <h3>To be checked by a sysadmin</h3>
-    <p>
-        A SRCF sysadmin needs to review the job before it can proceed.
-        This should not take long, and you should receive an email when it is complete.
-    </p>
+    <p>An SRCF sysadmin needs to review this job before it can proceed.  This should not take long, and you should receive an email when it is complete.</p>
     {%- elif job.state == "queued" %}
     <h3>Queued</h3>
-    <p>
-        This job is in the queue, and should be automatically completed soon.
-        Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.
-    </p>
+    <p>This job is in the queue, and should be automatically completed soon.</p>
+    <p>Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.</p>
     {%- elif job.state == "running" %}
     <h3>Running</h3>
       {%- if job.state_message %}
     <p>Status: {{ job.state_message }}</p>
       {%- endif %}
-    <p>
-        This job is being processed right now(!)
-        Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.
-    </p>
+    <p>This job is being processed right now.</p>
+    <p>Either reload the page in a few moments, or wait for the email that you should receive when it has been completed.</p>
     {%- elif job.state == "done" %}
     <h3>Complete</h3>
       {%- if job.state_message %}
     <p>Response: {{ job.state_message }}</p>
       {%- endif %}
-    <p>Job complete.</p>
+    <p>This job has been completed.</p>
     {%- elif job.state == "failed" %}
     <h3>Error</h3>
-    <p>
-        The job failed to complete.
-        A SRCF sysadmin should hopefully notice and intervene, but you may like to email
-        <a href="mailto:sysadmins@srcf.net">sysadmins@srcf.net</a> for help.
-    </p>
+    <p>This job failed to complete.</p>
+    <p>An SRCF sysadmin should hopefully notice and intervene, but you may like to <a href="mailto:soc-srcf-admin@lists.cam.ac.uk?subject=Control%20panel%3A%20job%20%23{{ job.job_id }}%20failed">email the sysadmins directly</a> for help.</p>
       {%- if job.state_message %}
     <p>Error reported: {{ job.state_message }}</p>
       {%- endif %}
