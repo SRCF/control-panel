@@ -6,6 +6,7 @@ import select
 import traceback
 import logging
 import platform
+import subprocess
 
 import psycopg2.extensions
 
@@ -57,6 +58,7 @@ def connect():
         conn.execute(Listen("jobs_insert"))
 
     sess = sqlalchemy.orm.Session(bind=conn)
+    database.queries.disable_automatic_session(and_use_this_one_instead=sess)
     return conn, sess
 
 def notifications(conn):
@@ -151,10 +153,9 @@ def main():
             logger.info("job %s ran; finished %s %s", job.job_id, run_state, run_message)
 
         job.set_state(run_state, run_message)
+        job.mail_current_state_to_sysadmins()
         sess.add(job.row)
         sess.commit()
-
-        jobs.mail_notify(job)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

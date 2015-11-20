@@ -23,8 +23,12 @@ def mysql_conn():
         rootpw = pwfh.readline().rstrip()
     return MySQLdb.connect(user="root", host="localhost", passwd=rootpw, db="mysql")
 
+# DanielRichman: when jobs run, we already have a postgres connection. Can we not use that?
+# You can feed raw SQL to SqlAlchemy if you really want, I think, though I forget how.
+# Having two connections is dangerous because it's quite easy to deadlock.
 def postgres_conn(db="template1"):
-    return pgdb.connect(database=db)
+    raise Exception("this might be a bad idea")
+    #return pgdb.connect(database=db)
 
 def subproc_check_multi(*tasks):
     for desc, task in tasks:
@@ -32,12 +36,6 @@ def subproc_check_multi(*tasks):
             subprocess.check_call(task)
         except subprocess.CalledProcessError:
             raise JobFailed("Failed at " + desc)
-
-def mail_notify(job):
-    body = job.state_message or ""
-    if job.state == "unapproved":
-        body = "You can approve or reject the job here: {0}".format(url_for("admin.view_jobs", state="unapproved", _external=True))
-    mail_sysadmins("[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(job), body)
 
 def mail_users(target, subject, template, **kwargs):
     target_type = "member" if isinstance(target, Member) else "society"
@@ -109,7 +107,7 @@ class Job(object):
         if require_approval:
             old_LOGNAME = os.environ.get("LOGNAME")
             os.environ["LOGNAME"] = "sysadmins" # TODO: this works for the wrong reasons
-            mail_notify(job)
+            job.mail_current_state_to_sysadmins()
             if old_LOGNAME:
                 os.environ["LOGNAME"] = old_LOGNAME
             else:
@@ -135,6 +133,18 @@ class Job(object):
     def set_state(self, state, message=None):
         self.state = state
         self.state_message = message
+
+    def mail_current_state_to_sysadmins(self):
+        if self.state == "unapproved":
+            body = "You can approve or reject the job here: {0}" \
+                    .format(url_for("admin.view_jobs", state="unapproved", _external=True))
+        elif self.state_message is not None:
+            body = self.state_message
+        else:
+            body = "This space is intentionally left blank."
+
+        subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(self)
+        mail_sysadmins(subject, body)
 
 
 @add_job
@@ -242,18 +252,8 @@ class UpdateEmailAddress(Job):
     def __str__(self): return "Update email address: {0.owner.crsid} ({0.owner.email} to {0.email})".format(self)
 
     def run(self, sess):
-        crsid = self.owner.crsid
         old_email = self.owner.email
-
-        # Connect to database
-        db = postgres_conn("sysadmins")
-        cursor = db.cursor()
-
-        cursor.execute("UPDATE members SET email = %s WHERE crsid = %s", (self.email, crsid))
-
-        db.commit()
-        db.close()
-
+        self.owner.email = self.email
         mail_users(self.owner, "Email address updated", "email", old_email=old_email, new_email=self.email)
 
 @add_job
@@ -284,6 +284,7 @@ class CreateUserMailingList(Job):
                                             "owner", "request", "subscribe", "unsubscribe"):
             raise JobFailed("Invalid list name {}".format(full_listname))
 
+        # XXX DanielRichman: see other
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
@@ -393,7 +394,7 @@ class CreateSociety(Job):
             ("generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"]),
             ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
 
-        newsoc = queries.get_society(society, session=sess)
+        newsoc = queries.get_society(society)
         mail_users(newsoc, "New shared account created", "signup")
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
@@ -407,10 +408,8 @@ class ChangeSocietyAdmin(Job):
         self.row = row
 
     def resolve_references(self, sess):
-        self.society = \
-            queries.get_society(self.society_society,    session=sess)
-        self.target_member = \
-            queries.get_member(self.target_member_crsid, session=sess)
+        self.society = queries.get_society(self.society_society)
+        self.target_member = queries.get_member(self.target_member_crsid)
 
     @classmethod
     def new(cls, requesting_member, society, target_member, action):
@@ -503,7 +502,7 @@ class CreateSocietyMailingList(Job):
 
     def resolve_references(self, sess):
         self.society = \
-            queries.get_society(self.society_society, session=sess)
+            queries.get_society(self.society_society)
 
     @classmethod
     def new(cls, member, society, listname):
@@ -530,6 +529,10 @@ class CreateSocietyMailingList(Job):
                                             "owner", "request", "subscribe", "unsubscribe"):
             raise JobFailed("Invalid list name {}".format(full_listname))
 
+        # XXX DanielRichman: we import mailman, but don't use it?
+        # If you wanted to use its api---which may well be nicer than shelling out---
+        # It might be safer to have a small helper script and execute that, rather than importing Mailman?
+        # You could feed it its arguments as JSON over stdin, to avoid having to think about escaping.
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
@@ -553,7 +556,7 @@ class ResetSocietyMailingListPassword(Job):
 
     def resolve_references(self, sess):
         self.society = \
-            queries.get_society(self.society_society, session=sess)
+            queries.get_society(self.society_society)
 
     @classmethod
     def new(cls, member, society, listname):
@@ -661,7 +664,7 @@ class CreateMySQLSocietyDatabase(Job):
         self.row = row
 
     def resolve_references(self, sess):
-        self.society = queries.get_society(self.society_society, session=sess)
+        self.society = queries.get_society(self.society_society)
 
     @classmethod
     def new(cls, member, society):
@@ -717,7 +720,7 @@ class ResetMySQLSocietyPassword(Job):
         self.row = row
 
     def resolve_references(self, sess):
-        self.society = queries.get_society(self.society_society, session=sess)
+        self.society = queries.get_society(self.society_society)
 
     @classmethod
     def new(cls, member, society):
@@ -846,7 +849,7 @@ class CreatePostgresSocietyDatabase(Job):
         self.row = row
 
     def resolve_references(self, sess):
-        self.society = queries.get_society(self.society_society, session=sess)
+        self.society = queries.get_society(self.society_society)
 
     @classmethod
     def new(cls, member, society):
@@ -926,7 +929,7 @@ class ResetPostgresSocietyPassword(Job):
         self.row = row
 
     def resolve_references(self, sess):
-        self.society = queries.get_society(self.society_society, session=sess)
+        self.society = queries.get_society(self.society_society)
 
     @classmethod
     def new(cls, member, society):
