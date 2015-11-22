@@ -12,6 +12,9 @@ import os
 import pwd, grp
 import MySQLdb
 
+from . import utils
+
+
 emails = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "emails")))
 email_headers = {k: emails.get_template("common/header-{0}.txt".format(k)) for k in ("member", "society")}
 email_footer = emails.get_template("common/footer.txt").render()
@@ -158,9 +161,12 @@ class Signup(Job):
             "email": email,
             "social": "y" if social else "n"
         }
-        # TODO: this check fails unsafe; what if the finger output format changes?
-        res = subprocess.check_output(["finger", crsid + "@hermes.cam.ac.uk"])
-        require_approval = ("no such user" in res) or ("cancelled" in res)
+        try:
+            utils.ldapsearch(crsid)
+        except KeyError:
+            require_approval = True
+        else:
+            require_approval = False
         return cls.store(None, args, require_approval)
 
     crsid          = property(lambda s: s.row.args["crsid"])
