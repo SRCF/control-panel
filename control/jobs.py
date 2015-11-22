@@ -177,6 +177,7 @@ class Signup(Job):
 
         name = (self.preferred_name + " " + self.surname).strip()
 
+        # TODO: don't shell out to srcf-memberdb-cli!
         subproc_check_multi(
             ("add to memberdb", ["/usr/local/sbin/srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email]),
             ("add user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
@@ -355,6 +356,7 @@ class CreateSociety(Job):
         description = self.description
         admin_crsids = self.admin_crsids
 
+        # TODO: don't shell out to srcf-memberdb-cli!
         subproc_check_multi(
             ("add to memberdb", ["/usr/local/sbin/srcf-memberdb-cli", "society", society, "insert", description] + admin_crsids),
             ("add group", ["/usr/sbin/addgroup", "--force-badname", society]))
