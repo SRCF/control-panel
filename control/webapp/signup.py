@@ -52,7 +52,7 @@ def signup():
             errors["email"] = "That address doesn't look valid."
 
         any_error = False
-        for i in errors:
+        for i in errors.values():
             if i:
                 any_error = True
                 break
@@ -136,7 +136,7 @@ def newsoc():
             errors["description"] = "Please enter the full name of the society."
 
         any_error = False
-        for i in errors:
+        for i in errors.values():
             if i:
                 any_error = True
                 break
