@@ -21,6 +21,8 @@ app.request_class = R
 assert len(deploy_config["secret"])
 app.secret_key = deploy_config["secret"].encode("ascii")
 
+app.deploy_config = deploy_config
+
 class AppRootFixer(object):
     def __init__(self, app):
         self.app = app 
