@@ -163,9 +163,10 @@ class Signup(Job):
             "email": email,
             "social": "y" if social else "n"
         }
+        # TODO: this check fails unsafe; what if the finger output format changes?
         res = subprocess.check_output(["finger", crsid + "@hermes.cam.ac.uk"])
         require_approval = ("no such user" in res) or ("cancelled" in res)
-        return cls.store(requesting_member, args, require_approval)
+        return cls.store(None, args, require_approval)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])

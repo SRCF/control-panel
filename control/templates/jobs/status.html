@@ -8,7 +8,7 @@
 
 {% block body %}
 <div class="main">
-    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('jobs.home') }}" class="action">Job history for {{ job.owner.crsid }}</a> &rarr; Job #{{ job.job_id }}</h1>
+	<h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('jobs.home') }}" class="action">Job history{% if job.owner %} for {{ job.owner.crsid }}{% endif %}</a> &rarr; Job #{{ job.job_id }}</h1>
     <p>Description: {{ job }}</p>
     {%- if job.state == "unapproved" %}
     <h3>To be checked by a sysadmin</h3>
