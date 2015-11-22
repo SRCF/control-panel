@@ -21,12 +21,9 @@ def mysql_conn():
         rootpw = pwfh.readline().rstrip()
     return MySQLdb.connect(user="root", host="localhost", passwd=rootpw, db="mysql")
 
-# DanielRichman: when jobs run, we already have a postgres connection. Can we not use that?
-# You can feed raw SQL to SqlAlchemy if you really want, I think, though I forget how.
-# Having two connections is dangerous because it's quite easy to deadlock.
-def postgres_conn(db="template1"):
-    raise Exception("this might be a bad idea")
-    #return pgdb.connect(database=db)
+def postgres_conn():
+    # Warning: don't connect to sysadmins database this way -- it can deadlock with SQLAlchemy.
+    return pgdb.connect(database="template1")
 
 def subproc_check_multi(*tasks):
     for desc, task in tasks:

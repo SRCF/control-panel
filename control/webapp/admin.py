@@ -53,7 +53,7 @@ def view_jobs(state):
     job_row = srcf.database.Job
     jobs = sess.query(job_row) \
                     .filter(job_row.state == state) \
-                    .order_by(job_row.job_id)
+                    .order_by(job_row.job_id.desc())
     jobs = [Job.of_row(r) for r in jobs]
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
