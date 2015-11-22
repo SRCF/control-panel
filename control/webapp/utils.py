@@ -80,6 +80,12 @@ def sif(variable, val):
 
 
 def setup_app(app):
+    @app.before_request
+    def before_request():
+        if hasattr(app, "deploy_config") and "test_raven" in app.deploy_config and app.deploy_config["test_raven"]:
+            raven.request_class = raven_demoserver.Request
+            raven.response_class = raven_demoserver.Response
+
     app.before_request(raven.before_request)
 
     @app.teardown_request
@@ -95,8 +101,3 @@ def setup_app(app):
     app.jinja_env.globals["sif"] = sif
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
-
-    if hasattr(app, "deploy_config") and "test_raven" in app.deploy_config and app.deploy_config["test_raven"]:
-        raven.request_class = raven_demoserver.Request
-        raven.response_class = raven_demoserver.Response
-
