@@ -5,12 +5,10 @@ from flask import url_for
 from jinja2 import Environment, FileSystemLoader
 
 from srcf import database, pwgen
-from srcf.database import queries
-from srcf.database.schema import Member, Society
-from srcf.mail import mail_sysadmins, send_mail, template
+from srcf.database import queries, Job as db_Job
+from srcf.database.schema import Member
+from srcf.mail import mail_sysadmins, send_mail
 import os
-import srcf.database
-import pgdb
 import pwd, grp
 import MySQLdb
 
@@ -65,7 +63,7 @@ class Job(object):
 
     @classmethod
     def of_user(cls, sess, crsid):
-        job_row = srcf.database.Job
+        job_row = db_Job
         jobs = sess.query(job_row) \
                     .filter(job_row.owner_crsid == crsid) \
                     .order_by(job_row.job_id)
