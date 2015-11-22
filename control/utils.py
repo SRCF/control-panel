@@ -39,3 +39,6 @@ def mysql_conn():
     conn.autocommit = True
     return conn
 
+
+def is_valid_socname(s):
+    return re.match(r'^[a-z0-9_-]+$', s)

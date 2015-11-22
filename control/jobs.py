@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import re
 
 from flask import url_for
 from jinja2 import Environment, FileSystemLoader
@@ -281,7 +282,6 @@ class CreateUserMailingList(Job):
 
         full_listname = "{}-{}".format(self.owner, self.listname)
 
-        import re
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
@@ -527,7 +527,6 @@ class CreateSocietyMailingList(Job):
 
         full_listname = "{}-{}".format(self.society_society, self.listname)
 
-        import re
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
@@ -586,6 +585,9 @@ class ResetSocietyMailingListPassword(Job):
         if "New {} password".format(self.listname) not in newpasswd:
             raise JobFailed("Failed at new password")
 
+# Here be dragons: we trust the value of crsid a *lot* (such that it appears unescaped in SQL queries).
+# Quote with backticks and ensure only valid characters (alnum for crsid, alnum + [_-] for society).
+
 @add_job
 class CreateMySQLUserDatabase(Job):
     JOB_TYPE = 'create_mysql_user_database'
@@ -600,6 +602,7 @@ class CreateMySQLUserDatabase(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        assert crsid.isalnum()
 
         password = pwgen(8)
 
@@ -614,11 +617,12 @@ class CreateMySQLUserDatabase(Job):
 
         # grant permissions
         sqls = (
-            'grant all privileges on ' +  crsid + '.* to ' + crsid + '@localhost',
-            'grant all privileges on `' +  crsid + '/%`.* to ' + crsid + '@localhost',
-            'set password for ' + crsid + '@localhost = password(\'' + password + '\')')
+            'grant all privileges on `' +  crsid + '`.* to ' + crsid + '@localhost',
+            'grant all privileges on `' +  crsid + '/%`.* to ' + crsid + '@localhost')
         for sql in sqls:
             cursor.execute(sql)
+
+        cursor.execute('set password for `' + crsid + '`@localhost = password(%s)', (password,))
 
         db.close()
 
@@ -641,15 +645,15 @@ class ResetMySQLUserPassword(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        assert crsid.isalnum()
 
         password = pwgen(8)
 
         db = mysql_conn()
         cursor = db.cursor()
 
-        # create database for the user
         try:
-            cursor.execute("set password for " + crsid + "@localhost= password('" + password + "')")
+            cursor.execute("set password for `" + crsid + "`@localhost= password(%s)", (password,))
         except Exception, e:
             raise JobFailed('Failed to reset password for ' + crsid)
 
@@ -679,6 +683,11 @@ class CreateMySQLSocietyDatabase(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
+        crsid = self.owner.crsid
+        assert crsid.isalnum()
+        socname = self.society_society
+        assert utils.is_valid_socname(socname)
+
         password = pwgen(8)
 
         db = mysql_conn()
@@ -686,26 +695,27 @@ class CreateMySQLSocietyDatabase(Job):
 
         # create database for the user
         try:
-            cursor.execute('create database ' + self.society_society)
+            cursor.execute('create database ' + socname)
         except Exception, e:
-            raise JobFailed('Failed to create database for ' + self.society_society)
+            raise JobFailed('Failed to create database for ' + socname)
 
         # set password for requesting user if no MySQL account already
         usrpassword = None
-        cursor.execute('select exists (select distinct user from mysql.user where user = `' + self.owner.crsid + '`) as e')
+        cursor.execute('select exists (select distinct user from mysql.user where user = %s) as e', (self.owner.crsid,))
         if cursor.fetchone()[0] == 0:
             usrpassword = pwgen(8)
-            cursor.execute('set password for ' + self.owner.crsid + '@localhost = password(\'' + password + '\')')
+            cursor.execute('set password for ' + self.owner.crsid + '@localhost = password(%s)', (password,))
 
         # grant permissions
         sqls = (
-            'grant all privileges on ' +  self.society_society + '.* to ' + self.society_society + '@localhost',
-            'grant all privileges on `' +  self.society_society + '/%`.* to ' + self.society_society + '@localhost',
-            'grant all privileges on ' +  self.society_society + '.* to ' + self.owner.crsid + '@localhost',
-            'grant all privileges on `' +  self.society_society + '/%`.* to ' + self.owner.crsid + '@localhost',
-            'set password for ' + self.society_society + '@localhost = password(\'' + password + '\')')
+            'grant all privileges on `' +  socname + '`.* to ' + socname + '@localhost',
+            'grant all privileges on `' +  socname + '/%`.* to ' + socname + '@localhost',
+            'grant all privileges on `' +  socname + '`.* to ' + self.owner.crsid + '@localhost',
+            'grant all privileges on `' +  socname + '/%`.* to ' + self.owner.crsid + '@localhost')
         for sql in sqls:
             cursor.execute(sql)
+
+        cursor.execute('set password for `' + socname + '`@localhost = password(%s)', (password,))
 
         db.close()
 
@@ -735,16 +745,20 @@ class ResetMySQLSocietyPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
+        crsid = self.owner.crsid
+        assert crsid.isalnum()
+        socname = self.society_society
+        assert utils.is_valid_socname(socname)
+
         password = pwgen(8)
 
         db = mysql_conn()
         cursor = db.cursor()
 
-        # create database for the user
         try:
-            cursor.execute("set password for " + self.society_society + "@localhost= password('" + password + "')")
+            cursor.execute("set password for `" + socname + "`@localhost = password(%s)", (password,))
         except Exception, e:
-            raise JobFailed('Failed to reset password for ' + self.society_society)
+            raise JobFailed('Failed to reset password for ' + socname)
 
         db.close()
 
@@ -767,6 +781,8 @@ class CreatePostgresUserDatabase(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        assert crsid.isalnum()
+
         password = pwgen(8)
 
         # Connect to database
@@ -776,11 +792,11 @@ class CreatePostgresUserDatabase(Job):
         # Create user
         usercreated = False
 
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (crsid,))
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD '" + password + "' NOCREATEDB NOCREATEUSER")
+            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", (password,))
             usercreated = True
         else:
             # Just in case the user exists but is disabled
@@ -789,7 +805,7 @@ class CreatePostgresUserDatabase(Job):
         # Create database
         dbcreated = False
 
-        cursor.execute("SELECT datname FROM pg_database WHERE datname = '" + crsid + "'")
+        cursor.execute("SELECT datname FROM pg_database WHERE datname = %s", (crsid,))
         results = cursor.fetchall()
 
         if len(results) == 0:
@@ -821,6 +837,8 @@ class ResetPostgresUserPassword(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        assert crsid.isalnum()
+
         password = pwgen(8)
 
         # Connect to database
@@ -828,13 +846,13 @@ class ResetPostgresUserPassword(Job):
         cursor = db.cursor()
 
         # Check if the user exists
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (crsid,))
         results = cursor.fetchall()
         if len(results) == 0:
             raise JobFailed(crsid + " does not have a Postgres user")
 
         # Reset the password
-        cursor.execute("ALTER USER " + crsid + " PASSWORD '" + password + "'")
+        cursor.execute("ALTER USER " + crsid + " PASSWORD %s", (password,))
 
         db.commit()
         db.close()
@@ -865,7 +883,10 @@ class CreatePostgresSocietyDatabase(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        assert crsid.isalnum()
         socname = self.society_society
+        assert utils.is_valid_socname(socname)
+
         userpassword = pwgen(8)
         socpassword = pwgen(8)
 
@@ -876,11 +897,11 @@ class CreatePostgresSocietyDatabase(Job):
         # Create user
         usercreated = False
 
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + crsid + "'")
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (crsid,))
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD '" + userpassword + "' NOCREATEDB NOCREATEUSER")
+            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", (userpassword,))
             usercreated = True
         else:
             # Just in case the user exists but is disabled
@@ -893,7 +914,7 @@ class CreatePostgresSocietyDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
-            cursor.execute("CREATE USER " + socname + " ENCRYPTED PASSWORD '" + password + "' NOCREATEDB NOCREATEUSER")
+            cursor.execute("CREATE USER " + socname + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", (socpassword,))
             usercreated = True
         else:
             # Just in case the user exists but is disabled
@@ -902,7 +923,7 @@ class CreatePostgresSocietyDatabase(Job):
         # Create database
         dbcreated = False
 
-        cursor.execute("SELECT datname FROM pg_database WHERE datname = '" + socname + "'")
+        cursor.execute("SELECT datname FROM pg_database WHERE datname = %s", (socname,))
         results = cursor.fetchall()
 
         if len(results) == 0:
@@ -944,7 +965,11 @@ class ResetPostgresSocietyPassword(Job):
     society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
+        crsid = self.owner.crsid
+        assert crsid.isalnum()
         socname = self.society_society
+        assert utils.is_valid_socname(socname)
+
         password = pwgen(8)
 
         # Connect to database
@@ -952,13 +977,13 @@ class ResetPostgresSocietyPassword(Job):
         cursor = db.cursor()
 
         # Check if the user exists
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + socname + "'")
+        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (socname,))
         results = cursor.fetchall()
         if len(results) == 0:
             raise JobFailed(socname + " does not have a Postgres user")
 
         # Reset the password
-        cursor.execute("ALTER USER " + socname + " PASSWORD '" + password + "'")
+        cursor.execute("ALTER USER " + socname + " PASSWORD %s", (password,))
 
         db.commit()
         db.close()
