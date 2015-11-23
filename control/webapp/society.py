@@ -2,6 +2,8 @@ from werkzeug.exceptions import NotFound, Forbidden
 from flask import Blueprint, render_template, request, redirect, url_for 
 
 from .utils import srcf_db_sess as sess
+from .utils import create_job_maybe_email_and_redirect
+
 from . import utils, inspect_services
 from .. import jobs
 
@@ -56,15 +58,13 @@ def add_admin(society):
                 error = "{0} is already an administrator.".format(crsid)
 
     if request.method == "POST" and not error:
-        j = jobs.ChangeSocietyAdmin.new(
+        return create_job_maybe_email_and_redirect(
+            jobs.ChangeSocietyAdmin,
             requesting_member=mem,
             society=soc,
             target_member=tgt,
             action="add"
         )
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("society/add_admin.html", society=soc, crsid=crsid, error=error)
 
@@ -82,15 +82,13 @@ def remove_admin(society, target_crsid):
         raise Forbidden
 
     if request.method == "POST":
-        j = jobs.ChangeSocietyAdmin.new(
+        return create_job_maybe_email_and_redirect(
+            jobs.ChangeSocietyAdmin,
             requesting_member=mem,
             society=soc,
             target_member=tgt,
             action="remove"
         )
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
     else:
         return render_template("society/remove_admin.html", society=soc, target=tgt)
 
@@ -108,10 +106,10 @@ def create_mailing_list(society):
             error = "List names can only contain letters, numbers, hyphens and underscores."
 
     if request.method == "POST" and not error:
-        j = jobs.CreateSocietyMailingList.new(member=mem, society=soc, listname=listname)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
+        return create_job_maybe_email_and_redirect(
+            jobs.CreateSocietyMailingList,
+            member=mem, society=soc, listname=listname
+        )
     else:
         return render_template("society/create_mailing_list.html", society=soc, listname=listname, error=error)
 
@@ -120,10 +118,10 @@ def reset_mailing_list_password(society, listname):
     mem, soc = find_mem_society(society)
 
     if request.method == "POST":
-        j = jobs.ResetSocietyMailingListPassword.new(member=mem, society=soc, listname=listname)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
+        return create_job_maybe_email_and_redirect(
+            jobs.ResetSocietyMailingListPassword,
+            member=mem, society=soc, listname=listname
+        )
     else:
         return render_template("society/reset_mailing_list_password.html", member=mem, society=soc, listname=listname)
 
@@ -133,11 +131,9 @@ def reset_database_password(society, type):
     mem, soc = find_mem_society(society)
 
     if request.method == "POST":
-        j = {"mysql": jobs.ResetMySQLSocietyPassword,
-             "postgres": jobs.ResetPostgresSocietyPassword}[type].new(society=soc, member=mem)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
+        cls = {"mysql": jobs.ResetMySQLSocietyPassword,
+               "postgres": jobs.ResetPostgresSocietyPassword}[type]
+        return create_job_maybe_email_and_redirect(cls, society=soc, member=mem)
     else:
         formatted_name = {"mysql": "MySQL",
                           "postgres": "PostgreSQL"}[type]
@@ -151,9 +147,6 @@ def reset_database_password(society, type):
 def create_database(society, type):
     mem, soc = find_mem_society(society)
 
-    j = {"mysql": jobs.CreateMySQLSocietyDatabase,
-         "postgres": jobs.CreatePostgresSocietyDatabase}[type].new(member=mem, society=soc)
-
-    sess.add(j.row)
-    sess.commit()
-    return redirect(url_for('jobs.status', id=j.job_id))
+    cls = {"mysql": jobs.CreateMySQLSocietyDatabase,
+         "postgres": jobs.CreatePostgresSocietyDatabase}[type]
+    return create_job_maybe_email_and_redirect(cls, member=mem, society=soc)

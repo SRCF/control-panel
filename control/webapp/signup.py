@@ -7,6 +7,8 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from srcf.database import Member, Society
 
 from .utils import srcf_db_sess as sess
+from .utils import create_job_maybe_email_and_redirect
+
 from . import utils
 from .. import jobs
 
@@ -61,10 +63,8 @@ def signup():
             return render_template("signup/signup.html", crsid=crsid, errors=errors, **values)
         else:
             del values["dpa"], values["tos"]
-            j = jobs.Signup.new(crsid=crsid, **values)
-            sess.add(j.row)
-            sess.commit()
-            return redirect(url_for('jobs.status', id=j.job_id))
+            return create_job_maybe_email_and_redirect(
+                        jobs.Signup, crsid=crsid, **values)
 
     else:
         try:
@@ -144,10 +144,8 @@ def newsoc():
         if any_error:
             return render_template("signup/newsoc.html", errors=errors, **values)
         else:
-            j = jobs.CreateSociety.new(member=mem, **values)
-            sess.add(j.row)
-            sess.commit()
-            return redirect(url_for('jobs.status', id=j.row.job_id))
+            return create_job_maybe_email_and_redirect(
+                        jobs.CreateSociety, member=mem, **values)
 
     else:
         # defaults

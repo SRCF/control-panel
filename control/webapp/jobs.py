@@ -16,7 +16,7 @@ per_page = 25
 @bp.route('/jobs')
 def home():
     page = int(request.args["page"]) if "page" in request.args else 1
-    jobs = Job.of_user(sess, utils.raven.principal)
+    jobs = Job.find_by_user(sess, utils.raven.principal)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs: job.resolve_references(sess)

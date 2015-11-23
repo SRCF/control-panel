@@ -8,6 +8,7 @@ import raven.demoserver as raven_demoserver
 
 import srcf.database
 import srcf.database.queries
+import srcf.mail
 
 from ..utils import *
 
@@ -72,3 +73,17 @@ def setup_app(app):
     app.jinja_env.globals["sif"] = sif
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
+
+
+def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
+    j = cls.new(*args, **kwargs)
+    srcf_db_sess.add(j.row)
+    srcf_db_sess.flush() # so that job_id is filled out
+
+    if j.state == "unapproved":
+        body = "You can approve or reject the job here: {0}" \
+                .format(url_for("admin.view_jobs", state="unapproved", _external=True))
+        subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
+        srcf.mail.mail_sysadmins(subject, body)
+
+    return flask.redirect(url_for('jobs.status', id=j.job_id))

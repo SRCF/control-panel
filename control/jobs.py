@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from srcf import database, pwgen
 from srcf.database import queries, Job as db_Job
 from srcf.database.schema import Member
-from srcf.mail import mail_sysadmins, send_mail
+from srcf.mail import send_mail
 import os
 import pwd, grp
 import MySQLdb
@@ -63,7 +63,7 @@ class Job(object):
         return all_jobs[row.type](row)
 
     @classmethod
-    def of_user(cls, sess, crsid):
+    def find_by_user(cls, sess, crsid):
         job_row = db_Job
         jobs = sess.query(job_row) \
                     .filter(job_row.owner_crsid == crsid) \
@@ -95,24 +95,13 @@ class Job(object):
         pass
 
     @classmethod
-    def store(cls, owner, args, require_approval=False):
-        job = cls(database.Job(
+    def new(cls, owner, args, require_approval):
+        return cls(database.Job(
             type=cls.JOB_TYPE,
             owner=owner,
             state="unapproved" if require_approval else "queued",
             args=args
         ))
-
-        if require_approval:
-            old_LOGNAME = os.environ.get("LOGNAME")
-            os.environ["LOGNAME"] = "sysadmins" # TODO: this works for the wrong reasons
-            job.mail_current_state_to_sysadmins()
-            if old_LOGNAME:
-                os.environ["LOGNAME"] = old_LOGNAME
-            else:
-                del os.environ["LOGNAME"]
-
-        return job
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""
@@ -132,18 +121,6 @@ class Job(object):
     def set_state(self, state, message=None):
         self.state = state
         self.state_message = message
-
-    def mail_current_state_to_sysadmins(self):
-        if self.state == "unapproved":
-            body = "You can approve or reject the job here: {0}" \
-                    .format(url_for("admin.view_jobs", state="unapproved", _external=True))
-        elif self.state_message is not None:
-            body = self.state_message
-        else:
-            body = "This space is intentionally left blank."
-
-        subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(self)
-        mail_sysadmins(subject, body)
 
 
 @add_job
@@ -168,7 +145,7 @@ class Signup(Job):
             require_approval = True
         else:
             require_approval = False
-        return cls.store(None, args, require_approval)
+        return cls.new(None, args, require_approval)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])
@@ -218,7 +195,7 @@ class ResetUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.store(member, {}, require_approval)
+        return cls.new(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -248,7 +225,7 @@ class UpdateEmailAddress(Job):
     def new(cls, member, email):
         args = {"email": email}
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     email = property(lambda s: s.row.args["email"])
 
@@ -271,7 +248,7 @@ class CreateUserMailingList(Job):
     def new(cls, member, listname):
         args = {"listname": listname}
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     listname = property(lambda s: s.row.args["listname"])
 
@@ -313,7 +290,7 @@ class ResetUserMailingListPassword(Job):
     def new(cls, member, listname):
         args = {"listname": listname}
         require_approval = member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     listname = property(lambda s: s.row.args["listname"])
 
@@ -351,7 +328,7 @@ class CreateSociety(Job):
             "description": description,
             "admins": ",".join(a for a in admins),
         }
-        return cls.store(member, args)
+        return cls.new(member, args)
 
     society      = property(lambda s: s.row.args["society"])
     description  = property(lambda s: s.row.args["description"])
@@ -429,7 +406,7 @@ class ChangeSocietyAdmin(Job):
              or target_member.danger \
              or requesting_member.danger \
              or requesting_member == target_member
-        return cls.store(requesting_member, args, require_approval)
+        return cls.new(requesting_member, args, require_approval)
 
     society_society     = property(lambda s: s.row.args["society"])
     target_member_crsid = property(lambda s: s.row.args["target_member"])
@@ -515,7 +492,7 @@ class CreateSocietyMailingList(Job):
             "listname": listname
         }
         require_approval = member.danger or society.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
@@ -568,7 +545,7 @@ class ResetSocietyMailingListPassword(Job):
             "listname": listname,
         }
         require_approval = member.danger or society.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
@@ -598,7 +575,7 @@ class CreateMySQLUserDatabase(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.store(member, {}, require_approval)
+        return cls.new(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -641,7 +618,7 @@ class ResetMySQLUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.store(member, {}, require_approval)
+        return cls.new(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -678,7 +655,7 @@ class CreateMySQLSocietyDatabase(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
@@ -740,7 +717,7 @@ class ResetMySQLSocietyPassword(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
@@ -777,7 +754,7 @@ class CreatePostgresUserDatabase(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.store(member, {}, require_approval)
+        return cls.new(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -833,7 +810,7 @@ class ResetPostgresUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.store(member, {}, require_approval)
+        return cls.new(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -877,7 +854,7 @@ class CreatePostgresSocietyDatabase(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
@@ -960,7 +937,7 @@ class ResetPostgresSocietyPassword(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.store(member, args, require_approval)
+        return cls.new(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 

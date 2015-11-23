@@ -2,6 +2,7 @@ from werkzeug.exceptions import NotFound
 from flask import Blueprint, render_template, request, redirect, url_for
 
 from .utils import srcf_db_sess as sess
+from .utils import create_job_maybe_email_and_redirect
 from . import utils, inspect_services
 from .. import jobs
 
@@ -44,10 +45,8 @@ def update_email_address():
             error = "That address doesn't look valid."
 
     if request.method == "POST" and not error:
-        j = jobs.UpdateEmailAddress.new(member=mem, email=email)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for("jobs.status", id=j.job_id))
+        return create_job_maybe_email_and_redirect(
+                    jobs.UpdateEmailAddress, member=mem, email=email)
     else:
         return render_template("member/update_email_address.html", member=mem, email=email, error=error)
 
@@ -65,10 +64,9 @@ def create_mailing_list():
             error = "List names can only contain letters, numbers, hyphens and underscores."
 
     if request.method == "POST" and not error:
-        j = jobs.CreateUserMailingList.new(member=mem, listname=request.form["listname"])
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
+        return create_job_maybe_email_and_redirect(
+                    jobs.CreateUserMailingList, member=mem, 
+                    listname=request.form["listname"])
     else:
         return render_template("member/create_mailing_list.html", member=mem, listname=listname, error=error)
 
@@ -77,10 +75,8 @@ def reset_mailing_list_password(listname):
     crsid, mem = find_member()
 
     if request.method == "POST":
-        j = jobs.ResetUserMailingListPassword.new(member=mem, listname=listname)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
+        return create_job_maybe_email_and_redirect(
+                    jobs.ResetUserMailingListPassword, member=mem, listname=listname)
     else:
         return render_template("member/reset_mailing_list_password.html", member=mem, listname=listname)
 
@@ -91,12 +87,10 @@ def reset_password(type):
     crsid, mem = find_member()
 
     if request.method == "POST":
-        j = {"mysql": jobs.ResetMySQLUserPassword,
-             "postgres": jobs.ResetPostgresUserPassword,
-             "srcf": jobs.ResetUserPassword}[type].new(member=mem)
-        sess.add(j.row)
-        sess.commit()
-        return redirect(url_for('jobs.status', id=j.job_id))
+        cls = {"mysql": jobs.ResetMySQLUserPassword,
+               "postgres": jobs.ResetPostgresUserPassword,
+               "srcf": jobs.ResetUserPassword}[type]
+        return create_job_maybe_email_and_redirect(cls, member=mem_
     else:
         formatted_name = {"mysql": "MySQL",
                           "postgres": "PostgreSQL",
@@ -117,8 +111,6 @@ def reset_password(type):
 def create_database(type):
     crsid, mem = find_member()
 
-    j = {"mysql": jobs.CreateMySQLUserDatabase,
-         "postgres": jobs.CreatePostgresUserDatabase}[type].new(member=mem)
-    sess.add(j.row)
-    sess.commit()
-    return redirect(url_for('jobs.status', id=j.job_id))
+    cls = {"mysql": jobs.CreateMySQLUserDatabase,
+           "postgres": jobs.CreatePostgresUserDatabase}[type]
+    return create_job_maybe_email_and_redirect(cls, member=mem)
