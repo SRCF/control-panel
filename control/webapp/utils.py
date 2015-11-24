@@ -78,7 +78,7 @@ def setup_app(app):
 def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     j = cls.new(*args, **kwargs)
     srcf_db_sess.add(j.row)
-    srcf_db_sess.flush() # so that job_id is filled out
+    srcf_db_sess.commit() # so that job_id is filled out
 
     if j.state == "unapproved":
         body = "You can approve or reject the job here: {0}" \
@@ -86,4 +86,4 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
         srcf.mail.mail_sysadmins(subject, body)
 
-    return flask.redirect(url_for('jobs.status', id=j.job_id))
+    return flask.redirect(flask.url_for('jobs.status', id=j.job_id))

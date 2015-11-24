@@ -65,7 +65,7 @@ def create_mailing_list():
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
-                    jobs.CreateUserMailingList, member=mem, 
+                    jobs.CreateUserMailingList, member=mem,
                     listname=request.form["listname"])
     else:
         return render_template("member/create_mailing_list.html", member=mem, listname=listname, error=error)
@@ -90,14 +90,14 @@ def reset_password(type):
         cls = {"mysql": jobs.ResetMySQLUserPassword,
                "postgres": jobs.ResetPostgresUserPassword,
                "srcf": jobs.ResetUserPassword}[type]
-        return create_job_maybe_email_and_redirect(cls, member=mem_
+        return create_job_maybe_email_and_redirect(cls, member=mem)
     else:
         formatted_name = {"mysql": "MySQL",
                           "postgres": "PostgreSQL",
                           "srcf": "SRCF"}[type]
         web_interface = {"mysql": "phpMyAdmin",
                          "postgres": "phpPgAdmin",
-                         "srcf": ""}[type]
+                         "srcf": None}[type]
 
         if type == "srcf":
             affects = "password-based access to the shell service, graphical desktop and SFTP"

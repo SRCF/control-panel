@@ -95,7 +95,7 @@ class Job(object):
         pass
 
     @classmethod
-    def new(cls, owner, args, require_approval):
+    def create(cls, owner, args, require_approval):
         return cls(database.Job(
             type=cls.JOB_TYPE,
             owner=owner,
@@ -145,7 +145,7 @@ class Signup(Job):
             require_approval = True
         else:
             require_approval = False
-        return cls.new(None, args, require_approval)
+        return cls.create(None, args, require_approval)
 
     crsid          = property(lambda s: s.row.args["crsid"])
     preferred_name = property(lambda s: s.row.args["preferred_name"])
@@ -195,7 +195,7 @@ class ResetUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.new(member, {}, require_approval)
+        return cls.create(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -225,7 +225,7 @@ class UpdateEmailAddress(Job):
     def new(cls, member, email):
         args = {"email": email}
         require_approval = member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     email = property(lambda s: s.row.args["email"])
 
@@ -248,7 +248,7 @@ class CreateUserMailingList(Job):
     def new(cls, member, listname):
         args = {"listname": listname}
         require_approval = member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     listname = property(lambda s: s.row.args["listname"])
 
@@ -290,7 +290,7 @@ class ResetUserMailingListPassword(Job):
     def new(cls, member, listname):
         args = {"listname": listname}
         require_approval = member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     listname = property(lambda s: s.row.args["listname"])
 
@@ -328,7 +328,7 @@ class CreateSociety(Job):
             "description": description,
             "admins": ",".join(a for a in admins),
         }
-        return cls.new(member, args)
+        return cls.create(member, args)
 
     society      = property(lambda s: s.row.args["society"])
     description  = property(lambda s: s.row.args["description"])
@@ -406,7 +406,7 @@ class ChangeSocietyAdmin(Job):
              or target_member.danger \
              or requesting_member.danger \
              or requesting_member == target_member
-        return cls.new(requesting_member, args, require_approval)
+        return cls.create(requesting_member, args, require_approval)
 
     society_society     = property(lambda s: s.row.args["society"])
     target_member_crsid = property(lambda s: s.row.args["target_member"])
@@ -492,7 +492,7 @@ class CreateSocietyMailingList(Job):
             "listname": listname
         }
         require_approval = member.danger or society.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
@@ -545,7 +545,7 @@ class ResetSocietyMailingListPassword(Job):
             "listname": listname,
         }
         require_approval = member.danger or society.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
@@ -575,7 +575,7 @@ class CreateMySQLUserDatabase(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.new(member, {}, require_approval)
+        return cls.create(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -618,7 +618,7 @@ class ResetMySQLUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.new(member, {}, require_approval)
+        return cls.create(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -655,7 +655,7 @@ class CreateMySQLSocietyDatabase(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
@@ -717,7 +717,7 @@ class ResetMySQLSocietyPassword(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
@@ -754,7 +754,7 @@ class CreatePostgresUserDatabase(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.new(member, {}, require_approval)
+        return cls.create(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -810,7 +810,7 @@ class ResetPostgresUserPassword(Job):
     @classmethod
     def new(cls, member):
         require_approval = member.danger
-        return cls.new(member, {}, require_approval)
+        return cls.create(member, {}, require_approval)
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -854,7 +854,7 @@ class CreatePostgresSocietyDatabase(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
@@ -937,7 +937,7 @@ class ResetPostgresSocietyPassword(Job):
     def new(cls, member, society):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
-        return cls.new(member, args, require_approval)
+        return cls.create(member, args, require_approval)
 
     society_society = property(lambda s: s.row.args["society"])
 
