@@ -83,6 +83,5 @@ def approve(id, approved):
         job.set_state("failed", "Job rejected by sysadmin")
 
     sess.add(job.row)
-    sess.commit()
 
     return redirect(url_for("admin.view_jobs", state="unapproved"))

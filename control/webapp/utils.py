@@ -54,11 +54,16 @@ def sif(variable, val):
 def setup_app(app):
     @app.before_request
     def before_request():
-        if hasattr(app, "deploy_config") and "test_raven" in app.deploy_config and app.deploy_config["test_raven"]:
+        if getattr(app, "deploy_config", {}).get("test_raven", False):
             raven.request_class = raven_demoserver.Request
             raven.response_class = raven_demoserver.Response
 
     app.before_request(raven.before_request)
+
+    @app.after_request
+    def after_request(res):
+        srcf_db_sess.commit()
+        return res
 
     @app.teardown_request
     def teardown_request(res):
@@ -78,7 +83,7 @@ def setup_app(app):
 def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     j = cls.new(*args, **kwargs)
     srcf_db_sess.add(j.row)
-    srcf_db_sess.commit() # so that job_id is filled out
+    srcf_db_sess.flush() # so that job_id is filled out
 
     if j.state == "unapproved":
         body = "You can approve or reject the job here: {0}" \
