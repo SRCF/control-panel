@@ -439,9 +439,10 @@ class ChangeSocietyAdmin(Job):
         if not os.path.exists(target_ln):
             os.symlink(source_ln, target_ln)
 
+        adminNames = sorted("{0.name} ({0.crsid})".format(m) for m in self.society.admins)
         mail_users(self.target_member, "Access granted to " + self.society_society, "add-admin", society=self.society)
         mail_users(self.society, "Access granted for " + self.target_member.crsid, "add-admin",
-                added=self.target_member, requester=self.requesting_member)
+                added=self.target_member, requester=self.requesting_member, admins="\n".join(adminNames))
 
 
     def rm_admin(self, sess):
@@ -462,8 +463,9 @@ class ChangeSocietyAdmin(Job):
         if os.path.islink(target_ln) and os.path.samefile(target_ln, source_ln):
             os.remove(target_ln)
 
+        adminNames = sorted("{0.name} ({0.crsid})".format(m) for m in self.society.admins)
         mail_users(self.society, "Access removed for " + self.target_member.crsid, "remove-admin",
-                removed=self.target_member, requester=self.requesting_member)
+                removed=self.target_member, requester=self.requesting_member, admins="\n".join(adminNames))
 
     def run(self, sess):
         if self.owner not in self.society.admins:
