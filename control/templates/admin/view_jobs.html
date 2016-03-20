@@ -14,8 +14,8 @@
                 <th>Owner</th>
                 <th>Type</th>
                 <th>Message</th>
-                {%- if state == "unapproved" %}
-                <th>Approve</th>
+                {%- if state in ["unapproved", "queued", "running"] %}
+                <th>Actions</th>
                 {%- endif %}
             </tr>
         </thead>
@@ -27,7 +27,11 @@
                 <td>{{ job }}</td>
                 <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
                 {%- if state == "unapproved" %}
-                <td><a href="{{ url_for('admin.approve', id=job.job_id, approved=True) }}">Yes</a> &bullet; <a href="{{ url_for('admin.approve', id=job.job_id, approved=False) }}">No</a></td>
+                <td><a href="{{ url_for('admin.set_state', id=job.job_id, state=state, approved=True) }}">Approve</a> &bullet; <a href="{{ url_for('admin.set_state', id=job.job_id, state=state, approved=False) }}">Reject</a></td>
+                {%- elif state == "queued" %}
+                <td><a href="{{ url_for('admin.set_state', id=job.job_id, state=state) }}">Cancel</a></td>
+                {%- elif state == "running" %}
+                <td><a href="{{ url_for('admin.set_state', id=job.job_id, state=state) }}" onclick="return confirm('Warning: this won\'t stop a running job, only set its status to failed!');">Move to failed</a></td>
                 {%- endif %}
             </tr>
             {%- endfor %}

@@ -68,20 +68,25 @@ def status(id):
 
     return render_template("jobs/status.html", job=job)
 
-@bp.route('/admin/jobs/<int:id>/approve', defaults={"approved": True})
-@bp.route('/admin/jobs/<int:id>/reject',  defaults={"approved": False})
-def approve(id, approved):
+@bp.route('/admin/jobs/<int:id>/approve', defaults={"state": "unapproved", "approved": True})
+@bp.route('/admin/jobs/<int:id>/reject',  defaults={"state": "unapproved", "approved": False})
+@bp.route('/admin/jobs/<int:id>/cancel',  defaults={"state": "queued"})
+@bp.route('/admin/jobs/<int:id>/abort',   defaults={"state": "running"})
+def set_state(id, state, approved=False):
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
-    if not job.state == "unapproved":
+    if not job.state == state:
         raise Forbidden(id)
 
     if approved:
         job.set_state("queued")
     else:
-        job.set_state("failed", "Job rejected by sysadmin")
+        msg = job.state_message or "Job {0} by sysadmin".format({"unapproved": "rejected",
+                                                                 "queued": "cancelled",
+                                                                 "running": "aborted"}[state])
+        job.set_state("failed", msg)
 
     sess.add(job.row)
 
-    return redirect(url_for("admin.view_jobs", state="unapproved"))
+    return redirect(url_for("admin.view_jobs", state=state))
