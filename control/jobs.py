@@ -67,7 +67,7 @@ class Job(object):
         job_row = db_Job
         jobs = sess.query(job_row) \
                     .filter(job_row.owner_crsid == crsid) \
-                    .order_by(job_row.job_id)
+                    .order_by(job_row.job_id.desc())
         return [Job.of_row(r) for r in jobs]
 
     @classmethod
