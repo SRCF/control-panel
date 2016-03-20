@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from srcf import database, pwgen
 from srcf.database import queries, Job as db_Job
-from srcf.database.schema import Member
+from srcf.database.schema import Member, Society
 from srcf.mail import send_mail
 import os
 import pwd, grp
@@ -28,6 +28,17 @@ def mysql_conn():
 def postgres_conn():
     # Warning: don't connect to sysadmins database this way -- it can deadlock with SQLAlchemy.
     return pgdb.connect(database="template1")
+
+# Borrowed from srcf-memberdb-cli
+def find_admins(admin_crsids, sess):
+    admins = sess.query(Member)\
+            .filter(Member.crsid.in_(admin_crsids))\
+            .all()
+    found = {x.crsid for x in admins}
+    missing = set(admin_crsids) - found
+    if missing:
+        raise KeyError(list(missing)[0])
+    return set(admins)
 
 def subproc_check_multi(*tasks):
     for desc, task in tasks:
@@ -161,9 +172,14 @@ class Signup(Job):
 
         name = (self.preferred_name + " " + self.surname).strip()
 
-        # TODO: don't shell out to srcf-memberdb-cli!
+        sess.add(Member(crsid=self.crsid,
+                        preferred_name=self.preferred_name,
+                        surname=self.surname,
+                        email=self.email,
+                        member=True,
+                        user=True))
+
         subproc_check_multi(
-            ("add to memberdb", ["/usr/local/sbin/srcf-memberdb-cli", "member", crsid, "--member", "--user", preferred_name, surname, email]),
             ("add user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
             ("set quota", ["set_quota", crsid]))
 
@@ -335,47 +351,46 @@ class CreateSociety(Job):
     admin_crsids = property(lambda s: s.row.args["admins"].split(","))
 
     def run(self, sess):
-        society = self.society
-        description = self.description
-        admin_crsids = self.admin_crsids
+        sess.add(Society(society=self.society,
+                         description=self.description,
+                         admins=find_admins(self.admin_crsids, sess)))
 
-        # TODO: don't shell out to srcf-memberdb-cli!
-        subproc_check_multi(
-            ("add to memberdb", ["/usr/local/sbin/srcf-memberdb-cli", "society", society, "insert", description] + admin_crsids),
-            ("add group", ["/usr/sbin/addgroup", "--force-badname", society]))
+        subproc_check_multi(("add group", ["/usr/sbin/addgroup", "--force-badname", self.society]))
 
-        for admin in admin_crsids:
-            subproc_check_multi(("add user " + admin, ["/usr/sbin/adduser", admin, society]))
+        for admin in self.admin_crsids:
+            subproc_check_multi(("add user " + admin, ["/usr/sbin/adduser", admin, self.society]))
 
             try:
-                os.symlink("/societies/" + society, "/home/" + admin + "/" + society)
+                os.symlink("/societies/" + self.society, "/home/" + admin + "/" + self.society)
             except:
                 pass
 
-        gid = grp.getgrnam(society).gr_gid
+        gid = grp.getgrnam(self.society).gr_gid
         uid = gid + 50000
 
         subproc_check_multi(
-            ("add user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home", "--uid", str(uid), "--gid", str(gid), "--gecos", description, "--disabled-password", "--system", society]),
-            ("set home", ["/usr/sbin/usermod", "-d", "/societies/" + society, society]))
+            ("add user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home",
+                          "--uid", str(uid), "--gid", str(gid), "--gecos", self.description,
+                          "--disabled-password", "--system", self.society]),
+            ("set home", ["/usr/sbin/usermod", "-d", "/societies/" + self.society, self.society]))
 
-        os.makedirs("/societies/" + society + "/public_html", 0775)
-        os.makedirs("/societies/" + society + "/cgi-bin", 0775)
+        os.makedirs("/societies/" + self.society + "/public_html", 0775)
+        os.makedirs("/societies/" + self.society + "/cgi-bin", 0775)
 
-        os.chown("/societies/" + society + "/public_html", -1, gid)
-        os.chown("/societies/" + society + "/cgi-bin", -1, gid)
+        os.chown("/societies/" + self.society + "/public_html", -1, gid)
+        os.chown("/societies/" + self.society + "/cgi-bin", -1, gid)
 
-        subproc_check_multi(("chmod home", ["chmod", "-R", "2775", "/societies/" + society]))
+        subproc_check_multi(("chmod home", ["chmod", "-R", "2775", "/societies/" + self.society]))
 
         with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
-            myfile.write(society + ":subdomain\n")
+            myfile.write(self.society + ":subdomain\n")
 
         subproc_check_multi(
-            ("set quota", ["/usr/local/sbin/set_quota", society]),
+            ("set quota", ["/usr/local/sbin/set_quota", self.society]),
             ("generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"]),
             ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
 
-        newsoc = queries.get_society(society)
+        newsoc = queries.get_society(self.society)
         mail_users(newsoc, "New shared account created", "signup")
 
     def __repr__(self): return "<CreateSociety {0.society}>".format(self)
