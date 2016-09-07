@@ -142,11 +142,20 @@ def reset_database_password(society, type):
 
         return render_template("society/reset_database_password.html", society=soc, member=mem, type=type, name=formatted_name, web_interface=web_interface)
 
-@bp.route("/societies/<society>/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
-@bp.route("/societies/<society>/postgres/create", methods=["POST"], defaults={"type": "postgres"})
+@bp.route("/societies/<society>/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/societies/<society>/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(society, type):
     mem, soc = find_mem_society(society)
 
-    cls = {"mysql": jobs.CreateMySQLSocietyDatabase,
-         "postgres": jobs.CreatePostgresSocietyDatabase}[type]
-    return create_job_maybe_email_and_redirect(cls, member=mem, society=soc)
+    if request.method == "POST":
+        cls = {"mysql": jobs.CreateMySQLSocietyDatabase,
+               "postgres": jobs.CreatePostgresSocietyDatabase}[type]
+        return create_job_maybe_email_and_redirect(cls, member=mem, society=soc)
+    else:
+        formatted_name = {"mysql": "MySQL",
+                          "postgres": "PostgreSQL"}[type]
+        inspect = {"mysql": inspect_services.lookup_mysqluser,
+                   "postgres": inspect_services.lookup_pguser}[type]
+        has_mem_user = inspect(mem.crsid)
+        has_soc_user = inspect(soc.society)
+        return render_template("society/create_database.html", society=soc, member=mem, type=type, name=formatted_name, mem_user=has_mem_user, soc_user=has_soc_user)

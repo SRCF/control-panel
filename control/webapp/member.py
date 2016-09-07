@@ -106,11 +106,19 @@ def reset_password(type):
 
         return render_template("member/reset_password.html", member=mem, type=type, name=formatted_name, affects=affects)
 
-@bp.route("/member/mysql/create",    methods=["POST"], defaults={"type": "mysql"})
-@bp.route("/member/postgres/create", methods=["POST"], defaults={"type": "postgres"})
+@bp.route("/member/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/member/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(type):
     crsid, mem = find_member()
 
-    cls = {"mysql": jobs.CreateMySQLUserDatabase,
-           "postgres": jobs.CreatePostgresUserDatabase}[type]
-    return create_job_maybe_email_and_redirect(cls, member=mem)
+    if request.method == "POST":
+        cls = {"mysql": jobs.CreateMySQLUserDatabase,
+               "postgres": jobs.CreatePostgresUserDatabase}[type]
+        return create_job_maybe_email_and_redirect(cls, member=mem)
+    else:
+        formatted_name = {"mysql": "MySQL",
+                          "postgres": "PostgreSQL"}[type]
+        inspect = {"mysql": inspect_services.lookup_mysqluser,
+                   "postgres": inspect_services.lookup_pguser}[type]
+        has_user = inspect(mem.crsid)
+        return render_template("member/create_database.html", member=mem, type=type, name=formatted_name, user=has_user)

@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="/_srcf/style.css">
         <link rel="stylesheet" href="{{ url_for('static', filename='jquery.modal.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        {%- filter indent(8) %}{% block head %}{% endblock %}{% endfilter %}
+        {% block head %}{% endblock %}
     </head>
     <body>
         <div class="topbox" style="overflow: auto;">
@@ -38,7 +38,7 @@
                 </p>
             </div>
         </div>
-        {%- filter indent(8) %}{% block body %}{% endblock %}{% endfilter %}
+        {% block body %}{% endblock %}
         <div class="modal-spinner"></div>
         <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.3.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='jquery.modal.min.js') }}"></script>

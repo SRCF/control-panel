@@ -13,6 +13,9 @@ ul.acctlist div {
 ul.acctlist .head {
 	background: #cef;
 }
+ul.acctlist li {
+    padding-bottom: 0;
+}
 ul.acctlist li.acct {
 	margin-bottom: 1.5em;
 }
@@ -28,8 +31,65 @@ ul.acctlist li.acct ul.acctattribs li {
 .data {
 	font-weight: bold;
 }
-h1 a.action {
+.info {
+    border: 1px solid #999;
+    padding: 0 15px;
+}
+.info h4 {
+    margin: 1em 0;
+}
+pre.shell {
+    background-color: #444;
+    color: white;
+    padding: 10px;
+}
+.modal a {
+    color: #747474;
+}
+.main h1 a {
     color: #09f;
+}
+input[type="submit"] {
+    background-color: #09f;
+    border: 1px solid #09f;
+    color: #fff;
+    padding: 2px 4px;
+    font: inherit;
+    cursor: pointer;
+}
+input[type="submit"]:hover {
+    background-color: #1af;
+}
+a[rel="modal"] {
+    background-color: #fff;
+    border: 1px solid #09f;
+    color: #09f;
+    text-decoration: none;
+    margin-left: 2px;
+    padding: 2px 4px;
+}
+a[rel="modal"]:first-child, input[type="submit"]:first-child {
+    margin-left: 0;
+}
+a[rel="modal"]:hover {
+    background-color: #e8f0ff;
+}
+/* a[rel="modal"]:after {
+    content: "\2197";
+    display: inline-block;
+    margin-left: 5px;
+} */
+ul {
+    padding-left: 20px;
+}
+li p {
+    margin: 0.6em 0;
+}
+li p:not(:first-child) {
+    margin-top: 0.4em;
+}
+li p:not(:last-child) {
+    margin-bottom: 0.4em;
 }
 abbr {
     cursor: help;
@@ -63,21 +123,6 @@ p.help-block {
 .form-group.error span.no-error, .form-group.error p.help-block {
     color: #404040;
 }
-input[type="submit"].action {
-    background: none;
-    border: none;
-    padding: 0;
-    font: inherit;
-    color: #747474;
-    text-decoration: underline;
-    cursor: pointer;
-}
 .modal {
     width: 700px;
-}
-th {
-    text-align: left
-}
-th, td {
-    padding-right: 1em;
 }
