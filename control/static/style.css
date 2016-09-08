@@ -1,3 +1,15 @@
+@media (min-width: 1000px) {
+    .col {
+        width: 48%;
+        margin-bottom: 20px;
+    }
+    .col.left {
+        float: left;
+    }
+    .col.right {
+        float: right;
+    }
+}
 p.done {
 	background: #dfd;
 	font-weight: bold;
@@ -42,6 +54,7 @@ pre.shell {
     background-color: #444;
     color: white;
     padding: 10px;
+    white-space: pre-wrap;
 }
 .modal a {
     color: #747474;
