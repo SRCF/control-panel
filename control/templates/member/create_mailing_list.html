@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="main">
-    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('member.home') }}" class="action">{{ member.crsid }}</a> &rarr; Create Mailing List</h1>
+    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ url_for('member.home') }}">{{ member.crsid }}</a> &rarr; Create Mailing List</h1>
     <p>If you want to create a new mailing list, enter the list name below.  Personal list addresses are of the form <span class="data">{{ member.crsid }}-<em>name</em></span>@srcf.net.</p>
     <form action="{{ url_for('member.create_mailing_list') }}" method="post">
         <div class="form-group{{ sif(error, ' error') }}">

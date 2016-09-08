@@ -3,7 +3,7 @@
 
 {% block body %}
 <div class="main">
-    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('society.home', society=society.society) }}" class="action">{{ society.society }}</a> &rarr; Add Admin</h1>
+    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ url_for('society.home', society=society.society) }}">{{ society.society }}</a> &rarr; Add Admin</h1>
     <p>Society accounts are managed by users with personal SRCF accounts.  You can elect an additional administrator, who will be given shared access to the {{ soc_desc_soc(society) }} account.</p>
     <ul>
         <li>They will be able to edit the files of the society website.</li>

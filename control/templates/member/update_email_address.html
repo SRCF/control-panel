@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="main">
-    <h1><a href="{{ url_for('home.home') }}" class="action">Control Panel</a> &rarr; <a href="{{ url_for('member.home') }}" class="action">{{ member.crsid }}</a> &rarr; Update Email Address</h1>
+    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ url_for('member.home') }}">{{ member.crsid }}</a> &rarr; Update Email Address</h1>
     <p>This will update the email address we have on record for you, and changes the address subscribed to <code>soc-srcf</code> mailing lists.</p>
     <p>This does <strong>not</strong> affect the delivery of emails sent to {{ member.crsid }}@srcf.net &ndash; you will need to edit your <code>.forward</code> file for this.</p>
     <form action="{{ url_for('member.update_email_address') }}" method="post">
