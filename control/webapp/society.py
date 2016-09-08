@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for
 from .utils import srcf_db_sess as sess
 from .utils import create_job_maybe_email_and_redirect
 
-from . import utils, inspect_services
+from . import utils, inspect_services, admin
 from .. import jobs
 
 import re
@@ -22,7 +22,7 @@ def find_mem_society(society):
         raise NotFound
 
     if mem not in soc.admins:
-        raise Forbidden
+        admin.auth()
 
     return mem, soc
 
