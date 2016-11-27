@@ -45,9 +45,12 @@ def subproc_check_multi(job, *tasks):
     for desc, task in tasks:
         job.log(desc)
         try:
-            subprocess.check_call(task)
+            out = subprocess.check_output(task)
         except subprocess.CalledProcessError:
             raise JobFailed("Failed at " + desc)
+        else:
+            if out:
+                job.log(desc, "output", raw=out)
 
 def mail_users(target, subject, template, **kwargs):
     target_type = "member" if isinstance(target, Member) else "society"
@@ -116,8 +119,8 @@ class Job(object):
             args=args
         ))
 
-    def log(self, msg="", type="progress", level=logging.DEBUG):
-        self.logger.log(level, msg, extra={"job_id": self.job_id, "type": type})
+    def log(self, msg="", type="progress", level=logging.DEBUG, raw=None, **kwargs):
+        self.logger.log(level, msg, extra={"job_id": self.job_id, "type": type, "raw": raw}, **kwargs)
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""

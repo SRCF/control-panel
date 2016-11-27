@@ -25,9 +25,9 @@ class PostgreSQLHandler(logging.Handler):
     """
 
     _query = "INSERT INTO job_log " \
-                "(job_id, type, level, message) " \
+                "(job_id, type, level, message, raw) " \
              "VALUES " \
-                "(%(job_id)s, %(type)s, %(level)s, %(message)s)"
+                "(%(job_id)s, %(type)s, %(level)s, %(message)s, %(raw)s)"
 
     # see TYPE log_level
     _levels = ('debug', 'info', 'warning', 'error', 'critical')
@@ -46,15 +46,16 @@ class PostgreSQLHandler(logging.Handler):
 
             if record.exc_info:
                 lines = traceback.format_exception(*record.exc_info)
-                traceback_text = ''.join(lines)
+                raw = ''.join(lines)
             else:
-                traceback_text = None
+                raw = getattr(record, "raw", None)
 
             args = {
                 "job_id": getattr(record, "job_id", None),
                 "type": getattr(record, "type", None),
                 "level": level,
                 "message": record.getMessage(),
+                "raw": raw
             }
 
             try:

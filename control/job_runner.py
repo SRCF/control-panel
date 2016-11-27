@@ -147,8 +147,7 @@ def main():
                     "done", logging.WARNING)
 
         except Exception as e:
-            logger.exception("Unhandled exception")
-            job.log("Unhandled exception: {0}".format(e), "failed", logging.ERROR)
+            job.log("Unhandled exception", "failed", logging.ERROR, traceback.format_exc(), exc_info=1)
 
             # rollback
             sess.rollback()
