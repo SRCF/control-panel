@@ -12,6 +12,7 @@ from srcf.database.schema import Member, Society
 from srcf.mail import send_mail
 import os
 import pwd, grp
+import pgdb
 import MySQLdb
 
 from . import utils
@@ -26,9 +27,16 @@ def mysql_conn():
         rootpw = pwfh.readline().rstrip()
     return MySQLdb.connect(user="root", host="localhost", passwd=rootpw, db="mysql")
 
-def postgres_conn():
+def pgsql_conn():
     # Warning: don't connect to sysadmins database this way -- it can deadlock with SQLAlchemy.
     return pgdb.connect(database="template1")
+
+def pgsql_exec(job, cur, desc, sql, *vals):
+    job.log(desc)
+    try:
+        cur.execute(sql, vals)
+    except pgdb.DatabaseError as e:
+        raise JobFailed(desc, str(e))
 
 # Borrowed from srcf-memberdb-cli
 def find_admins(admin_crsids, sess):
@@ -797,33 +805,29 @@ class CreatePostgresUserDatabase(Job):
         password = pwgen(8)
 
         self.log("Connect to PostgreSQL db")
-        db = postgres_conn()
+        db = pgsql_conn()
         cursor = db.cursor()
 
         # Create user
         usercreated = False
 
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (crsid,))
+        pgsql_exec(self, cursor, "SELECT usename FROM pg_shadow WHERE usename = %s", crsid)
         results = cursor.fetchall()
 
         if len(results) == 0:
-            self.log("Create user")
-            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", (password,))
+            pgsql_exec(self, cursor, "Create user", "CREATE USER " + crsid + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", password)
             usercreated = True
         else:
-            self.log("(Re-)enable user logins")
-            cursor.execute("ALTER ROLE " + crsid + " LOGIN")
+            pgsql_exec(self, cursor, "(Re-)enable user logins", "ALTER ROLE " + crsid + " LOGIN")
 
         # Create database
         dbcreated = False
 
-        self.log("Check for existing database")
-        cursor.execute("SELECT datname FROM pg_database WHERE datname = %s", (crsid,))
+        pgsql_exec(self, cursor, "Check for existing database", "SELECT datname FROM pg_database WHERE datname = %s", crsid)
         results = cursor.fetchall()
 
         if len(results) == 0:
-            self.log("Create database")
-            cursor.execute("CREATE DATABASE " + crsid + " OWNER " + crsid)
+            pgsql_exec(self, cursor, "Create database", "CREATE DATABASE " + crsid + " OWNER " + crsid)
             dbcreated = True
 
         if not dbcreated and not usercreated:
@@ -858,17 +862,15 @@ class ResetPostgresUserPassword(Job):
         password = pwgen(8)
 
         self.log("Connect to PostgreSQL db")
-        db = postgres_conn()
+        db = pgsql_conn()
         cursor = db.cursor()
 
-        self.log("Check for existing owner user")
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (crsid,))
+        pgsql_exec(self, cursor, "Check for existing owner user", "SELECT usename FROM pg_shadow WHERE usename = %s", crsid)
         results = cursor.fetchall()
         if len(results) == 0:
             raise JobFailed(crsid + " does not have a Postgres user")
 
-        self.log("Reset password")
-        cursor.execute("ALTER USER " + crsid + " PASSWORD %s", (password,))
+        pgsql_exec(self, cursor, "Reset password", "ALTER USER " + crsid + " PASSWORD %s", password)
 
         self.log("Commit")
         db.commit()
@@ -909,53 +911,45 @@ class CreatePostgresSocietyDatabase(Job):
         socpassword = pwgen(8)
 
         self.log("Connect to PostgreSQL db")
-        db = postgres_conn()
+        db = pgsql_conn()
         cursor = db.cursor()
 
         # Create user
         usercreated = False
 
-        self.log("Check for existing owner user")
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (crsid,))
+        pgsql_exec(self, cursor, "Check for existing owner user", "SELECT usename FROM pg_shadow WHERE usename = %s", crsid)
         results = cursor.fetchall()
 
         if len(results) == 0:
-            self.log("Create owner user")
-            cursor.execute("CREATE USER " + crsid + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", (userpassword,))
+            pgsql_exec(self, cursor, "Create owner user", "CREATE USER " + crsid + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", userpassword)
             usercreated = True
         else:
-            self.log("(Re-)enable owner user logins")
-            cursor.execute("ALTER ROLE " + crsid + " LOGIN")
+            pgsql_exec(self, cursor, "(Re-)enable owner user logins", "ALTER ROLE " + crsid + " LOGIN")
 
         # Create society user
         socusercreated = False
 
-        self.log("Check for existing society user")
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = '" + socname + "'")
+        pgsql_exec(self, cursor, "Check for existing society user", "SELECT usename FROM pg_shadow WHERE usename = '" + socname + "'")
         results = cursor.fetchall()
 
         if len(results) == 0:
-            self.log("Create society user")
-            cursor.execute("CREATE USER " + socname + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", (socpassword,))
+            pgsql_exec(self, cursor, "Create society user", "CREATE USER " + socname + " ENCRYPTED PASSWORD %s NOCREATEDB NOCREATEUSER", socpassword)
             usercreated = True
         else:
-            self.log("(Re-)enable society user logins")
-            cursor.execute("ALTER ROLE " + socname + " LOGIN")
+            pgsql_exec(self, cursor, "(Re-)enable society user logins", "ALTER ROLE " + socname + " LOGIN")
 
         # Create database
         dbcreated = False
 
-        self.log("Check for existing society database")
-        cursor.execute("SELECT datname FROM pg_database WHERE datname = %s", (socname,))
+        pgsql_exec(self, cursor, "Check for existing society database", "SELECT datname FROM pg_database WHERE datname = %s", socname)
         results = cursor.fetchall()
 
         if len(results) == 0:
-            self.log("Create society database")
-            cursor.execute("CREATE DATABASE " + socname + " OWNER " + socname)
+            pgsql_exec(self, cursor, "Create society database", "CREATE DATABASE " + socname + " OWNER " + socname)
             dbcreated = True
 
         self.log("Grant owner access")
-        cursor.execute("GRANT " + socname + " TO " + crsid)
+        pgsql_exec(self, cursor, "Grant owner access", "GRANT " + socname + " TO " + crsid)
 
         if not dbcreated and not usercreated and not socusercreated:
             raise JobFailed(socname + " already has a functioning database")
@@ -1000,17 +994,15 @@ class ResetPostgresSocietyPassword(Job):
         password = pwgen(8)
 
         self.log("Connect to PostgreSQL db")
-        db = postgres_conn()
+        db = pgsql_conn()
         cursor = db.cursor()
 
-        self.log("Check for existing society user")
-        cursor.execute("SELECT usename FROM pg_shadow WHERE usename = %s", (socname,))
+        pgsql_exec(self, cursor, "Check for existing society user", "SELECT usename FROM pg_shadow WHERE usename = %s", socname)
         results = cursor.fetchall()
         if len(results) == 0:
             raise JobFailed(socname + " does not have a Postgres user")
 
-        self.log("Reset password")
-        cursor.execute("ALTER USER " + socname + " PASSWORD %s", (password,))
+        pgsql_exec(self, cursor, "Reset password", "ALTER USER " + socname + " PASSWORD %s", password)
 
         self.log("Commit")
         db.commit()
