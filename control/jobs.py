@@ -258,7 +258,10 @@ class UpdateEmailAddress(Job):
 
     def run(self, sess):
         old_email = self.owner.email
+        self.log("Update email address")
         self.owner.email = self.email
+
+        self.log("Send confirmation")
         mail_users(self.owner, "Email address updated", "email", old_email=old_email, new_email=self.email)
 
 @add_job
@@ -280,9 +283,9 @@ class CreateUserMailingList(Job):
     def __str__(self): return "Create user mailing list: {0.owner_crsid}-{0.listname}".format(self)
 
     def run(self, sess):
-
         full_listname = "{}-{}".format(self.owner, self.listname)
 
+        self.log("Sanity check list name")
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
@@ -292,6 +295,8 @@ class CreateUserMailingList(Job):
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
+
+        self.log("Create mailing list {0}".format(full_listname))
         newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
                         '| grep -v "Hit enter to notify.*"'
                         % (full_listname, self.owner.crsid + "@srcf.net"), shell=True)
@@ -299,8 +304,8 @@ class CreateUserMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at new list")
 
-        subproc_call(self, "config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
-        subproc_call(self, "generate alias", ["gen_alias", full_listname])
+        subproc_call(self, "Configure list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
+        subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
 @add_job
 class ResetUserMailingListPassword(Job):
@@ -321,13 +326,9 @@ class ResetUserMailingListPassword(Job):
     def __str__(self): return "Reset user mailing list password: {0.listname}".format(self)
 
     def run(self, sess):
-
-        resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
-        if "owner =" not in resetadmins:
-            raise JobFailed("Failed at reset admins")
-        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
-        if "New {} password".format(self.listname) not in newpasswd:
-            raise JobFailed("Failed at new password")
+        subproc_call(self, "Reset list admins", ["/usr/sbin/config_list", "-v", "-i", "/dev/stdin", self.listname],
+                     "owner = ['{0}@srcf.net']".format(self.owner))
+        subproc_call(self, "Reset list password", ["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
 
 @add_job
 class CreateSociety(Job):
@@ -543,6 +544,7 @@ class CreateSocietyMailingList(Job):
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
+
         newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
                         '| grep -v "Hit enter to notify.*"'
                         % (full_listname, self.society_society + "-admins@srcf.net"), shell=True)
@@ -580,13 +582,9 @@ class ResetSocietyMailingListPassword(Job):
     def __str__(self): return "Reset society mailing list password: {0.listname}".format(self)
 
     def run(self, sess):
-
-        resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
-        if "owner =" not in resetadmins:
-            raise JobFailed("Failed at reset admins")
-        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
-        if "New {} password".format(self.listname) not in newpasswd:
-            raise JobFailed("Failed at new password")
+        subproc_call(self, "Reset list admins", ["/usr/sbin/config_list", "-v", "-i", "/dev/stdin", self.listname],
+                     "owner = ['{0}-admins@srcf.net']".format(self.society_society))
+        subproc_call(self, "Reset list password", ["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
 
 # Here be dragons: we trust the value of crsid a *lot* (such that it appears unescaped in SQL queries).
 # Quote with backticks and ensure only valid characters (alnum for crsid, alnum + [_-] for society).
