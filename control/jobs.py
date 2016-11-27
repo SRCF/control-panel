@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import re
+import logging
 
 from flask import url_for
 from jinja2 import Environment, FileSystemLoader
@@ -40,8 +41,9 @@ def find_admins(admin_crsids, sess):
         raise KeyError(list(missing)[0])
     return set(admins)
 
-def subproc_check_multi(*tasks):
+def subproc_check_multi(job, *tasks):
     for desc, task in tasks:
+        job.log(desc)
         try:
             subprocess.check_call(task)
         except subprocess.CalledProcessError:
@@ -114,8 +116,8 @@ class Job(object):
             args=args
         ))
 
-    def debug(self, msg, type="progress"):
-        self.logger.debug(msg, extra={"job_id": self.job_id, "type": type})
+    def log(self, msg="", type="progress", level=logging.DEBUG):
+        self.logger.log(level, msg, extra={"job_id": self.job_id, "type": type})
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""
@@ -170,11 +172,13 @@ class Signup(Job):
     def run(self, sess):
         crsid = self.crsid
 
+        self.log("Sanity check for an existing account for {0}".format(crsid))
         if queries.list_members().get(crsid):
             raise JobFailed(crsid + " is already a user")
 
         name = (self.preferred_name + " " + self.surname).strip()
 
+        self.log("Create memberdb entry")
         sess.add(Member(crsid=self.crsid,
                         preferred_name=self.preferred_name,
                         surname=self.surname,
@@ -182,24 +186,26 @@ class Signup(Job):
                         member=True,
                         user=True))
 
-        subproc_check_multi(
-            ("add user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
-            ("set quota", ["set_quota", crsid]))
+        subproc_check_multi(self,
+            ("Add UNIX user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
+            ("Set quota", ["set_quota", crsid]))
 
+        self.log("Create default .forward file")
         path = "/home/" + crsid + "/.forward"
         f = open(path, "w")
         f.write(self.email + "\n")
         f.close()
 
+        self.log("Set correct permissions on .forward file")
         uid = pwd.getpwnam(crsid).pw_uid
         gid = grp.getgrnam(crsid).gr_gid
         os.chown(path, uid, gid)
 
         ml_entry = '"{name}" <{email}>'.format(name=name, email=self.email)
-        subproc_check_multi(
-            ("Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"]),
-            ("queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, ("soc-srcf-social:" + entry) if social else ""]),
-            ("export memberdb", ["/usr/local/sbin/srcf-memberdb-export"]))
+        subproc_check_multi(self,
+            ("Update Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"]),
+            ("Queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, ("soc-srcf-social:" + entry) if social else ""]),
+            ("Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"]))
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
     def __str__(self): return "Signup: {0.crsid} ({0.preferred_name} {0.surname}, {0.email})".format(self)
@@ -218,19 +224,19 @@ class ResetUserPassword(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
+        self.log("Generate random password")
         password = pwgen(8)
 
-        self.debug("Calling chpasswd")
+        self.log("Change UNIX password for {0}".format(crsid))
         pipe = subprocess.Popen(["/usr/sbin/chpasswd"], stdin=subprocess.PIPE)
         pipe.communicate(crsid + ":" + password)
         pipe.stdin.close()
 
-        self.debug("Calling make and descrypt")
-        subproc_check_multi(
-            ("make", ["make", "-C", "/var/yp"]),
-            ("descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
+        subproc_check_multi(self,
+            ("Rebuild /var/yp", ["make", "-C", "/var/yp"]),
+            ("Run descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
 
-        self.debug("Mailing new password")
+        self.log("Send new password")
         mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
@@ -297,7 +303,7 @@ class CreateUserMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at new list")
 
-        subproc_check_multi(
+        subproc_check_multi(self,
             ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
             ("generate alias", ["gen_alias", full_listname]))
 
@@ -374,7 +380,7 @@ class CreateSociety(Job):
         gid = grp.getgrnam(self.society).gr_gid
         uid = gid + 50000
 
-        subproc_check_multi(
+        subproc_check_multi(self,
             ("add user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home",
                           "--uid", str(uid), "--gid", str(gid), "--gecos", self.description,
                           "--disabled-password", "--system", self.society]),
@@ -391,7 +397,7 @@ class CreateSociety(Job):
         with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
             myfile.write(self.society + ":subdomain\n")
 
-        subproc_check_multi(
+        subproc_check_multi(self,
             ("set quota", ["/usr/local/sbin/set_quota", self.society]),
             ("generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"]),
             ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
@@ -546,7 +552,7 @@ class CreateSocietyMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at newlist")
 
-        subproc_check_multi(
+        subproc_check_multi(self,
             ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
             ("generate alias", ["gen_alias", full_listname]))
 

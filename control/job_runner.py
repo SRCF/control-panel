@@ -125,26 +125,30 @@ def main():
             sess.rollback()
             continue
 
-        logger.info("Running job %s %s", job.job_id, job)
-        job.set_state("running", "..on " + runner_id_string)
+        job.logger = logger
+
+        job.log("Running (host: {0})".format(runner_id_string), "started", logging.INFO)
+        job.set_state("running", "Running (host: {0})".format(runner_id_string))
         sess.add(job.row)
         sess.commit()
 
         run_state = "failed"
         run_message = None
 
-        job.logger = logger
         try:
             run_message = job.run(sess=sess)
-            logger.info("job %s done", job.job_id)
             run_state = "done"
+            job.log("Completed{0}".format(" with message: {0}".format(run_message) if run_message else ""),
+                    "done", logging.INFO)
 
         except jobs.JobFailed as e:
-            logger.warning("job %s failed", job.job_id)
             run_message = e.message
+            job.log("Aborted{0}".format(" with message: {0}".format(run_message) if run_message else ""),
+                    "done", logging.WARNING)
 
-        except:
-            logger.exception("job %s unhandled exception", job.job_id)
+        except Exception as e:
+            logger.exception("Unhandled exception")
+            job.log("Unhandled exception: {0}".format(e), "failed", logging.ERROR)
 
             # rollback
             sess.rollback()
@@ -153,9 +157,6 @@ def main():
             exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
             run_message = exc
 
-        else:
-            logger.info("job %s ran; finished %s %s", job.job_id, run_state, run_message)
-
         job.set_state(run_state, run_message)
 #        job.mail_current_state_to_sysadmins() # need to implement this
         sess.add(job.row)
@@ -163,9 +164,11 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    logger.info("starting %s", runner_id_string)
+    logger.info("Starting job runner (host: {0})".format(runner_id_string))
     try:
         main()
+    except KeyboardInterrupt:
+        pass
     except:
-        logger.exception("unhandled exception")
+        logger.exception("Unhandled exception")
         raise
