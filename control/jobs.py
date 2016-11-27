@@ -284,6 +284,7 @@ class CreateUserMailingList(Job):
 
     def run(self, sess):
         full_listname = "{}-{}".format(self.owner, self.listname)
+        password = pwgen(8)
 
         self.log("Sanity check list name")
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
@@ -291,19 +292,8 @@ class CreateUserMailingList(Job):
                                             "owner", "request", "subscribe", "unsubscribe"):
             raise JobFailed("Invalid list name {}".format(full_listname))
 
-        # XXX DanielRichman: see other
-        if "/usr/lib/mailman" not in sys.path:
-            sys.path.append("/usr/lib/mailman")
-        import Mailman.Utils
-
-        self.log("Create mailing list {0}".format(full_listname))
-        newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
-                        '| grep -v "Hit enter to notify.*"'
-                        % (full_listname, self.owner.crsid + "@srcf.net"), shell=True)
-        newlist.wait()
-        if newlist.returncode != 0:
-            raise JobFailed("Failed at new list")
-
+        subproc_call(self, "Create mailing list {0}".format(full_listname),
+                     ["sshpass", "newlist", full_listname, self.owner.crsid + "@srcf.net"], password)
         subproc_call(self, "Configure list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
         subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
@@ -535,30 +525,16 @@ class CreateSocietyMailingList(Job):
     def __str__(self): return "Create society mailing list: {0.society_society}-{0.listname}".format(self)
 
     def run(self, sess):
-
         full_listname = "{}-{}".format(self.society_society, self.listname)
+        password = pwgen(8)
 
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
             raise JobFailed("Invalid list name {}".format(full_listname))
 
-        # XXX DanielRichman: we import mailman, but don't use it?
-        # If you wanted to use its api---which may well be nicer than shelling out---
-        # It might be safer to have a small helper script and execute that, rather than importing Mailman?
-        # You could feed it its arguments as JSON over stdin, to avoid having to think about escaping.
-        if "/usr/lib/mailman" not in sys.path:
-            sys.path.append("/usr/lib/mailman")
-        import Mailman.Utils
-
-        self.log("Create mailing list {0}".format(full_listname))
-        newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
-                        '| grep -v "Hit enter to notify.*"'
-                        % (full_listname, self.society_society + "-admins@srcf.net"), shell=True)
-        newlist.wait()
-        if newlist.returncode != 0:
-            raise JobFailed("Failed at newlist")
-
+        subproc_call(self, "Create mailing list {0}".format(full_listname),
+                     ["sshpass", "newlist", full_listname, self.owner.crsid + "-admins@srcf.net"], password)
         subproc_call(self, "Configure list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
         subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
