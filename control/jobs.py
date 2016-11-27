@@ -43,23 +43,12 @@ def find_admins(admin_crsids, sess):
 
 def subproc_call(job, desc, cmd, stdin=None):
     job.log(desc)
-    pipe = subprocess.Popen(cmd, stdin=(subprocess.PIPE if stdin else None), stderr=subprocess.STDOUT)
+    pipe = subprocess.Popen(cmd, stdin=(subprocess.PIPE if stdin else None), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, _ = pipe.communicate(stdin)
     if pipe.returncode:
         raise JobFailed(desc, out or None)
     if out:
         job.log(desc, "output", raw=out)
-
-def subproc_check_multi(job, *tasks):
-    for desc, task in tasks:
-        job.log(desc)
-        try:
-            out = subprocess.check_output(task)
-        except subprocess.CalledProcessError:
-            raise JobFailed("Failed at " + desc)
-        else:
-            if out:
-                job.log(desc, "output", raw=out)
 
 def mail_users(target, subject, template, **kwargs):
     target_type = "member" if isinstance(target, Member) else "society"
@@ -199,9 +188,8 @@ class Signup(Job):
                         member=True,
                         user=True))
 
-        subproc_check_multi(self,
-            ("Add UNIX user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
-            ("Set quota", ["set_quota", crsid]))
+        subproc_call(self, "Add UNIX user", ["adduser", "--disabled-password", "--gecos", name, crsid])
+        subproc_call(self, "Set quota", ["set_quota", crsid])
 
         self.log("Create default .forward file")
         path = "/home/" + crsid + "/.forward"
@@ -214,11 +202,12 @@ class Signup(Job):
         gid = grp.getgrnam(crsid).gr_gid
         os.chown(path, uid, gid)
 
+        subproc_call(self, "Update Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"])
         ml_entry = '"{name}" <{email}>'.format(name=name, email=self.email)
-        subproc_check_multi(self,
-            ("Update Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"]),
-            ("Queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, ("soc-srcf-social:" + entry) if social else ""]),
-            ("Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"]))
+        subproc_call(self, "Queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub",
+                                                        "soc-srcf-maintenance:" + entry,
+                                                        ("soc-srcf-social:" + entry) if social else ""])
+        subproc_call(self, "Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"])
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
     def __str__(self): return "Signup: {0.crsid} ({0.preferred_name} {0.surname}, {0.email})".format(self)
@@ -310,9 +299,8 @@ class CreateUserMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at new list")
 
-        subproc_check_multi(self,
-            ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
-            ("generate alias", ["gen_alias", full_listname]))
+        subproc_call(self, "config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
+        subproc_call(self, "generate alias", ["gen_alias", full_listname])
 
 @add_job
 class ResetUserMailingListPassword(Job):
@@ -370,14 +358,15 @@ class CreateSociety(Job):
     admin_crsids = property(lambda s: s.row.args["admins"].split(","))
 
     def run(self, sess):
+        self.log("Create memberdb entry")
         sess.add(Society(society=self.society,
                          description=self.description,
                          admins=find_admins(self.admin_crsids, sess)))
 
-        subproc_check_multi(("add group", ["/usr/sbin/addgroup", "--force-badname", self.society]))
+        subproc_call(self, "Add group", ["/usr/sbin/addgroup", "--force-badname", self.society])
 
         for admin in self.admin_crsids:
-            subproc_check_multi(("add user " + admin, ["/usr/sbin/adduser", admin, self.society]))
+            subproc_call(self, "Add user {0} to group".format(admin), ["/usr/sbin/adduser", admin, self.society])
 
             try:
                 os.symlink("/societies/" + self.society, "/home/" + admin + "/" + self.society)
@@ -387,28 +376,30 @@ class CreateSociety(Job):
         gid = grp.getgrnam(self.society).gr_gid
         uid = gid + 50000
 
-        subproc_check_multi(self,
-            ("add user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home",
-                          "--uid", str(uid), "--gid", str(gid), "--gecos", self.description,
-                          "--disabled-password", "--system", self.society]),
-            ("set home", ["/usr/sbin/usermod", "-d", "/societies/" + self.society, self.society]))
+        subproc_call(self, "Add society user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home",
+                                                "--uid", str(uid), "--gid", str(gid), "--gecos", self.description,
+                                                "--disabled-password", "--system", self.society])
+        subproc_call(self, "Set home directory", ["/usr/sbin/usermod", "-d", "/societies/" + self.society, self.society])
 
+        self.log("Create default directories")
         os.makedirs("/societies/" + self.society + "/public_html", 0775)
         os.makedirs("/societies/" + self.society + "/cgi-bin", 0775)
 
+        self.log("Set default directory owners")
         os.chown("/societies/" + self.society + "/public_html", -1, gid)
         os.chown("/societies/" + self.society + "/cgi-bin", -1, gid)
 
-        subproc_check_multi(("chmod home", ["chmod", "-R", "2775", "/societies/" + self.society]))
+        subproc_call(self, "Update home permissions", ["chmod", "-R", "2775", "/societies/" + self.society])
 
+        self.log("Write subdomain status")
         with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
             myfile.write(self.society + ":subdomain\n")
 
-        subproc_check_multi(self,
-            ("set quota", ["/usr/local/sbin/set_quota", self.society]),
-            ("generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"]),
-            ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
+        subproc_call(self, "Set quota", ["/usr/local/sbin/set_quota", self.society])
+        subproc_call(self, "Generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"])
+        subproc_call(self, "Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"])
 
+        self.log("Send welcome email")
         newsoc = queries.get_society(self.society)
         mail_users(newsoc, "New shared account created", "signup")
 
@@ -466,7 +457,7 @@ class ChangeSocietyAdmin(Job):
 
         self.society.admins.add(self.target_member)
 
-        subproc_check_multi(("add user", ["adduser", self.target_member.crsid, self.society.society]))
+        subproc_call(self, "Add user to group", ["adduser", self.target_member.crsid, self.society.society])
 
         target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
         source_ln = "/societies/{0.society.society}/".format(self)
@@ -490,7 +481,7 @@ class ChangeSocietyAdmin(Job):
         recipients = [(x.name, x.crsid + "@srcf.net") for x in self.society.admins]
 
         self.society.admins.remove(self.target_member)
-        subproc_check_multi(("del user", ["deluser", self.target_member.crsid, self.society.society]))
+        subproc_call(self, "Remove user from group", ["deluser", self.target_member.crsid, self.society.society])
 
         target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
         source_ln = "/societies/{0.society.society}/".format(self)
@@ -559,9 +550,8 @@ class CreateSocietyMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at newlist")
 
-        subproc_check_multi(self,
-            ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
-            ("generate alias", ["gen_alias", full_listname]))
+        subproc_call(self, "Configure list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
+        subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
 @add_job
 class ResetSocietyMailingListPassword(Job):
