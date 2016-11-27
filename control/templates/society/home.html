@@ -100,11 +100,11 @@ mysql&gt;</pre>
                 <p>Database{% if society.pgdbs|length > 1 %}s{% else %} name{% endif %}: {% for db in society.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</p>
                 <div class="info">
                     <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                    <pre class="shell"><strong>{{ member.crsid }}@pip $ psql {% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.mysqldbs[0] }}{% endif %}</strong>
+                    <pre class="shell"><strong>{{ member.crsid }}@pip $ psql {% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.pgdbs[0] }}{% endif %}</strong>
 psql (9.1.23)
 Type "help" for help.
 
-{% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.mysqldbs[0] }}{% endif %}=&gt;</pre>
+{% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.pgdbs[0] }}{% endif %}=&gt;</pre>
                     {% if society.pgdbs|length > 1 %}
                         <p>Here, <code><em>database</em></code> switches to the database of that name{% elif not society.pgdbs[0] == society.pguser %}.</p>
                     {% else %}
