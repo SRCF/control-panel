@@ -131,7 +131,7 @@ def main():
 
         job.logger = logger
 
-        job.log("Running (host: {0})".format(runner_id_string), "started", logging.INFO)
+        job.log("Running (host: {0})".format(runner_id_string), "started", logging.INFO, str(job))
         job.set_state("running", "Running (host: {0})".format(runner_id_string))
         sess.add(job.row)
         sess.commit()
