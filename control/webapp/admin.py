@@ -16,7 +16,7 @@ bp = Blueprint("admin", __name__)
 
 @bp.before_request
 def before_request():
-    utils.admin_auth()
+    utils.auth_admin()
 
 @bp.route('/admin')
 @bp.route('/admin/')

@@ -14,7 +14,7 @@ from ..utils import *
 
 
 __all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",
-           "temp_mysql_conn", "setup_app", "ldapsearch", "admin_auth"]
+           "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin"]
 
 
 raven = raven.flask_glue.AuthDecorator(desc="SRCF control panel")
