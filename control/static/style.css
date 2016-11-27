@@ -56,11 +56,29 @@ pre.shell {
     padding: 10px;
     white-space: pre-wrap;
 }
+table {
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #747474;
+    padding: 3px 5px;
+    text-align: left;
+}
+thead th, thead td {
+    background-color: #747474;
+    color: #fff;
+}
 .modal a {
     color: #747474;
 }
 .main h1 a {
     color: #09f;
+}
+.jobs tr.done {
+    background-color: #dfd;
+}
+.jobs tr.failed {
+    background-color: #fdd;
 }
 input[type="submit"] {
     background-color: #09f;
@@ -73,7 +91,7 @@ input[type="submit"] {
 input[type="submit"]:hover {
     background-color: #1af;
 }
-a[rel="modal"] {
+a[rel="modal"], a.cancel {
     background-color: #fff;
     border: 1px solid #09f;
     color: #09f;
@@ -81,17 +99,12 @@ a[rel="modal"] {
     margin-left: 2px;
     padding: 2px 4px;
 }
-a[rel="modal"]:first-child, input[type="submit"]:first-child {
+a[rel="modal"]:first-child, a.cancel:first-child, input[type="submit"]:first-child {
     margin-left: 0;
 }
-a[rel="modal"]:hover {
+a[rel="modal"]:hover, a.cancel:hover {
     background-color: #e8f0ff;
 }
-/* a[rel="modal"]:after {
-    content: "\2197";
-    display: inline-block;
-    margin-left: 5px;
-} */
 ul {
     padding-left: 20px;
 }
