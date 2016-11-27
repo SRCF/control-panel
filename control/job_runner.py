@@ -17,9 +17,12 @@ import sqlalchemy.ext.compiler
 from srcf import database
 
 from . import jobs
+from .postgresqlhandler import PostgreSQLHandler
 
 
 logger = logging.getLogger("control.job_runner")
+logger.setLevel(logging.DEBUG)
+logger.addHandler(PostgreSQLHandler({"database": "sysadmins"}))
 
 runner_id_string = "{} {}".format(platform.node(), os.getpid())
 
@@ -130,6 +133,7 @@ def main():
         run_state = "failed"
         run_message = None
 
+        job.logger = logger
         try:
             run_message = job.run(sess=sess)
             logger.info("job %s done", job.job_id)

@@ -114,6 +114,9 @@ class Job(object):
             args=args
         ))
 
+    def debug(self, msg, type="progress"):
+        self.logger.debug(msg, extra={"job_id": self.job_id, "type": type})
+
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""
         raise JobFailed("not implemented")
@@ -217,14 +220,17 @@ class ResetUserPassword(Job):
         crsid = self.owner.crsid
         password = pwgen(8)
 
+        self.debug("Calling chpasswd")
         pipe = subprocess.Popen(["/usr/sbin/chpasswd"], stdin=subprocess.PIPE)
         pipe.communicate(crsid + ":" + password)
         pipe.stdin.close()
 
+        self.debug("Calling make and descrypt")
         subproc_check_multi(
             ("make", ["make", "-C", "/var/yp"]),
             ("descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
 
+        self.debug("Mailing new password")
         mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
