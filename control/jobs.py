@@ -621,18 +621,24 @@ class CreateMySQLUserDatabase(Job):
         self.log("Create database")
         try:
             cursor.execute('create database ' + crsid)
-        except Exception, e:
-            raise JobFailed('Failed to create database for ' + crsid)
+        except MySQLdb.Error as e:
+            raise JobFailed("Create database", str(e))
 
         self.log("Grant privileges")
         sqls = (
             'grant all privileges on `' +  crsid + '`.* to ' + crsid + '@localhost',
             'grant all privileges on `' +  crsid + '/%`.* to ' + crsid + '@localhost')
-        for sql in sqls:
-            cursor.execute(sql)
+        try:
+            for sql in sqls:
+                cursor.execute(sql)
+        except MySQLdb.Error as e:
+            raise JobFailed("Grant privileges", str(e))
 
         self.log("Set password")
-        cursor.execute('set password for `' + crsid + '`@localhost = password(%s)', (password,))
+        try:
+            cursor.execute('set password for `' + crsid + '`@localhost = password(%s)', (password,))
+        except MySQLdb.Error as e:
+            raise JobFailed("Set password", str(e))
 
         db.close()
 
@@ -664,11 +670,11 @@ class ResetMySQLUserPassword(Job):
         db = mysql_conn()
         cursor = db.cursor()
 
-        self.log("Set password")
+        self.log("Reset password")
         try:
             cursor.execute("set password for `" + crsid + "`@localhost= password(%s)", (password,))
-        except Exception, e:
-            raise JobFailed('Failed to reset password for ' + crsid)
+        except MySQLdb.Error as e:
+            raise JobFailed("Reset password", str(e))
 
         db.close()
 
@@ -711,8 +717,8 @@ class CreateMySQLSocietyDatabase(Job):
         self.log("Create society database")
         try:
             cursor.execute('create database ' + socname)
-        except Exception, e:
-            raise JobFailed('Failed to create database for ' + socname)
+        except MySQLdb.Error as e:
+            raise JobFailed("Create society database", str(e))
 
         # set password for requesting user if no MySQL account already
         self.log("Check for existing owner user")
@@ -729,11 +735,17 @@ class CreateMySQLSocietyDatabase(Job):
             'grant all privileges on `' +  socname + '/%`.* to ' + socname + '@localhost',
             'grant all privileges on `' +  socname + '`.* to ' + self.owner.crsid + '@localhost',
             'grant all privileges on `' +  socname + '/%`.* to ' + self.owner.crsid + '@localhost')
-        for sql in sqls:
-            cursor.execute(sql)
+        try:
+            for sql in sqls:
+                cursor.execute(sql)
+        except MySQLdb.Error as e:
+            raise JobFailed("Grant privileges", str(e))
 
         self.log("Set society user password")
-        cursor.execute('set password for `' + socname + '`@localhost = password(%s)', (password,))
+        try:
+            cursor.execute('set password for `' + socname + '`@localhost = password(%s)', (password,))
+        except MySQLdb.Error as e:
+            raise JobFailed("Set society user password", str(e))
 
         db.close()
 
@@ -779,8 +791,8 @@ class ResetMySQLSocietyPassword(Job):
         self.log("Set password")
         try:
             cursor.execute("set password for `" + socname + "`@localhost = password(%s)", (password,))
-        except Exception, e:
-            raise JobFailed('Failed to reset password for ' + socname)
+        except MySQLdb.Error as e:
+            raise JobFailed("Set password", str(e))
 
         db.close()
 
