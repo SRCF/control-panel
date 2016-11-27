@@ -153,7 +153,7 @@ def main():
             logger.info("job %s ran; finished %s %s", job.job_id, run_state, run_message)
 
         job.set_state(run_state, run_message)
-        job.mail_current_state_to_sysadmins()
+#        job.mail_current_state_to_sysadmins() # need to implement this
         sess.add(job.row)
         sess.commit()
 
