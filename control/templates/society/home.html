@@ -89,9 +89,15 @@ mysql&gt;</pre>
                 </div>
             {% else %}
                 <p><a href="{{ url_for('society.create_database', society=society.society, type='mysql') }}" rel="modal">Create database</a></p>
+                <div class="info">
+                    <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
+                </div>
             {% endif %}
         {% else %}
             <p><a href="{{ url_for('society.create_database', society=society.society, type='mysql') }}" rel="modal">Create database and user</a></p>
+            <div class="info">
+                <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
+            </div>
         {% endif %}
         <h3>PostgreSQL databases</h3>
         {% if society.pguser %}

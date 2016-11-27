@@ -91,9 +91,15 @@ mysql&gt;</pre>
                 </div>
             {% else %}
                 <p><a href="{{ url_for('member.create_database', type='mysql') }}" rel="modal">Create personal database</a></p>
+                <div class="info">
+                    <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
+                </div>
             {% endif %}
         {% else %}
             <p><a href="{{ url_for('member.create_database', type='mysql') }}" rel="modal">Create personal database and user</a></p>
+            <div class="info">
+                <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
+            </div>
         {% endif %}
         <h3>PostgreSQL databases</h3>
         {% if member.pguser %}
