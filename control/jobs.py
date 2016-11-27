@@ -352,7 +352,7 @@ class CreateSociety(Job):
             "description": description,
             "admins": ",".join(a for a in admins),
         }
-        return cls.create(member, args)
+        return cls.create(member, args, True)
 
     society      = property(lambda s: s.row.args["society"])
     description  = property(lambda s: s.row.args["description"])
