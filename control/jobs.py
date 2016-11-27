@@ -827,7 +827,10 @@ class CreatePostgresUserDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
+            # CREATE DATABASE not supported inside a transaction
+            cursor.execute("COMMIT")
             pgsql_exec(self, cursor, "Create database", "CREATE DATABASE " + crsid + " OWNER " + crsid)
+            cursor.execute("BEGIN")
             dbcreated = True
 
         if not dbcreated and not usercreated:
@@ -945,7 +948,10 @@ class CreatePostgresSocietyDatabase(Job):
         results = cursor.fetchall()
 
         if len(results) == 0:
+            # CREATE DATABASE not supported inside a transaction
+            cursor.execute("COMMIT")
             pgsql_exec(self, cursor, "Create society database", "CREATE DATABASE " + socname + " OWNER " + socname)
+            cursor.execute("BEGIN")
             dbcreated = True
 
         self.log("Grant owner access")
