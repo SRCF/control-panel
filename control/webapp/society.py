@@ -2,29 +2,16 @@ from werkzeug.exceptions import NotFound, Forbidden
 from flask import Blueprint, render_template, request, redirect, url_for 
 
 from .utils import srcf_db_sess as sess
-from .utils import create_job_maybe_email_and_redirect
+from .utils import create_job_maybe_email_and_redirect, find_mem_society
+from ..jobs import Job
 
-from . import utils, inspect_services, admin
+from . import utils, inspect_services
 from .. import jobs
 
 import re
 
 bp = Blueprint("society", __name__)
 
-
-def find_mem_society(society):
-    crsid = utils.raven.principal
-
-    try:
-        mem = utils.get_member(crsid)
-        soc = utils.get_society(society)
-    except KeyError:
-        raise NotFound
-
-    if mem not in soc.admins:
-        admin.auth()
-
-    return mem, soc
 
 @bp.route('/societies/<society>')
 def home(society):

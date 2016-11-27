@@ -14,18 +14,9 @@ from ..jobs import Job
 
 bp = Blueprint("admin", __name__)
 
-
 @bp.before_request
-def auth():
-    # I think the order before_request fns are run in is undefined.
-    assert utils.raven.principal
-
-    mem = utils.get_member(utils.raven.principal)
-    for soc in mem.societies:
-        if soc.society == "srcf-admin":
-            return None
-    else:
-        raise Forbidden
+def before_request():
+    utils.admin_auth()
 
 @bp.route('/admin')
 @bp.route('/admin/')

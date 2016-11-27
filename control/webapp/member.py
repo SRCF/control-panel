@@ -2,21 +2,11 @@ from werkzeug.exceptions import NotFound
 from flask import Blueprint, render_template, request, redirect, url_for
 
 from .utils import srcf_db_sess as sess
-from .utils import create_job_maybe_email_and_redirect
+from .utils import create_job_maybe_email_and_redirect, find_member
 from . import utils, inspect_services
 from .. import jobs
 
 import re
-
-def find_member():
-    """ Gets a CRSID and member object from the Raven authentication data """
-    crsid = utils.raven.principal
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
-        raise NotFound
-
-    return crsid, mem
 
 bp = Blueprint("member", __name__)
 

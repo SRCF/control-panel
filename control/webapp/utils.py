@@ -14,7 +14,7 @@ from ..utils import *
 
 
 __all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",
-           "temp_mysql_conn", "setup_app", "ldapsearch"]
+           "temp_mysql_conn", "setup_app", "ldapsearch", "admin_auth"]
 
 
 raven = raven.flask_glue.AuthDecorator(desc="SRCF control panel")
@@ -92,3 +92,38 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         srcf.mail.mail_sysadmins(subject, body)
 
     return flask.redirect(flask.url_for('jobs.status', id=j.job_id))
+
+def find_member():
+    """ Gets a CRSID and member object from the Raven authentication data """
+    crsid = raven.principal
+    try:
+        mem = get_member(crsid)
+    except KeyError:
+        raise NotFound
+
+    return crsid, mem
+
+def find_mem_society(society):
+    crsid = raven.principal
+
+    try:
+        mem = get_member(crsid)
+        soc = get_society(society)
+    except KeyError:
+        raise NotFound
+
+    if mem not in soc.admins:
+        auth_admin()
+
+    return mem, soc
+
+def auth_admin():
+    # I think the order before_request fns are run in is undefined.
+    assert raven.principal
+
+    mem = get_member(raven.principal)
+    for soc in mem.societies:
+        if soc.society == "srcf-admin":
+            return None
+    else:
+        raise Forbidden
