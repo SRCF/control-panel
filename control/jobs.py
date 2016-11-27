@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import re
+import logging
 
 from flask import url_for
 from jinja2 import Environment, FileSystemLoader
@@ -40,12 +41,14 @@ def find_admins(admin_crsids, sess):
         raise KeyError(list(missing)[0])
     return set(admins)
 
-def subproc_check_multi(*tasks):
-    for desc, task in tasks:
-        try:
-            subprocess.check_call(task)
-        except subprocess.CalledProcessError:
-            raise JobFailed("Failed at " + desc)
+def subproc_call(job, desc, cmd, stdin=None):
+    job.log(desc)
+    pipe = subprocess.Popen(cmd, stdin=(subprocess.PIPE if stdin else None), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, _ = pipe.communicate(stdin)
+    if pipe.returncode:
+        raise JobFailed(desc, out or None)
+    if out:
+        job.log(desc, "output", raw=out)
 
 def mail_users(target, subject, template, **kwargs):
     target_type = "member" if isinstance(target, Member) else "society"
@@ -64,8 +67,9 @@ def add_job(cls):
     return cls
 
 class JobFailed(Exception):
-    def __init__(self, message=None):
+    def __init__(self, message=None, raw=None):
         self.message = message
+        self.raw = raw
 
 
 class Job(object):
@@ -113,6 +117,9 @@ class Job(object):
             state="unapproved" if require_approval else "queued",
             args=args
         ))
+
+    def log(self, msg="", type="progress", level=logging.DEBUG, raw=None, **kwargs):
+        self.logger.log(level, msg, extra={"job_id": self.job_id, "type": type, "raw": raw}, **kwargs)
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""
@@ -167,11 +174,13 @@ class Signup(Job):
     def run(self, sess):
         crsid = self.crsid
 
+        self.log("Sanity check for an existing account for {0}".format(crsid))
         if queries.list_members().get(crsid):
             raise JobFailed(crsid + " is already a user")
 
         name = (self.preferred_name + " " + self.surname).strip()
 
+        self.log("Create memberdb entry")
         sess.add(Member(crsid=self.crsid,
                         preferred_name=self.preferred_name,
                         surname=self.surname,
@@ -179,24 +188,26 @@ class Signup(Job):
                         member=True,
                         user=True))
 
-        subproc_check_multi(
-            ("add user", ["adduser", "--disabled-password", "--gecos", name, crsid]),
-            ("set quota", ["set_quota", crsid]))
+        subproc_call(self, "Add UNIX user", ["adduser", "--disabled-password", "--gecos", name, crsid])
+        subproc_call(self, "Set quota", ["set_quota", crsid])
 
+        self.log("Create default .forward file")
         path = "/home/" + crsid + "/.forward"
         f = open(path, "w")
         f.write(self.email + "\n")
         f.close()
 
+        self.log("Set correct permissions on .forward file")
         uid = pwd.getpwnam(crsid).pw_uid
         gid = grp.getgrnam(crsid).gr_gid
         os.chown(path, uid, gid)
 
+        subproc_call(self, "Update Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"])
         ml_entry = '"{name}" <{email}>'.format(name=name, email=self.email)
-        subproc_check_multi(
-            ("Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"]),
-            ("queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub", "soc-srcf-maintenance:" + entry, ("soc-srcf-social:" + entry) if social else ""]),
-            ("export memberdb", ["/usr/local/sbin/srcf-memberdb-export"]))
+        subproc_call(self, "Queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub",
+                                                        "soc-srcf-maintenance:" + entry,
+                                                        ("soc-srcf-social:" + entry) if social else ""])
+        subproc_call(self, "Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"])
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
     def __str__(self): return "Signup: {0.crsid} ({0.preferred_name} {0.surname}, {0.email})".format(self)
@@ -217,14 +228,11 @@ class ResetUserPassword(Job):
         crsid = self.owner.crsid
         password = pwgen(8)
 
-        pipe = subprocess.Popen(["/usr/sbin/chpasswd"], stdin=subprocess.PIPE)
-        pipe.communicate(crsid + ":" + password)
-        pipe.stdin.close()
+        subproc_call(self, "Change UNIX password for {0}".format(crsid), ["/usr/sbin/chpasswd"], crsid + ":" + password)
+        subproc_call(self, "Rebuild /var/yp", ["make", "-C", "/var/yp"])
+        subproc_call(self, "Run descrypt", ["/usr/local/sbin/srcf-descrypt-cron"])
 
-        subproc_check_multi(
-            ("make", ["make", "-C", "/var/yp"]),
-            ("descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
-
+        self.log("Send new password")
         mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
@@ -250,7 +258,10 @@ class UpdateEmailAddress(Job):
 
     def run(self, sess):
         old_email = self.owner.email
+        self.log("Update email address")
         self.owner.email = self.email
+
+        self.log("Send confirmation")
         mail_users(self.owner, "Email address updated", "email", old_email=old_email, new_email=self.email)
 
 @add_job
@@ -272,9 +283,9 @@ class CreateUserMailingList(Job):
     def __str__(self): return "Create user mailing list: {0.owner_crsid}-{0.listname}".format(self)
 
     def run(self, sess):
-
         full_listname = "{}-{}".format(self.owner, self.listname)
 
+        self.log("Sanity check list name")
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
                                             "owner", "request", "subscribe", "unsubscribe"):
@@ -284,6 +295,8 @@ class CreateUserMailingList(Job):
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
+
+        self.log("Create mailing list {0}".format(full_listname))
         newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
                         '| grep -v "Hit enter to notify.*"'
                         % (full_listname, self.owner.crsid + "@srcf.net"), shell=True)
@@ -291,9 +304,8 @@ class CreateUserMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at new list")
 
-        subproc_check_multi(
-            ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
-            ("generate alias", ["gen_alias", full_listname]))
+        subproc_call(self, "Configure list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
+        subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
 @add_job
 class ResetUserMailingListPassword(Job):
@@ -314,13 +326,9 @@ class ResetUserMailingListPassword(Job):
     def __str__(self): return "Reset user mailing list password: {0.listname}".format(self)
 
     def run(self, sess):
-
-        resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
-        if "owner =" not in resetadmins:
-            raise JobFailed("Failed at reset admins")
-        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
-        if "New {} password".format(self.listname) not in newpasswd:
-            raise JobFailed("Failed at new password")
+        subproc_call(self, "Reset list admins", ["/usr/sbin/config_list", "-v", "-i", "/dev/stdin", self.listname],
+                     "owner = ['{0}@srcf.net']".format(self.owner))
+        subproc_call(self, "Reset list password", ["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
 
 @add_job
 class CreateSociety(Job):
@@ -351,14 +359,15 @@ class CreateSociety(Job):
     admin_crsids = property(lambda s: s.row.args["admins"].split(","))
 
     def run(self, sess):
+        self.log("Create memberdb entry")
         sess.add(Society(society=self.society,
                          description=self.description,
                          admins=find_admins(self.admin_crsids, sess)))
 
-        subproc_check_multi(("add group", ["/usr/sbin/addgroup", "--force-badname", self.society]))
+        subproc_call(self, "Add group", ["/usr/sbin/addgroup", "--force-badname", self.society])
 
         for admin in self.admin_crsids:
-            subproc_check_multi(("add user " + admin, ["/usr/sbin/adduser", admin, self.society]))
+            subproc_call(self, "Add user {0} to group".format(admin), ["/usr/sbin/adduser", admin, self.society])
 
             try:
                 os.symlink("/societies/" + self.society, "/home/" + admin + "/" + self.society)
@@ -368,28 +377,30 @@ class CreateSociety(Job):
         gid = grp.getgrnam(self.society).gr_gid
         uid = gid + 50000
 
-        subproc_check_multi(
-            ("add user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home",
-                          "--uid", str(uid), "--gid", str(gid), "--gecos", self.description,
-                          "--disabled-password", "--system", self.society]),
-            ("set home", ["/usr/sbin/usermod", "-d", "/societies/" + self.society, self.society]))
+        subproc_call(self, "Add society user", ["/usr/sbin/adduser", "--force-badname", "--no-create-home",
+                                                "--uid", str(uid), "--gid", str(gid), "--gecos", self.description,
+                                                "--disabled-password", "--system", self.society])
+        subproc_call(self, "Set home directory", ["/usr/sbin/usermod", "-d", "/societies/" + self.society, self.society])
 
+        self.log("Create default directories")
         os.makedirs("/societies/" + self.society + "/public_html", 0775)
         os.makedirs("/societies/" + self.society + "/cgi-bin", 0775)
 
+        self.log("Set default directory owners")
         os.chown("/societies/" + self.society + "/public_html", -1, gid)
         os.chown("/societies/" + self.society + "/cgi-bin", -1, gid)
 
-        subproc_check_multi(("chmod home", ["chmod", "-R", "2775", "/societies/" + self.society]))
+        subproc_call(self, "Update home permissions", ["chmod", "-R", "2775", "/societies/" + self.society])
 
+        self.log("Write subdomain status")
         with open("/societies/srcf-admin/socwebstatus", "a") as myfile:
             myfile.write(self.society + ":subdomain\n")
 
-        subproc_check_multi(
-            ("set quota", ["/usr/local/sbin/set_quota", self.society]),
-            ("generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"]),
-            ("memberdb export", ["/usr/local/sbin/srcf-memberdb-export"]))
+        subproc_call(self, "Set quota", ["/usr/local/sbin/set_quota", self.society])
+        subproc_call(self, "Generate sudoers", ["/usr/local/sbin/srcf-generate-society-sudoers"])
+        subproc_call(self, "Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"])
 
+        self.log("Send welcome email")
         newsoc = queries.get_society(self.society)
         mail_users(newsoc, "New shared account created", "signup")
 
@@ -447,7 +458,7 @@ class ChangeSocietyAdmin(Job):
 
         self.society.admins.add(self.target_member)
 
-        subproc_check_multi(("add user", ["adduser", self.target_member.crsid, self.society.society]))
+        subproc_call(self, "Add user to group", ["adduser", self.target_member.crsid, self.society.society])
 
         target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
         source_ln = "/societies/{0.society.society}/".format(self)
@@ -471,7 +482,7 @@ class ChangeSocietyAdmin(Job):
         recipients = [(x.name, x.crsid + "@srcf.net") for x in self.society.admins]
 
         self.society.admins.remove(self.target_member)
-        subproc_check_multi(("del user", ["deluser", self.target_member.crsid, self.society.society]))
+        subproc_call(self, "Remove user from group", ["deluser", self.target_member.crsid, self.society.society])
 
         target_ln = "/home/{0.target_member.crsid}/{0.society.society}".format(self)
         source_ln = "/societies/{0.society.society}/".format(self)
@@ -533,6 +544,7 @@ class CreateSocietyMailingList(Job):
         if "/usr/lib/mailman" not in sys.path:
             sys.path.append("/usr/lib/mailman")
         import Mailman.Utils
+
         newlist = subprocess.Popen('/usr/local/bin/local_pwgen | sshpass newlist "%s" "%s" '
                         '| grep -v "Hit enter to notify.*"'
                         % (full_listname, self.society_society + "-admins@srcf.net"), shell=True)
@@ -540,9 +552,8 @@ class CreateSocietyMailingList(Job):
         if newlist.returncode != 0:
             raise JobFailed("Failed at newlist")
 
-        subproc_check_multi(
-            ("config list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname]),
-            ("generate alias", ["gen_alias", full_listname]))
+        subproc_call(self, "Configure list", ["/usr/sbin/config_list", "-i", "/root/mailman-newlist-defaults", full_listname])
+        subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
 @add_job
 class ResetSocietyMailingListPassword(Job):
@@ -571,13 +582,9 @@ class ResetSocietyMailingListPassword(Job):
     def __str__(self): return "Reset society mailing list password: {0.listname}".format(self)
 
     def run(self, sess):
-
-        resetadmins = subprocess.check_output(["/usr/sbin/config_list", "-o", "-", self.listname])
-        if "owner =" not in resetadmins:
-            raise JobFailed("Failed at reset admins")
-        newpasswd = subprocess.check_output(["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
-        if "New {} password".format(self.listname) not in newpasswd:
-            raise JobFailed("Failed at new password")
+        subproc_call(self, "Reset list admins", ["/usr/sbin/config_list", "-v", "-i", "/dev/stdin", self.listname],
+                     "owner = ['{0}-admins@srcf.net']".format(self.society_society))
+        subproc_call(self, "Reset list password", ["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
 
 # Here be dragons: we trust the value of crsid a *lot* (such that it appears unescaped in SQL queries).
 # Quote with backticks and ensure only valid characters (alnum for crsid, alnum + [_-] for society).

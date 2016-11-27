@@ -17,9 +17,12 @@ import sqlalchemy.ext.compiler
 from srcf import database
 
 from . import jobs
+from .postgresqlhandler import PostgreSQLHandler
 
 
 logger = logging.getLogger("control.job_runner")
+logger.setLevel(logging.DEBUG)
+logger.addHandler(PostgreSQLHandler({"database": "sysadmins"}))
 
 runner_id_string = "{} {}".format(platform.node(), os.getpid())
 
@@ -122,8 +125,10 @@ def main():
             sess.rollback()
             continue
 
-        logger.info("Running job %s %s", job.job_id, job)
-        job.set_state("running", "..on " + runner_id_string)
+        job.logger = logger
+
+        job.log("Running (host: {0})".format(runner_id_string), "started", logging.INFO)
+        job.set_state("running", "Running (host: {0})".format(runner_id_string))
         sess.add(job.row)
         sess.commit()
 
@@ -131,17 +136,18 @@ def main():
         run_message = None
 
         try:
-            run_message = job.run(sess=sess)
-            logger.info("job %s done", job.job_id)
+            run_message = job.run(sess=sess) or "Completed"
             run_state = "done"
+            job.log(run_message, "done", logging.INFO)
 
         except jobs.JobFailed as e:
-            logger.warning("job %s failed", job.job_id)
-            run_message = e.message
-            email_error(run_message)
+            run_message = e.message or "Aborted"
+            job.log(run_message, "failed", logging.WARNING, e.raw)
 
-        except:
-            logger.exception("job %s unhandled exception", job.job_id)
+            email_error(i, "{0}\\\\{1}".format(run_message, e.raw))
+
+        except Exception as e:
+            job.log("Unhandled exception", "failed", logging.ERROR, traceback.format_exc(), exc_info=1)
 
             # rollback
             sess.rollback()
@@ -150,9 +156,7 @@ def main():
             exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
             run_message = exc
 
-            email_error(run_message)
-        else:
-            logger.info("job %s ran; finished %s %s", job.job_id, run_state, run_message)
+            email_error(i, run_message)
 
         job.set_state(run_state, run_message)
         sess.add(job.row)
@@ -160,11 +164,13 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    logger.info("starting %s", runner_id_string)
+    logger.info("Starting job runner (host: {0})".format(runner_id_string))
     try:
         main()
+    except KeyboardInterrupt:
+        pass
     except:
-        logger.exception("unhandled exception")
+        logger.exception("Unhandled exception")
         raise
 
 def email_error(job_id, message):
