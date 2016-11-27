@@ -15,6 +15,7 @@ import sqlalchemy.sql.expression
 import sqlalchemy.ext.compiler
 
 from srcf import database
+import srcf.mail
 
 from . import jobs
 from .postgresqlhandler import PostgreSQLHandler
@@ -33,6 +34,9 @@ pg_try_advisory_lock = sqlalchemy.sql.expression.func.pg_try_advisory_lock
 
 class DatabaseLocked(Exception): pass
 
+def email_error(job_id, message):
+    subject = "[Control Panel] Job #{0} failed".format(job_id)
+    srcf.mail.mail_sysadmins(subject, message)
 
 class Listen(sqlalchemy.sql.expression.Executable,
              sqlalchemy.sql.expression.ClauseElement):
@@ -144,7 +148,7 @@ def main():
             run_message = e.message or "Aborted"
             job.log(run_message, "failed", logging.WARNING, e.raw)
 
-            email_error(i, "{0}\\\\{1}".format(run_message, e.raw))
+            email_error(i, "{0}\n\n{1}".format(run_message, e.raw))
 
         except Exception as e:
             job.log("Unhandled exception", "failed", logging.ERROR, traceback.format_exc(), exc_info=1)
@@ -173,6 +177,3 @@ if __name__ == "__main__":
         logger.exception("Unhandled exception")
         raise
 
-def email_error(job_id, message):
-    subject = "[Control Panel] Job #{0} failed".format(job_id)
-    srcf.mail.mail_sysadmins(subject, message)
