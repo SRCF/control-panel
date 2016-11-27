@@ -136,15 +136,13 @@ def main():
         run_message = None
 
         try:
-            run_message = job.run(sess=sess)
+            run_message = job.run(sess=sess) or "Completed"
             run_state = "done"
-            job.log("Completed{0}".format(" with message: {0}".format(run_message) if run_message else ""),
-                    "done", logging.INFO)
+            job.log(run_message, "done", logging.INFO)
 
         except jobs.JobFailed as e:
-            run_message = e.message
-            job.log("Aborted{0}".format(" with message: {0}".format(run_message) if run_message else ""),
-                    "done", logging.WARNING)
+            run_message = e.message or "Aborted"
+            job.log(run_message, "failed", logging.WARNING, e.raw)
 
         except Exception as e:
             job.log("Unhandled exception", "failed", logging.ERROR, traceback.format_exc(), exc_info=1)

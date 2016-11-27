@@ -41,6 +41,15 @@ def find_admins(admin_crsids, sess):
         raise KeyError(list(missing)[0])
     return set(admins)
 
+def subproc_call(job, desc, cmd, stdin=None):
+    job.log(desc)
+    pipe = subprocess.Popen(cmd, stdin=(subprocess.PIPE if stdin else None), stderr=subprocess.STDOUT)
+    out, _ = pipe.communicate(stdin)
+    if pipe.returncode:
+        raise JobFailed(desc, out or None)
+    if out:
+        job.log(desc, "output", raw=out)
+
 def subproc_check_multi(job, *tasks):
     for desc, task in tasks:
         job.log(desc)
@@ -69,8 +78,9 @@ def add_job(cls):
     return cls
 
 class JobFailed(Exception):
-    def __init__(self, message=None):
+    def __init__(self, message=None, raw=None):
         self.message = message
+        self.raw = raw
 
 
 class Job(object):
@@ -227,17 +237,11 @@ class ResetUserPassword(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
-        self.log("Generate random password")
         password = pwgen(8)
 
-        self.log("Change UNIX password for {0}".format(crsid))
-        pipe = subprocess.Popen(["/usr/sbin/chpasswd"], stdin=subprocess.PIPE)
-        pipe.communicate(crsid + ":" + password)
-        pipe.stdin.close()
-
-        subproc_check_multi(self,
-            ("Rebuild /var/yp", ["make", "-C", "/var/yp"]),
-            ("Run descrypt", ["/usr/local/sbin/srcf-descrypt-cron"]))
+        subproc_call(self, "Change UNIX password for {0}".format(crsid), ["/usr/sbin/chpasswd"], crsid + ":" + password)
+        subproc_call(self, "Rebuild /var/yp", ["make", "-C", "/var/yp"])
+        subproc_call(self, "Run descrypt", ["/usr/local/sbin/srcf-descrypt-cron"])
 
         self.log("Send new password")
         mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password)
