@@ -138,6 +138,7 @@ def main():
         except jobs.JobFailed as e:
             logger.warning("job %s failed", job.job_id)
             run_message = e.message
+            email_error(run_message)
 
         except:
             logger.exception("job %s unhandled exception", job.job_id)
@@ -149,11 +150,11 @@ def main():
             exc = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
             run_message = exc
 
+            email_error(run_message)
         else:
             logger.info("job %s ran; finished %s %s", job.job_id, run_state, run_message)
 
         job.set_state(run_state, run_message)
-#        job.mail_current_state_to_sysadmins() # need to implement this
         sess.add(job.row)
         sess.commit()
 
@@ -165,3 +166,7 @@ if __name__ == "__main__":
     except:
         logger.exception("unhandled exception")
         raise
+
+def email_error(job_id, message):
+    subject = "[Control Panel] Job #{0} failed".format(job_id)
+    srcf.mail.mail_sysadmins(subject, message)
