@@ -84,7 +84,7 @@ Welcome to the MySQL monitor.  Commands end with ; or \g.
 Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 mysql&gt;</pre>
-                    <p>Here, <code>-u {{ member.mysqluser or society.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the password, and {% if society.mysqldbs|length > 1 %}<code><em>database</em></code> at the end switches to the database of that name{% else %}<code>{{ society.mysqldbs[0] }}</code> at the end connects to the society's database{% endif %}.</p>
+                    <p>Here, <code>-u {{ member.mysqluser or society.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the password, and {% if society.mysqldbs|length > 1 %}<code><em>database</em></code> at the end switches to the database of that name{% else %}<code>{{ society.mysqldbs[0] }}</code> at the end switches to the society's database{% endif %}.</p>
                     <p>Note that you can connect with either the society MySQL account, or your personal MySQL account.  Any scripts or sites in your society file space should use the society account, in order to avoid leaking your personal password to other admins.</p>
                 </div>
             {% else %}
@@ -112,7 +112,7 @@ Type "help" for help.
 
 {% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.pgdbs[0] }}{% endif %}=&gt;</pre>
                     {% if society.pgdbs|length > 1 %}
-                        <p>Here, <code><em>database</em></code> switches to the database of that name{% elif not society.pgdbs[0] == society.pguser %}.</p>
+                        <p>Here, <code><em>database</em></code> switches to the database of that name.</p>
                     {% else %}
                         <p>Here, <code>{{ society.pgdbs[0] }}</code> switches to the society's database.</p>
                     {% endif %}

@@ -1,4 +1,3 @@
-from werkzeug.exceptions import NotFound
 from flask import Blueprint, render_template, request, redirect, url_for
 
 from .utils import srcf_db_sess as sess
