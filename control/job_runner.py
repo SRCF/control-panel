@@ -23,7 +23,7 @@ from .postgresqlhandler import PostgreSQLHandler
 
 logger = logging.getLogger("control.job_runner")
 logger.setLevel(logging.DEBUG)
-logger.addHandler(PostgreSQLHandler({"database": "sysadmins"}))
+logger.addHandler(PostgreSQLHandler({"host": "postgres.internal", "database": "sysadmins"}))
 
 runner_id_string = "{} {}".format(platform.node(), os.getpid())
 
