@@ -144,7 +144,8 @@ class Job(object):
         ))
 
     def log(self, msg="", type="progress", level=logging.DEBUG, raw=None, **kwargs):
-        self.logger.log(level, msg, extra={"job_id": self.job_id, "type": type, "raw": raw}, **kwargs)
+        self.logger.log(level, msg, extra={"task": "{0}/{1} {2}".format(self.job_id, self.JOB_TYPE, type),
+                                           "job_id": self.job_id, "type": type, "raw": raw}, **kwargs)
 
     def run(self, sess):
         """Run the job. `self.state` will be set to `done` or `failed`."""

@@ -21,7 +21,7 @@ from . import jobs
 from .postgresqlhandler import PostgreSQLHandler
 
 
-logger = logging.getLogger("control.job_runner")
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(PostgreSQLHandler({"host": "postgres.internal", "database": "sysadmins"}))
 
@@ -167,13 +167,15 @@ def main():
         sess.commit()
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    logger.info("Starting job runner (host: {0})".format(runner_id_string))
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s %(levelname)s %(name)s [%(task)s]: %(message)s")
+    run_logger = logging.LoggerAdapter(logger, {"task": "Runner"})
+    run_logger.info("Starting job runner (host: {0})".format(runner_id_string))
     try:
         main()
     except KeyboardInterrupt:
         pass
     except:
-        logger.exception("Unhandled exception")
+        run_logger.exception("Unhandled exception")
         raise
 
