@@ -24,6 +24,10 @@ email_headers = {k: emails.get_template("common/header-{0}.txt".format(k)) for k
 email_footer = emails.get_template("common/footer.txt").render()
 
 
+def make_pwd():
+    return pwgen().decode("utf-8")
+
+
 @contextmanager
 def mysql_context(job):
     with open("/root/mysql-root-password", "r") as pwfh:
@@ -263,14 +267,14 @@ class ResetUserPassword(Job):
 
     def run(self, sess):
         crsid = self.owner.crsid
-        password = pwgen(8)
+        password = make_pwd()
 
-        subproc_call(self, "Change UNIX password for {0}".format(crsid), ["/usr/sbin/chpasswd"], (crsid + ":").encode("utf-8") + password)
+        subproc_call(self, "Change UNIX password for {0}".format(crsid), ["/usr/sbin/chpasswd"], (crsid + ":" + password).encode("utf-8"))
         subproc_call(self, "Rebuild /var/yp", ["make", "-C", "/var/yp"])
         subproc_call(self, "Run descrypt", ["/usr/local/sbin/srcf-descrypt-cron"])
 
         self.log("Send new password")
-        mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password.decode("utf-8"))
+        mail_users(self.owner, "SRCF account password reset", "srcf-password", password=password)
 
     def __repr__(self): return "<ResetUserPassword {0.owner_crsid}>".format(self)
     def __str__(self): return "Reset user password: {0.owner.crsid} ({0.owner.name})".format(self)
@@ -321,7 +325,7 @@ class CreateUserMailingList(Job):
 
     def run(self, sess):
         full_listname = "{}-{}".format(self.owner, self.listname)
-        password = pwgen(8)
+        password = make_pwd()
 
         self.log("Sanity check list name")
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
@@ -563,7 +567,7 @@ class CreateSocietyMailingList(Job):
 
     def run(self, sess):
         full_listname = "{}-{}".format(self.society_society, self.listname)
-        password = pwgen(8)
+        password = make_pwd()
 
         if not re.match("^[A-Za-z0-9\-]+$", self.listname) \
         or self.listname.split("-")[-1] in ("admin", "bounces", "confirm", "join", "leave",
@@ -625,7 +629,7 @@ class CreateMySQLUserDatabase(Job):
         crsid = self.owner.crsid
         assert crsid.isalnum()
 
-        password = pwgen(8)
+        password = make_pwd()
 
         with mysql_context(self) as (db, cursor):
             sql_exec(self, cursor, "Create database",         "CREATE DATABASE " + crsid)
@@ -655,7 +659,7 @@ class ResetMySQLUserPassword(Job):
         crsid = self.owner.crsid
         assert crsid.isalnum()
 
-        password = pwgen(8)
+        password = make_pwd()
 
         with mysql_context(self) as (db, cursor):
             sql_exec(self, cursor, "Reset password", "SET PASSWORD FOR '" + crsid + "'@'%%' = %s", password)
@@ -690,7 +694,7 @@ class CreateMySQLSocietyDatabase(Job):
         socname = self.society_society
         assert utils.is_valid_socname(socname)
 
-        password = pwgen(8)
+        password = make_pwd()
         usrpassword = None
 
         with mysql_context(self) as (db, cursor):
@@ -698,7 +702,7 @@ class CreateMySQLSocietyDatabase(Job):
 
             sql_exec(self, cursor, "Check for existing owner user", "SELECT EXISTS (SELECT DISTINCT User FROM mysql.user WHERE User = %s) AS e", self.owner.crsid)
             if cursor.fetchone()[0] == 0:
-                usrpassword = pwgen(8)
+                usrpassword = make_pwd()
                 sql_exec(self, cursor, "Set owner user password", "SET PASSWORD FOR " + self.owner.crsid + "@%% = %s", usrpassword)
 
             sql_exec(self, cursor, "Grant privileges (society, base)", "GRANT ALL PRIVILEGES ON `" +  socname + "`.*   TO '" + socname + "'@'%'")
@@ -740,7 +744,7 @@ class ResetMySQLSocietyPassword(Job):
         socname = self.society_society
         assert utils.is_valid_socname(socname)
 
-        password = pwgen(8)
+        password = make_pwd()
 
         with mysql_context(self) as (db, cursor):
             sql_exec(self, cursor, "Set password", "SET PASSWORD FOR '" + socname + "'@'%%' = %s", password)
@@ -768,7 +772,7 @@ class CreatePostgresUserDatabase(Job):
         assert crsid.isalnum()
 
         usercreated = False
-        password = pwgen(8)
+        password = make_pwd()
         dbcreated = False
 
         with pgsql_context(self) as (db, cursor):
@@ -816,7 +820,7 @@ class ResetPostgresUserPassword(Job):
         crsid = self.owner.crsid
         assert crsid.isalnum()
 
-        password = pwgen(8)
+        password = make_pwd()
 
         with pgsql_context(self) as (db, cursor):
             sql_exec(self, cursor, "Check for existing user", "SELECT usename FROM pg_shadow WHERE usename = %s", crsid)
@@ -859,9 +863,9 @@ class CreatePostgresSocietyDatabase(Job):
         assert utils.is_valid_socname(socname)
 
         usercreated = False
-        userpassword = pwgen(8)
+        userpassword = make_pwd()
         socusercreated = False
-        socpassword = pwgen(8)
+        socpassword = make_pwd()
         dbcreated = False
 
         with pgsql_context(self) as (db, cursor):
@@ -932,7 +936,7 @@ class ResetPostgresSocietyPassword(Job):
         socname = self.society_society
         assert utils.is_valid_socname(socname)
 
-        password = pwgen(8)
+        password = make_pwd()
 
         with pgsql_context(self) as (db, cursor):
             sql_exec(self, cursor, "Check for existing user", "SELECT usename FROM pg_shadow WHERE usename = %s", socname)
