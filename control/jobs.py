@@ -898,10 +898,6 @@ class CreatePostgresSocietyDatabase(Job):
             if not dbcreated and not usercreated and not socusercreated:
                 raise JobFailed(socname + " already has a functioning database")
 
-        self.log("Commit")
-        db.commit()
-        db.close()
-
         self.log("Send society password")
         mail_users(self.society, "PostgreSQL database created", "postgres-create", password=socpassword, requester=self.owner)
         if usercreated:
