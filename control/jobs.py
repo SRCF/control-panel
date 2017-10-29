@@ -498,7 +498,7 @@ class ChangeSocietyAdmin(Job):
         self.log("Send confirmation to the rest")
         adminNames = sorted("{0.name} ({0.crsid})".format(m) for m in self.society.admins)
         mail_users(self.society, "Access granted for " + self.target_member.crsid, "add-admin",
-                added=self.target_member, requester=self.requesting_member, admins="\n".join(adminNames))
+                added=self.target_member, requester=self.owner, admins="\n".join(adminNames))
 
 
     def rm_admin(self, sess):
@@ -523,7 +523,7 @@ class ChangeSocietyAdmin(Job):
         self.log("Send confirmation to remaining admins")
         adminNames = sorted("{0.name} ({0.crsid})".format(m) for m in self.society.admins)
         mail_users(self.society, "Access removed for " + self.target_member.crsid, "remove-admin",
-                removed=self.target_member, requester=self.requesting_member, admins="\n".join(adminNames))
+                removed=self.target_member, requester=self.owner, admins="\n".join(adminNames))
 
     def run(self, sess):
         if self.owner not in self.society.admins:
