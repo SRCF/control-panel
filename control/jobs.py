@@ -214,6 +214,8 @@ class Signup(Job):
                         member=True,
                         user=True))
 
+        sess.commit()
+
         subproc_call(self, "Add UNIX user", ["adduser", "--disabled-password", "--gecos", name, crsid])
         subproc_call(self, "Set quota", ["set_quota", crsid])
 
@@ -231,8 +233,8 @@ class Signup(Job):
         subproc_call(self, "Update Apache groups", ["/usr/local/sbin/srcf-updateapachegroups"])
         ml_entry = '"{name}" <{email}>'.format(name=name, email=self.email)
         subproc_call(self, "Queue mail subscriptions", ["/usr/local/sbin/srcf-enqueue-mlsub",
-                                                        "soc-srcf-maintenance:" + entry,
-                                                        ("soc-srcf-social:" + entry) if social else ""])
+                                                        "soc-srcf-maintenance:" + ml_entry,
+                                                        ("soc-srcf-social:" + ml_entry) if self.social else ""])
         subproc_call(self, "Export memberdb", ["/usr/local/sbin/srcf-memberdb-export"])
 
     def __repr__(self): return "<Signup {0.crsid}>".format(self)
