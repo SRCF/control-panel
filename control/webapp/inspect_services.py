@@ -47,8 +47,8 @@ def lookup_pguser(prefix):
 
 def lookup_mysqluser(prefix):
     """Does this MySQL user exist?"""
+    cur = utils.temp_mysql_conn().cursor()
     try:
-        cur = utils.temp_mysql_conn().cursor()
         prefix = prefix.replace("-", "_")
         q = "SELECT User from mysql.user WHERE User = %s"
         cur.execute(q, (prefix, ))

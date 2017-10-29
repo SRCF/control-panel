@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from wsgiref.handlers import CGIHandler
 from werkzeug.debug import DebuggedApplication
 from flask import Request

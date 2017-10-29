@@ -13,8 +13,8 @@ from srcf.database.schema import Member, Society
 from srcf.mail import send_mail
 import os
 import pwd, grp
-import pgdb
-import MySQLdb
+import psycopg2
+import pymysql
 
 from . import utils
 
@@ -29,7 +29,7 @@ def mysql_context(job):
     with open("/root/mysql-root-password", "r") as pwfh:
         rootpw = pwfh.readline().rstrip()
     job.log("Connect to MySQL db")
-    conn = MySQLdb.connect(user="root", host="mysql.internal", passwd=rootpw, db="mysql")
+    conn = pymysql.connect(user="root", host="mysql.internal", passwd=rootpw, db="mysql")
     try:
         yield conn, conn.cursor()
     finally:
@@ -40,7 +40,7 @@ def pgsql_context(job):
     job.log("Connect to PostgreSQL db")
     # TODO: don't connect to the sysadmins database this way -- it can deadlock with SQLAlchemy.
     # Either allow connections to an alternate database, or connect in a safer way.
-    conn = pgdb.connect(host="postgres.internal", database="sysadmins")
+    conn = psycopg2.connect(host="postgres.internal", database="sysadmins")
     try:
         yield conn, conn.cursor()
         conn.commit()
@@ -410,8 +410,8 @@ class CreateSociety(Job):
         subproc_call(self, "Set home directory", ["/usr/sbin/usermod", "-d", "/societies/" + self.society, self.society])
 
         self.log("Create default directories")
-        os.makedirs("/societies/" + self.society + "/public_html", 0775)
-        os.makedirs("/societies/" + self.society + "/cgi-bin", 0775)
+        os.makedirs("/societies/" + self.society + "/public_html", 0o775)
+        os.makedirs("/societies/" + self.society + "/cgi-bin", 0o775)
 
         self.log("Set default directory owners")
         os.chown("/societies/" + self.society + "/public_html", -1, gid)

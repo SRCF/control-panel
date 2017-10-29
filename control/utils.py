@@ -1,7 +1,7 @@
 import re
 from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
-import ConfigParser
-import MySQLdb
+import configparser
+import pymysql
 
 
 __all__ = ["email_re", "ldapsearch", "is_admin", "mysql_conn"]
@@ -31,12 +31,11 @@ def is_admin(member):
     return False
 
 
-my_cnf = ConfigParser.ConfigParser()
+my_cnf = configparser.ConfigParser()
 my_cnf.read("/societies/srcf-admin/.my.cnf")
 mysql_passwd = my_cnf.get('client', 'password')
 def mysql_conn():
-    conn = MySQLdb.connect(user="srcf_admin", db="srcf_admin",
-                         passwd=mysql_passwd)
+    conn = pymysql.connect(user="srcf_admin", db="srcf_admin", passwd=mysql_passwd)
     conn.autocommit = True
     return conn
 
