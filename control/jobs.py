@@ -711,7 +711,7 @@ class CreateMySQLSocietyDatabase(Job):
         mail_users(self.society, "MySQL database created", "mysql-create", password=password, requester=self.owner)
         if usrpassword:
             self.log("Send owner password")
-            mail_users(self.owner, "MySQL database created", "mysql-create", password=usrpassword)
+            mail_users(self.owner, "MySQL account created", "mysql-account", password=usrpassword, database=self.society)
 
     def __repr__(self): return "<CreateMySQLSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society MySQL database: {0.society.society} ({0.society.description})".format(self)
@@ -903,7 +903,7 @@ class CreatePostgresSocietyDatabase(Job):
         mail_users(self.society, "PostgreSQL database created", "postgres-create", password=socpassword, requester=self.owner)
         if usercreated:
             self.log("Send owner password")
-            mail_users(self.owner, "PostgreSQL database created", "postgres-create", password=userpassword)
+            mail_users(self.owner, "PostgreSQL account created", "postgres-account", password=userpassword, database=self.society)
 
     def __repr__(self): return "<CreatePostgresSocietyDatabase {0.society_society}>".format(self)
     def __str__(self): return "Create society PostgreSQL database: {0.society.society} ({0.society.description})".format(self)
