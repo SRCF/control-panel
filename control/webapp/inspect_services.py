@@ -4,7 +4,8 @@ Society has on the SRCF
 """
 
 import os
-import glob
+
+import requests
 
 import srcf.database
 
@@ -62,8 +63,10 @@ def lookup_mysqluser(prefix):
 
 def lookup_mailinglists(prefix):
     """Find all mailing lists owned by `prefix`"""
-    patterns = "/var/lib/mailman/lists/%s-*" % prefix
-    return [os.path.basename(ldir) for ldir in glob.iglob(patterns)]
+    req = requests.get("https://lists.srcf.net/getlists.cgi", params={'prefix': prefix})
+    req.raise_for_status()
+    assert req.headers['content-type'].split(';')[0] == 'text/plain'
+    return [listname for listname in req.text.split("\n") if listname]
 
 def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
@@ -78,7 +81,7 @@ def lookup_website(prefix, is_member):
                     break
     return web
 
-def lookup_all(obj):
+def lookup_all(obj, fast=False):
     """
     Augment `obj` (a :cls:`srcf.database.Member` or
     :cls:`srcf.database.Society`) with several properties
@@ -90,6 +93,8 @@ def lookup_all(obj):
     * mailinglists : string list
     * website: {exists: bool[, state: str]}
 
+    If fast==True, omit properties which are slow to
+    retrieve -- currently just mailinglists
     """
     if isinstance(obj, srcf.database.Member):
         prefix = obj.crsid
@@ -102,5 +107,8 @@ def lookup_all(obj):
     obj.mysqldbs = lookup_mysqldbs(prefix)
     obj.pguser = lookup_pguser(prefix)
     obj.pgdbs = lookup_pgdbs(prefix)
-    obj.mailinglists = lookup_mailinglists(prefix)
     obj.website = lookup_website(prefix, isinstance(obj, srcf.database.Member))
+
+    if not fast:
+        obj.mailinglists = lookup_mailinglists(prefix)
+

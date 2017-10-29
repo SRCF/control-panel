@@ -15,8 +15,8 @@ def home():
     except KeyError:
         return redirect(url_for('signup.signup'))
 
-    inspect_services.lookup_all(mem)
+    inspect_services.lookup_all(mem, fast=True)
     for soc in mem.societies:
-        inspect_services.lookup_all(soc)
+        inspect_services.lookup_all(soc, fast=True)
 
     return render_template("home.html", member=mem)

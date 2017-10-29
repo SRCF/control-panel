@@ -28,13 +28,6 @@
                     {%- endfor %}
                 </li>
                 {%- endif %}
-                {%- if member.mailinglists %}
-                <li>Mailing lists:
-                    {%- for list in member.mailinglists|sort %}
-                    <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
             </ul>
         </li>
     </ul>
@@ -68,13 +61,6 @@
                 <li>PostgreSQL databases:
                     {%- for db in soc.pgdbs|sort %}
                     <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-                {%- if soc.mailinglists %}
-                <li>Mailing lists:
-                    {%- for list in soc.mailinglists|sort %}
-                    <a href="https://www.srcf.net/mailman/admin/{{ list }}" class="data">{{ list }}</a>{% if not loop.last %},{% endif %}
                     {%- endfor %}
                 </li>
                 {%- endif %}
