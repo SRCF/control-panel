@@ -108,8 +108,9 @@ mysql&gt;</pre>
                 <p>Database{% if member.pgdbs|length > 1 %}s{% else %} name{% endif %}: {% for db in member.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</p>
                 <div class="info">
                     <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                    <pre class="shell"><strong>{{ member.crsid }}@pip $ psql{% if member.pgdbs|length > 1 %} <em>database</em>{% elif not member.pgdbs[0] == member.crsid %} {{ member.mysqldbs[0] }}{% endif %}</strong>
-psql (9.1.23)
+                    <pre class="shell"><strong>{{ member.crsid }}@pip $ psql -h postgres{% if member.pgdbs|length > 1 %} <em>database</em>{% elif not member.pgdbs[0] == member.crsid %} {{ member.mysqldbs[0] }}{% endif %}</strong>
+psql (9.5.9)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
 Type "help" for help.
 
 {% if member.pgdbs|length > 1 %}<em>database</em>{% else %}{{ member.mysqldbs[0] }}{% endif %}=&gt;</pre>
