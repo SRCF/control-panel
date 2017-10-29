@@ -51,7 +51,7 @@ def sql_exec(job, cur, desc, sql, *vals):
     job.log(desc)
     try:
         cur.execute(sql, vals)
-    except (MySQLdb.Error, pgdb.DatabaseError) as e:
+    except (pymysql.MySQLError, psycopg2.Error) as e:
         raise JobFailed(desc, str(e))
 
 
