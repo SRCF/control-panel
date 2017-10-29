@@ -22,6 +22,16 @@ def home():
     for job in jobs: job.resolve_references(sess)
     return render_template("jobs/home.html", crsid=utils.raven.principal, jobs=jobs, page=page, max_pages=max_pages)
 
+@bp.route('/jobs/<name>')
+def society_home(name):
+    society = utils.get_society(name)
+    page = int(request.args["page"]) if "page" in request.args else 1
+    jobs = Job.find_by_society(sess, name)
+    max_pages = int(math.ceil(len(jobs) / float(per_page)))
+    jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
+    for job in jobs: job.resolve_references(sess)
+    return render_template("jobs/home.html", crsid=utils.raven.principal, jobs=jobs, page=page, max_pages=max_pages)
+
 @bp.route('/jobs/<int:id>')
 def status(id):
     job = Job.find(sess, id)

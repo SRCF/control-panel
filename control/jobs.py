@@ -111,6 +111,14 @@ class Job(object):
         return [Job.of_row(r) for r in jobs]
 
     @classmethod
+    def find_by_society(cls, sess, name):
+        job_row = db_Job
+        jobs = sess.query(job_row) \
+                    .filter(db_Job.args["society"] == name) \
+                    .order_by(job_row.job_id.desc())
+        return [Job.of_row(r) for r in jobs]
+
+    @classmethod
     def find(cls, sess, id):
         job = sess.query(database.Job).get(id)
         if not job:
