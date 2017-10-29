@@ -95,7 +95,7 @@ def reset_password(type):
                          "srcf": None}[type]
 
         if type == "srcf":
-            affects = "password-based access to the shell service, graphical desktop and SFTP"
+            affects = "password-based access to the shell service and SFTP"
         else:
             affects = "access to " + web_interface + ", as well as any scripts that access databases using your account"
 

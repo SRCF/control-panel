@@ -11,10 +11,10 @@
             <p>This address will be subscribed to the <code>soc-srcf</code> and <code>soc-srcf-users</code> mailing lists, and will be used if the sysadmins need to contact you about your account.</p>
             <p>Note that this does not affect the delivery of emails sent to <span class="data">{{ member.crsid }}@srcf.net</span>.  By default, mail will be forwarded to the address you provided when first signing up.  See details on <a href="https://www.srcf.net/faq/email#forwarding">configuring email forwarding</a> for how to amend or disable this.
         </div>
-        <h3>Shell, files &amp; desktop</h3>
+        <h3>Shell &amp; files</h3>
         <p>Username: <span class="data">{{ member.crsid }}</span> <a href="{{ url_for('member.reset_password', type='srcf') }}" rel="modal">Reset password</a></p>
         <div class="info">
-            <p>Your password is used to login to the shell server <code>shell.srcf.net</code>, file server <code>files.srcf.net</code>, web desktop and more.</p>
+            <p>Your password is used to login to the shell server <code>shell.srcf.net</code>, file server <code>files.srcf.net</code> and more.</p>
             <p>A random password was issued when you first signed up.  You can change this to something more memorable or secure from the SRCF shell:
             <pre class="shell"><strong>{{ member.crsid }}@pip $ passwd</strong>
 Changing NIS account information for {{ member.crsid }} on pip.srcf.net.
