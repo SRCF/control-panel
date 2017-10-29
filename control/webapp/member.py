@@ -32,6 +32,12 @@ def update_email_address():
             error = "That's the address we have already."
         elif not utils.email_re.match(email):
             error = "That address doesn't look valid."
+        elif email.endswith("@srcf.net"):
+            error = "This should be an external email address."
+        elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk")):
+            named = email.split("@")[0]
+            if not named == crsid:
+                error = "You should use only your own Hermes address."
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
