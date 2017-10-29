@@ -38,7 +38,7 @@
         {%- for soc in member.societies|sort(attribute='society') %}
         <li class="acct">
             <div class="head">
-                <span class="data">{{ soc.society }}</span> &bullet; <span class="data">{{ soc.description }}</span> &mdash; <a href="{{ url_for('society.home', society=soc.society) }}">Manage</a>
+                <span class="data">{{ soc.society }}</span> &bullet; <span class="data">{{ soc.description }}</span> &mdash; <a href="{{ url_for('society.home', society=soc.society) }}">Manage</a>  &bullet; <a href="{{ url_for('jobs.society_home', name=soc.society) }}">Jobs</a>
             </div>
             <ul class="acctattribs">
                 <li class="meta">Date created: <span class="data">{{ soc.joined.strftime('%B %G') }}</span></li>

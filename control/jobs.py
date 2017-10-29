@@ -113,8 +113,9 @@ class Job(object):
     @classmethod
     def find_by_society(cls, sess, name):
         job_row = db_Job
+        d = { "society": name } 
         jobs = sess.query(job_row) \
-                    .filter(db_Job.args["society"] == name) \
+                    .filter(job_row.args.contains(d)) \
                     .order_by(job_row.job_id.desc())
         return [Job.of_row(r) for r in jobs]
 

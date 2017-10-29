@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; Job history for {{ crsid }}</h1>
+    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; Job history for {{ owner_in_context }}</h1>
     {%- if max_pages > 1 %}
     <p>Page: {% for i in range(1, max_pages + 1) %}{% if i == page %}<strong>{{ i }}</strong>{% else %}<a href="?page={{ i }}" {% if i == page + 1 %}rel="next"{% elif i == page - 1 %}rel="prev"{% endif %}>{{ i }}</a>{% endif %}{% if not loop.last %} {% endif %}{% endfor %}</p>
     {%- endif %}
