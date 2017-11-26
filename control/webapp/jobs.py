@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, url_for
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from ..jobs import Job, Society
+from ..jobs import Job, Society, SocietyJob
 from srcf.database import queries
 
 import math
@@ -52,7 +52,7 @@ def status(id):
 
     can_view_for_society = False
     
-    if job.owner and hasattr(job, "society"):
+    if job.owner and isinstance(job, SocietyJob):
         soc = job.society
         can_view_for_society = (utils.raven.principal in soc)
 

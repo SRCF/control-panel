@@ -180,6 +180,10 @@ class Job(object):
         self.state_message = message
 
 
+class SocietyJob(Job):
+    society_society = property(lambda s: s.row.args["society"])
+
+
 @add_job
 class Signup(Job):
     JOB_TYPE = 'signup'
@@ -362,7 +366,7 @@ class ResetUserMailingListPassword(Job):
         subproc_call(self, "Reset list password", ["/usr/lib/mailman/bin/change_pw", "-l", self.listname])
 
 @add_job
-class CreateSociety(Job):
+class CreateSociety(SocietyJob):
     JOB_TYPE = 'create_society'
 
     def __init__(self, row):
@@ -385,7 +389,6 @@ class CreateSociety(Job):
         }
         return cls.create(member, args, True)
 
-    society      = property(lambda s: s.row.args["society"])
     description  = property(lambda s: s.row.args["description"])
     admin_crsids = property(lambda s: s.row.args["admins"].split(","))
 
@@ -440,7 +443,7 @@ class CreateSociety(Job):
     def __str__(self): return "Create society: {0.society} ({0.description})".format(self)
 
 @add_job
-class ChangeSocietyAdmin(Job):
+class ChangeSocietyAdmin(SocietyJob):
     JOB_TYPE = 'change_society_admin'
 
     def __init__(self, row):
@@ -466,7 +469,6 @@ class ChangeSocietyAdmin(Job):
              or requesting_member == target_member
         return cls.create(requesting_member, args, require_approval)
 
-    society_society     = property(lambda s: s.row.args["society"])
     target_member_crsid = property(lambda s: s.row.args["target_member"])
     action              = property(lambda s: s.row.args["action"])
 
@@ -540,7 +542,7 @@ class ChangeSocietyAdmin(Job):
             self.rm_admin(sess)
 
 @add_job
-class CreateSocietyMailingList(Job):
+class CreateSocietyMailingList(SocietyJob):
     JOB_TYPE = 'create_society_mailing_list'
 
     def __init__(self, row):
@@ -559,7 +561,6 @@ class CreateSocietyMailingList(Job):
         require_approval = member.danger or society.danger
         return cls.create(member, args, require_approval)
 
-    society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<CreateSocietyMailingList {0.society_society}-{0.listname}>".format(self)
@@ -580,7 +581,7 @@ class CreateSocietyMailingList(Job):
         subproc_call(self, "Generate aliases", ["gen_alias", full_listname])
 
 @add_job
-class ResetSocietyMailingListPassword(Job):
+class ResetSocietyMailingListPassword(SocietyJob):
     JOB_TYPE = 'reset_society_mailing_list_password'
 
     def __init__(self, row):
@@ -599,7 +600,6 @@ class ResetSocietyMailingListPassword(Job):
         require_approval = member.danger or society.danger
         return cls.create(member, args, require_approval)
 
-    society_society = property(lambda s: s.row.args["society"])
     listname = property(lambda s: s.row.args["listname"])
 
     def __repr__(self): return "<ResetSocietyMailingListPassword {0.listname}>".format(self)
@@ -671,7 +671,7 @@ class ResetMySQLUserPassword(Job):
     def __str__(self): return "Reset user MySQL password: {0.owner.crsid} ({0.owner.name})".format(self)
 
 @add_job
-class CreateMySQLSocietyDatabase(Job):
+class CreateMySQLSocietyDatabase(SocietyJob):
     JOB_TYPE = 'create_mysql_society_database'
 
     def __init__(self, row):
@@ -685,8 +685,6 @@ class CreateMySQLSocietyDatabase(Job):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
         return cls.create(member, args, require_approval)
-
-    society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -721,7 +719,7 @@ class CreateMySQLSocietyDatabase(Job):
     def __str__(self): return "Create society MySQL database: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
-class ResetMySQLSocietyPassword(Job):
+class ResetMySQLSocietyPassword(SocietyJob):
     JOB_TYPE = 'reset_mysql_society_password'
 
     def __init__(self, row):
@@ -735,8 +733,6 @@ class ResetMySQLSocietyPassword(Job):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
         return cls.create(member, args, require_approval)
-
-    society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -839,7 +835,7 @@ class ResetPostgresUserPassword(Job):
 
 
 @add_job
-class CreatePostgresSocietyDatabase(Job):
+class CreatePostgresSocietyDatabase(SocietyJob):
     JOB_TYPE = 'create_postgres_society_database'
 
     def __init__(self, row):
@@ -853,8 +849,6 @@ class CreatePostgresSocietyDatabase(Job):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
         return cls.create(member, args, require_approval)
-
-    society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
         crsid = self.owner.crsid
@@ -913,7 +907,7 @@ class CreatePostgresSocietyDatabase(Job):
     def __str__(self): return "Create society PostgreSQL database: {0.society.society} ({0.society.description})".format(self)
 
 @add_job
-class ResetPostgresSocietyPassword(Job):
+class ResetPostgresSocietyPassword(SocietyJob):
     JOB_TYPE = 'reset_postgres_society_password'
 
     def __init__(self, row):
@@ -927,8 +921,6 @@ class ResetPostgresSocietyPassword(Job):
         args = {"society": society.society}
         require_approval = society.danger or member.danger
         return cls.create(member, args, require_approval)
-
-    society_society = property(lambda s: s.row.args["society"])
 
     def run(self, sess):
         crsid = self.owner.crsid
