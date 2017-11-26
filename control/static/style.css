@@ -1,4 +1,4 @@
-@media (min-width: 1000px) {
+/* @media (min-width: 1000px) {
     .col {
         width: 48%;
         margin-bottom: 20px;
@@ -152,13 +152,35 @@ p.help-block {
 .modal {
     width: 700px;
 }
+*/
+
+code{
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.card {
+    margin-bottom: 0.5em;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+}
+
+.twocolumns {
+    columns: 35rem;
+}
+
+.card-header .btn{
+    float: right;
+}
+
 ul.traceback {
-	list-style: none;
-	padding: 0.5em;
-	background: #eee;
-	border: 1px solid #aaa;
-	color: #888;
+    list-style: none;
+    padding: 0.5em;
+    background: #eee;
+    border: 1px solid #aaa;
+    color: #888;
 }
 ul.traceback li {
-	white-space: pre-wrap;
+    white-space: pre-wrap;
 }

@@ -1,75 +1,91 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="main">
-    <h1>Control Panel</h1>
-    <p>Hello, <span class="data">{{ member.name }}</span>.  Here is the status of your SRCF services. &mdash; <a href="{{ url_for('jobs.home') }}">Job history</a>{% if member is admin %} &bullet; <a href="{{ url_for('admin.home') }}">Control panel admin</a>{% endif %}</p>
-    <h3>Your account</h3>
-    <ul class="acctlist">
-        <li class="acct">
-            <div class="head"><span class="data">{{ member.crsid }}</span> &bullet; <span class="data">{{ member.name }}</span> &mdash; <a href="{{ url_for('member.home') }}">Manage</a></div>
-            <ul class="acctattribs">
-                <li class="meta">Date joined: <span class="data">{{ member.joined.strftime('%B %G') }}</span></li>
-                <li class="meta">Email address: <span class="data">{{ member.email }}</span></li>
-                {%- if member.website %}
-                <li>Website: <a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a>{% if member.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>){% endif %}</li>
-                {%- endif %}
-                {%- if member.mysqldbs %}
-                <li>MySQL databases:
-                    {%- for db in member.mysqldbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-                {%- if member.pgdbs %}
-                <li>PostgreSQL databases:
-                    {%- for db in member.pgdbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-            </ul>
-        </li>
-    </ul>
-    <h3>Your society accounts</h3>
-    {%- if member.societies %}
-    <p>You are currently listed as an administrator for {{ member.societies|length }} society account{{ "" if member.societies|length == 1 else "s" }}. &mdash; <a href="{{ url_for('signup.newsoc') }}">Create new</a></p>
-    <ul class="acctlist">
-        {%- for soc in member.societies|sort(attribute='society') %}
-        <li class="acct">
-            <div class="head">
-                <span class="data">{{ soc.society }}</span> &bullet; <span class="data">{{ soc.description }}</span> &mdash; <a href="{{ url_for('society.home', society=soc.society) }}">Manage</a>  &bullet; <a href="{{ url_for('jobs.society_home', name=soc.society) }}">Jobs</a>
+<div class="container-fluid">
+    <h3>Control Panel</h3>
+    <p>Hello, <b>{{ member.name }}</b>.  Here is the status of your SRCF services.</p>
+    <p><a href="{{ url_for('jobs.home') }}" class="btn btn-secondary">Job history</a>{% if member is admin %} <a href="{{ url_for('admin.home') }}" class="btn btn-secondary">Control panel admin</a>{% endif %}</p>
+    <h4>Your account</h4>
+        <div class="card">
+            <h5 class="card-header"><span class="data">{{ member.name }}</span> <apan class="badge badge-secondary">{{ member.crsid }}</span></h5>
+            <div class="card-body">
+                <ul>
+                    <li class="meta">Date joined: <b>{{ member.joined.strftime('%B %G') }}</b></li>
+                    <li class="meta">Email address: <code>{{ member.email }}</code></li>
+                    {%- if member.website %}
+                    <li>Website: <a href="http://{{ member.crsid }}.user.srcf.net" class="data"><code>{{ member.crsid }}.user.srcf.net</code></a>{% if member.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>){% endif %}</li>
+                    {%- endif %}
+                    {%- if member.mysqldbs %}
+                    <li>
+                        MySQL databases:
+                        {%- for db in member.mysqldbs|sort %}
+                        <code>{{ db }}</code>{% if not loop.last %},{% endif %}
+                        {%- endfor %}
+                    </li>
+                    {%- endif %}
+                    {%- if member.pgdbs %}
+                    <li>
+                        PostgreSQL databases:
+                        {%- for db in member.pgdbs|sort %}
+                        <code>{{ db }}</code>{% if not loop.last %},{% endif %}
+                        {%- endfor %}
+                    </li>
+                    {%- endif %}
+                </ul>
             </div>
-            <ul class="acctattribs">
-                <li class="meta">Date created: <span class="data">{{ soc.joined.strftime('%B %G') }}</span></li>
-                <li class="meta">Administrators:
-                    {%- for admin in soc.admins|sort(attribute='crsid') %}
-                    <abbr title="{{ admin.name }}" class="data">{{ admin.crsid }}</abbr>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- if soc.website.exists %}
-                <li>Website: <a href="http://{{ soc.society }}.soc.srcf.net" class="data">{{ soc.society }}.soc.srcf.net</a>{% if soc.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/{{ soc.society }}/">www.srcf.ucam.org/{{ soc.society }}/</a>){% endif %}</li>
-                {%- endif %}
-                {%- if soc.mysqldbs %}
-                <li>MySQL databases:
-                    {%- for db in soc.mysqldbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-                {%- if soc.pgdbs %}
-                <li>PostgreSQL databases:
-                    {%- for db in soc.pgdbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-            </ul>
-        </li>
+            <div class="card-footer">
+                <a href="{{ url_for('member.home') }}" class="btn btn-secondary">Manage</a>
+            </div>
+        </div>
+    <h4>Your society accounts</h4>
+    {%- if member.societies %}
+    <p>You are currently listed as an administrator for {{ member.societies|length }} society account{{ "" if member.societies|length == 1 else "s" }}.</p>
+    <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-secondary">Create new</a></p>
+    <div class="twocolumns">
+        {%- for soc in member.societies|sort(attribute='society') %}
+        <div class="card">
+            <h5 class="card-header">
+                <span class="data">{{ soc.description }}</span> <apan class="badge badge-secondary">{{ soc.society }}</span>
+            </h5>
+            <div class="card-body">
+                <ul>
+                    <li class="meta">Date created: <b>{{ soc.joined.strftime('%B %G') }}</b></li>
+                    <li class="meta">
+                        Administrators:
+                        {%- for admin in soc.admins|sort(attribute='crsid') %}
+                        <abbr title="{{ admin.name }}"><code>{{ admin.crsid }}</code></abbr>{% if not loop.last %},{% endif %}
+                        {%- endfor %}
+                    </li>
+                    {%- if soc.website.exists %}
+                    <li>Website: <a href="http://{{ soc.society }}.soc.srcf.net" class="data"><code>{{ soc.society }}.soc.srcf.net</code></a>{% if soc.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/{{ soc.society }}/">www.srcf.ucam.org/{{ soc.society }}/</a>){% endif %}</li>
+                    {%- endif %}
+                    {%- if soc.mysqldbs %}
+                    <li>
+                        MySQL databases:
+                        {%- for db in soc.mysqldbs|sort %}
+                        <code>{{ db }}</code>{% if not loop.last %},{% endif %}
+                        {%- endfor %}
+                    </li>
+                    {%- endif %}
+                    {%- if soc.pgdbs %}
+                    <li>
+                        PostgreSQL databases:
+                        {%- for db in soc.pgdbs|sort %}
+                        <code>{{ db }}</code>{% if not loop.last %},{% endif %}
+                        {%- endfor %}
+                    </li>
+                    {%- endif %}
+                </ul>
+            </div>
+            <div class="card-footer">
+                <span><a href="{{ url_for('society.home', society=soc.society) }}" class="btn btn-secondary">Manage</a></span>
+                <span><a href="{{ url_for('jobs.society_home', name=soc.society) }}" class="btn btn-secondary">Jobs</a></span>
+            </div>
+        </div>
         {%- endfor %}
-    </ul>
+    </div>
     {%- else %}
-    <p>You don't currently administrate any society accounts. &mdash; <a href="{{ url_for('signup.newsoc') }}">Create new</a></p>
+    <p>You don't currently administrate any society accounts.</p><p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-secondary">Create new</a></p>
     {%- endif %}
 </div>
 {% endblock %}
