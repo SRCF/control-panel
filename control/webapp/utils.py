@@ -1,3 +1,4 @@
+import os
 from functools import partial
 
 import flask
@@ -79,6 +80,12 @@ def setup_app(app):
     app.jinja_env.globals["sif"] = sif
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
+
+    if not app.secret_key and 'FLASK_SECRET_KEY' in os.environ:
+        app.secret_key = os.environ['FLASK_SECRET_KEY']
+
+    if not app.request_class.trusted_hosts and 'FLASK_TRUSTED_HOSTS' in os.environ:
+        app.request_class.trusted_hosts = os.environ['FLASK_TRUSTED_HOSTS'].split(",")
 
 
 def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
