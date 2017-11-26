@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 from functools import partial
 
 import flask
@@ -6,7 +8,7 @@ import jinja2
 import sqlalchemy.orm
 import raven.flask_glue
 import raven.demoserver as raven_demoserver
-from werkzeug.exceptions import NotFound, Forbidden
+from werkzeug.exceptions import NotFound, Forbidden, HTTPException
 
 import srcf.database
 import srcf.database.queries
@@ -53,7 +55,23 @@ def sif(variable, val):
         return ""
 
 
+def generic_error_handler(error):
+    if isinstance(error, HTTPException):
+        errorcode = error.code
+        tb = None
+    else:
+        errorcode = 500
+        tb = traceback.format_exception(*sys.exc_info())
+    return flask.render_template("error.html", error=error, tb=tb), errorcode
+
+
 def setup_app(app):
+    app.errorhandler(400)(generic_error_handler)
+    for error in range(402, 432):
+        app.errorhandler(error)(generic_error_handler)
+    for error in range(500, 504):
+        app.errorhandler(error)(generic_error_handler)
+
     @app.before_request
     def before_request():
         if getattr(app, "deploy_config", {}).get("test_raven", False):
