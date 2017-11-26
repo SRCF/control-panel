@@ -15,9 +15,9 @@ import sqlalchemy.sql.expression
 import sqlalchemy.ext.compiler
 
 from srcf import database
+from srcf.controllib import jobs
 import srcf.mail
 
-from . import jobs
 from .postgresqlhandler import PostgreSQLHandler
 
 

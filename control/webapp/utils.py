@@ -10,8 +10,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import srcf.database
 import srcf.database.queries
 import srcf.mail
-
-from ..utils import *
+from srcf.controllib.utils import *
 
 
 __all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",

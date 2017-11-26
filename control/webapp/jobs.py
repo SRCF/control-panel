@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, url_for
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from ..jobs import Job, Society, SocietyJob
+from srcf.controllib.jobs import Job, Society, SocietyJob
 from srcf.database import queries
 
 import math
