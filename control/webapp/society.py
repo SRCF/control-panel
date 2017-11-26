@@ -3,10 +3,10 @@ from flask import Blueprint, render_template, request, redirect, url_for
 
 from .utils import srcf_db_sess as sess
 from .utils import create_job_maybe_email_and_redirect, find_mem_society
-from ..jobs import Job
+from srcf.controllib import jobs
+from srcf.controllib.jobs import Job
 
 from . import utils, inspect_services
-from .. import jobs
 
 import re
 

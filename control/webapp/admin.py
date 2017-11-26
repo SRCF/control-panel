@@ -9,7 +9,7 @@ import math
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from ..jobs import Job
+from srcf.controllib.jobs import Job
 
 
 bp = Blueprint("admin", __name__)

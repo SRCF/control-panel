@@ -5,12 +5,12 @@ import re
 from flask import Blueprint, render_template, redirect, url_for, request
 
 from srcf.database import Member, Society
+from srcf.controllib import jobs
 
 from .utils import srcf_db_sess as sess
 from .utils import create_job_maybe_email_and_redirect
 
 from . import utils
-from .. import jobs
 
 SOC_SOCIETY_RE = re.compile(r'^[a-z]+$')
 
