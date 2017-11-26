@@ -9,7 +9,7 @@ import math
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from srcf.controllib.jobs import Job
+from srcf.controllib.jobs import Job, SocietyJob
 
 
 bp = Blueprint("admin", __name__)
@@ -57,7 +57,10 @@ def status(id):
     if not job:
         raise NotFound(id)
 
-    return render_template("jobs/status.html", job=job)
+    job_home_url = url_for('admin.view_jobs', state=job.state)
+    owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
+
+    return render_template("jobs/status.html", job=job, job_home_url=job_home_url, owner_in_context=owner_in_context)
 
 @bp.route('/admin/jobs/<int:id>/approve', defaults={"state": "unapproved", "approved": True})
 @bp.route('/admin/jobs/<int:id>/reject',  defaults={"state": "unapproved", "approved": False})
