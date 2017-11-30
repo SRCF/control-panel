@@ -95,6 +95,7 @@ def setup_app(app):
             flask.g.mysql.close()
 
     app.jinja_env.globals["sif"] = sif
+    app.jinja_env.globals["DOMAIN_WEB"] = os.getenv("DOMAIN_WEB", "https://www.srcf.net")
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
 
