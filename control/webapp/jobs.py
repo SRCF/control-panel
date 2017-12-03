@@ -44,27 +44,15 @@ def status(id):
     if not job:
         raise NotFound(id)
 
-    # as a special case, handle signup Jobs (which have no "owner")
-
-    can_view = \
-           (job.owner and job.owner.crsid == utils.raven.principal)            \
-        or (job.JOB_TYPE == "signup" and job.crsid == utils.raven.principal)
-
-    can_view_for_society = False
-    
-    if job.owner and isinstance(job, SocietyJob):
-        soc = job.society
-        can_view_for_society = (utils.raven.principal in soc)
-
-    if not (can_view or can_view_for_society):
+    if not job.visible_to(utils.raven.principal):
         raise NotFound(id)
 
-    owner_in_context = ""
-    if job.owner and can_view:
-        owner_in_context = job.owner.crsid
-        job_home_url = url_for('jobs.home')
-    elif can_view_for_society:
+    for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.raven.principal
+    if for_society:
         owner_in_context = job.society
         job_home_url = url_for('jobs.society_home', name=owner_in_context)
+    else:
+        owner_in_context = job.owner.crsid
+        job_home_url = url_for('jobs.home')
 
-    return render_template("jobs/status.html", job=job, for_society=(not can_view and can_view_for_society), owner_in_context=owner_in_context, job_home_url=job_home_url)
+    return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url)
