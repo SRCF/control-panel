@@ -1,8 +1,3 @@
-code{
-    padding-left: 0;
-    padding-right: 0;
-}
-
 .card {
     margin-bottom: 0.5em;
     break-inside: avoid;
@@ -10,11 +5,22 @@ code{
     -webkit-column-break-inside: avoid;
 }
 
-.twocolumns {
-    columns: 35rem;
+.card-body {
+    padding-bottom: 0;
 }
 
-.card-header .btn{
+@media (min-width: 576px) {
+    .card-columns {
+        columns: 1;
+    }
+}
+@media (min-width: 992px) {
+    .card-columns {
+        columns: 2;
+    }
+}
+
+.card-header .btn {
     float: right;
 }
 
