@@ -4,7 +4,6 @@
     page-break-inside: avoid;
     -webkit-column-break-inside: avoid;
 }
-
 .card-body {
     padding-bottom: 0;
 }
@@ -20,15 +19,15 @@
     }
 }
 
-.card-header .btn {
-    float: right;
-}
-
 pre.shell {
     background-color: #444;
-    color: white;
+    border-radius: .25rem;
+    color: #ddd;
     padding: 10px;
     white-space: pre-wrap;
+}
+pre.shell b {
+    color: white;
 }
 
 ul.traceback {
