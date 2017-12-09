@@ -3,7 +3,7 @@
 
 {% block body %}
 <h2>Remove administrator</h2>
-<p>Are you sure you want to remove <strong>{{ target.name }}</strong> <small class="text-muted">{{ target.crsid }}</small> from the <strong>{{ society.description }}</strong> <small class="text-muted">{{ society.society }}</small> account?</p>
+<p>Are you sure you want to remove {{ mem_name_crsid(target) }} from the {{ soc_desc_soc(society) }} account?</p>
 <ul>
     <li>They will no longer be able to edit the files of the society website.</li>
     <li>They will no longer be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>

@@ -11,7 +11,7 @@
             <ul class="list-unstyled">
                 {%- for admin in society.admins|sort(attribute='crsid') %}
                     <li>
-                        {{ admin.name }} <small class="text-muted">{{ admin.crsid }}</small>
+                        {{ mem_name_crsid(admin) }}
                         {%- if admin != member %}
                         <a href="{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}" rel="modal" class="close" aria-label="Remove {{ admin.crsid }}" title="Remove {{ admin.crsid }}"><span aria-hidden="true">&times;</span></a>
                         {%- endif %}
