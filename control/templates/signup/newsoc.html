@@ -1,38 +1,42 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; Create Society</h1>
-    <p>To apply for a shared society account on the SRCF, please fill in the form below.</p>
-    <p>Please note that all named users that wish to be administrators on the account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.</p>
-    <p>Once the society account is created, you will be able to use the control panel to create any databases or mailing lists.</p>
-    <form action="{{ url_for('signup.newsoc') }}" method="post" class="signup-form">
-        <div class="form-group{{ sif (errors.society, ' error') }}">
-            <label>Society short name: <input type="text" name="society" maxlength="16" value="{{ society }}" autofocus required></label>
-            {%- if errors.society is defined and errors.society %}
-            <p class="error-help-block">{{ errors.society }}</p>
+<h2>Create society account</h2>
+<p>To apply for a shared society account on the SRCF, please fill in the form below.  Once the society account is created, you will be able to use the control panel to create any databases or mailing lists.</p>
+<p>Please note that all named users that wish to be administrators on the account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.</p>
+<form action="{{ url_for('signup.newsoc') }}" method="post">
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="society">Short name</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="text" id="society" name="society" class="form-control{% if errors.society is defined %} is-invalid{% endif %}" value="{{ society }}" required>
+            {%- if errors.society is defined %}
+                <small class="invalid-feedback">{{ errors.society }}</small>
             {%- endif %}
-            <p class="help-block">This should be a suitable abbreviation or short name for the society, 16 or fewer lowercase letters only &ndash; e.g. "cugac" for the Cambridge University Gaelic Athletic Club.</p>
-            <p class="help-block"><strong>Short names cannot be changed after account creation</strong>, so choose wisely.  This name will form part of your society website URL (<u>name</u>.soc.srcf.net) and mailing addresses (e.g. <u>name</u>-admins@srcf.net).</p>
+            <small class="form-text text-muted">This should be a suitable abbreviation or short name for the society, 16 or fewer lowercase letters only &ndash; e.g. "cugac" for the Cambridge University Gaelic Athletic Club.</small>
+            <small class="form-text text-muted"><strong>Short names cannot be changed after account creation</strong>, so choose wisely.  This name will form part of your society website URL (<strong>name</strong>.soc.srcf.net) and mailing addresses (e.g. <strong>name</strong>-admins@srcf.net).</small>
         </div>
-        <div class="form-group{{ sif(errors.description, ' error') }}">
-            <label>Society full name: <input type="text" name="description" value="{{ description }}" required></label>
-            {%- if errors.description is defined and errors.description %}
-            <p class="error-help-block">{{ errors.description }}</p>
+    </div>
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="description">Full name</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="text" id="description" name="description" class="form-control{% if errors.description is defined %} is-invalid{% endif %}" value="{{ description }}" required>
+            {%- if errors.description is defined %}
+                <small class="invalid-feedback">{{ errors.description }}</small>
             {%- endif %}
-            <p class="help-block">The longer name or description of the society &ndash; e.g. "CU Gaelic Athletic Club".  Abbreviation of "Cambridge University" to "CU" is encouraged.</p>
+            <small class="form-text text-muted">The longer name or description of the society &ndash; e.g. "CU Gaelic Athletic Club".  Abbreviation of "Cambridge University" to "CU" is encouraged.</small>
         </div>
-        <div class="form-group{{ sif(errors.admins, ' error') }}">
-            <label>Administrators:<br><textarea name="admins" rows="3">{{ admins|join("&#13;&#10;"|safe) }}</textarea></label>
-            {%- if errors.admins is defined and errors.admins %}
-            <p class="error-help-block">{{ errors.admins }}</p>
+    </div>
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="admins">Administrators</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="text" id="admins" name="admins" class="form-control{% if errors.admins is defined %} is-invalid{% endif %}" value="{{ admins|join(", "|safe) }}" required>
+            {%- if errors.admins is defined %}
+                <small class="invalid-feedback">{{ errors.admins }}</small>
             {%- endif %}
-            <p class="help-block">Please enter the CRSids of all users to be added as society admins.  A person's CRSid is the part before the "@cam.ac.uk" in his or her University of Cambridge email address.  You must include yourself in this list.</p>
-            <p class="help-block"><strong>It is strongly recommended to nominate at least one additional administrator besides yourself</strong>, in order to maintain continuity of the account in the event of an administrator leaving the University. Accounts with no active admins may be suspended without warning.</p>
+            <small class="form-text text-muted">Please enter the CRSids of all users to be added as society admins, separated by commas.  A person's CRSid is the part before the "@cam.ac.uk" in his or her University of Cambridge email address.  You must include yourself in this list.</small>
+            <small class="form-text text-muted"><strong>It is strongly recommended to nominate at least one additional administrator besides yourself</strong>, in order to maintain continuity of the account in the event of an administrator leaving the University. Accounts with no active admins may be suspended without warning.</small>
         </div>
-        <div class="form-group">
-            <input type="submit" value="Submit">
-        </div>
-    </form>
-</div>
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Create">
+</form>
 {% endblock %}
