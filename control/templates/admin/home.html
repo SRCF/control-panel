@@ -1,23 +1,10 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; Administration</h1>
-    <table>
-        <thead>
-            <tr>
-                {%- for key, count in job_counts %}
-                <th>{{ key|title }}</th>
-                {%- endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                {%- for key, count in job_counts %}
-                <td><a href="{{ url_for('admin.view_jobs', state=key) }}">{{ count }}</a></td>
-                {%- endfor %}
-            </tr>
-        </tbody>
-    </table>
-</div>
+<h2>Job admin</h2>
+<ul class="list-unstyled">
+    {%- for key, count in job_counts %}
+        <li><a href="{{ url_for('admin.view_jobs', state=key) }}">{{ key|title }}: <strong>{{ count }}</strong></a></li>
+    {%- endfor %}
+</ul>
 {% endblock body %}
