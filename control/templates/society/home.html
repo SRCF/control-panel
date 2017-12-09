@@ -2,106 +2,124 @@
 {% from "macros.html" import mem_name_crsid %}
 
 {% block body %}
-<div class="container-fluid">
-    <h3><a href="{{ url_for('home.home') }}">Control Panel</a></h3>
-    <h4>{{ society.description }} <span class="badge badge-secondary">{{ society.society }}</span></h4>
-    <p>Date created: <b>{{ society.joined.strftime('%B %G') }}</b></p>
-    <div class="row">
-        <div class="col-lg">
-            <div class="card">
-                <h5 class="card-header">Administrators</h5>
-                <div class="card-body">
-                    <ul>
-                        {% for admin in society.admins|sort(attribute='crsid') %}
-                            <li>{{ mem_name_crsid(admin) }}{% if admin != member %} <a href="{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}" rel="modal" class="btn btn-danger btn-sm">Remove</a>{% endif %}</li>
-                        {% endfor %}
-                    </ul>
-                    {% if society.pending_admins %}
-                        <p>Pending admins: {% for admin in society.pending_admins|sort(attribute='crsid') %}<span class="badge badge-secondary">{{ admin.crsid }}</span>{% if not loop.last %}, {% endif%}{% endfor %}</p>
-                    {% endif %}
-                    <hr>
-                    <div class="text-muted">
-                        <p>Each society account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code>, databases, and managing the list of administrators as shown above</p>
-                        <p>They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
-                        {% if society.pending_admins %}
-                            <p>There are also pending admins listed above.  These users need to sign up for a personal SRCF account before they can manage this society.</p>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('society.add_admin', society=society.society) }}" rel="modal" class="btn btn-secondary">Add new administrator</a>
-                </div>
+<h2>{{ society.description }} <small class="text-muted">{{ society.society }}</small></h2>
+<p>Date created: <b>{{ society.joined.strftime('%B %G') }}</b></p>
+<div class="card-columns">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Administrators</h4>
+            <ul class="list-unstyled">
+                {%- for admin in society.admins|sort(attribute='crsid') %}
+                    <li>
+                        {{ admin.name }} <small class="text-muted">{{ admin.crsid }}</small>
+                        {%- if admin != member %}
+                        <a href="{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}" rel="modal" class="close" aria-label="Remove {{ admin.crsid }}" title="Remove {{ admin.crsid }}"><span aria-hidden="true">&times;</span></a>
+                        {%- endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            {%- if society.pending_admins %}
+                <p>Pending admins: {% for admin in society.pending_admins|sort(attribute='crsid') %}{{ admin.crsid }}{% if not loop.last %}, {% endif%}{% endfor %}</p>
+            {%- endif %}
+            <hr>
+            <div class="text-muted">
+                <p>Each society account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code>, databases, and managing this list of administrators.</p>
+                <p>They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
+                {%- if society.pending_admins %}
+                    <p>There are also pending admins listed above.  These users need to sign up for a personal SRCF account before they can manage this society.</p>
+                {%- endif %}
             </div>
-            <div class="card">
-                <h5 class="card-header">Website</h5>
-                <div class="card-body">
-                    {% if society.website.exists %}
-                        <p>Website address: <a href="http://{{ society.society }}.soc.srcf.net"><code>{{ society.society }}.soc.srcf.net</code></a></p>
-                        <p>Web root: <code>/societies/{{ society.society }}/public_html</code></p>
-                        {% if society.website.state == "legacy" %}
-                            <p>Legacy URL: <code>www.srcf.ucam.org/{{ society.society }}/</code></p>
-                            <hr>
-                            <div class="text-muted">
-                                <p>We are currently also serving your site from <a href="http://www.srcf.ucam.org/{{ society.society }}/">www.srcf.ucam.org/{{ society.society }}/</a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new URL scheme as default (with a redirect from old to new).</p>
-                            </div>
-                        {% elif society.website.state == "legacyredirect" %}
-                            <p>Legacy redirect: <code>www.srcf.ucam.org/{{ society.society }}/</code></p>
-                            <hr>
-                            <div class="text-muted">
-                                <p>We are also redirecting requests for <span class="data">www.srcf.ucam.org/{{ society.society }}/</span> to your new URL.</p>
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="text-muted">
-                            <p>You don't currently have a website set up.  You can do this by uploading pages to your web root folder, <code>/societies/{{ society.society }}/public_html</code>.  Anything here will then become available at <code>{{ society.society }}.soc.srcf.net</code>.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card">
-                <h5 class="card-header">Mailing lists</h5>
-                <div class="card-body">
-                    {% if society.mailinglists %}
-                        <ul>
-                            {% for list in society.mailinglists|sort %}
-                                <li>
-                                    <p>
-                                        <code><b>{{ list }}</b>@srcf.net</code>
-                                        <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}" rel="modal" class="btn btn-secondary btn-sm">Reset password</a>
-                                    </p>
-                                    <p>
-                                        <a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a> &middot;
-                                        <a href="https://www.srcf.net/mailman/admin/{{ list }}">List admin</a> &middot;
-                                        <a href="https://www.srcf.net/mailman/admindb/{{ list }}">Mod queue</a> &middot;
-                                        <a href="https://www.srcf.net/mailman/roster/{{ list }}">Subscribers</a>
-                                    </p>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        <hr>
-                    {% endif %}
-                    <div class="text-muted">
-                        <p>We provide society Mailman mailing lists with addresses of the form <code>{{ society.society }}-<em>name</em>@srcf.net</code>.</p>
-                        <p>Mailman provides its own admin panel for each list, which can be found at <code>https://www.srcf.net/mailman/admin/<em>list-name</em></code>.</p>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('society.create_mailing_list', society=society.society) }}" rel="modal" class="btn btn-secondary">New mailing list</a>
-                </div>
-           </div>
         </div>
-        <div class="col-lg">
-            <div class="card">
-                <h5 class="card-header">MySQL databases</h5>
-                <div class="card-body">
-                    {% if society.mysqluser %}
-                        <p>Username: <code>{{ society.mysqluser }}</code></p>
-                        {% if society.mysqldbs %}
-                            <p>Database{% if society.mysqldbs|length > 1 %}s{% else %} name{% endif %}: {% for db in society.mysqldbs %}<code>{{ db }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                            <hr>
-                            <div class="text-muted">
-                                <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                                <pre class="shell"><strong>{{ member.crsid }}@pip $ mysql -u {{ member.mysqluser or society.mysqluser }} -p {% if society.mysqldbs|length > 1 %}<em>database</em>{% else %}{{ society.mysqldbs[0] }}{% endif %}</strong>
+        <div class="card-footer">
+            <a href="{{ url_for('society.add_admin', society=society.society) }}" rel="modal" class="btn btn-outline-primary">Add new administrator</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Website</h4>
+            <ul class="list-unstyled">
+                <li>
+                    {%- if society.website.state in ("legacy", "legacyredirect") %}
+                        Primary address:
+                    {%- else %}
+                        Address:
+                    {%- endif %}
+                    {%- if society.website.exists %}
+                        <strong><a href="http://{{ society.society }}.soc.srcf.net">{{ society.society }}.soc.srcf.net</a></strong>
+                    {%- else %}
+                        <strong>{{ society.society }}.soc.srcf.net</strong>
+                    {%- endif %}
+                </li>
+                {%- if society.website.state == "legacy" %}
+                    <li>Legacy URL: <a href="http://www.srcf.ucam.org/~{{ society.society }}/">www.srcf.ucam.org/{{ society.society }}/</a></li>
+                {%- elif society.website.state == "legacyredirect" %}
+                    <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/{{ society.society }}/</span></li>
+                {%- endif %}
+                <li>Web root: <code>/societies/{{ society.society }}/public_html</code></li>
+            <hr>
+            <div class="text-muted">
+                {%- if not society.website.exists %}
+                    <p>You don't currently have a website set up.</p>
+                {%- endif %}
+                <p>Upload pages or files to your web root directory, and they'll be published on your website.  Note that newly-uploaded websites may take up to 20 minutes before they start serving.</p>
+                {%- if society.website.state == "legacy" %}
+                    <p>We are currently also serving your site from <a href="http://www.srcf.ucam.org/{{ society.society }}/"><strong>www.srcf.ucam.org/{{ society.society }}/</strong></a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new primary address as default (with a redirect from old to new).</p>
+                {%- elif society.website.state == "legacyredirect" %}
+                    <p>We are redirecting requests for <strong>www.srcf.ucam.org/{{ society.society }}/</strong> to your primary address.</p>
+                {%- endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Mailing lists</h4>
+            {%- for list in society.mailinglists|sort %}
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ list }}</b>@srcf.net</h6>
+                        <ul class="list-inline">
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a></li>
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admin/{{ list }}">List admin</a></li>
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admindb/{{ list }}">Mod queue</a></li>
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/roster/{{ list }}">Subscribers</a></li>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}" rel="modal" class="btn btn-outline-primary btn-sm">Reset password</a>
+                    </div>
+                </div>
+            {%- endfor %}
+            {%- if society.mailinglists %}
+                <hr>
+            {%- endif %}
+            <div class="text-muted">
+                <p>We provide society Mailman mailing lists with addresses of the form <strong>{{ society.society }}-<em>name</em>@srcf.net</strong>.</p>
+                <p>Mailman provides its own admin panel for each list, which can be found at <strong>https://www.srcf.net/mailman/admin/<em>list</em></strong>.</p>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('society.create_mailing_list', society=society.society) }}" rel="modal" class="btn btn-outline-primary">New mailing list</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">MySQL databases</h4>
+            {%- if society.mysqluser %}
+                <ul class="list-unstyled">
+                    <li>Username: <code>{{ society.mysqluser }}</code></li>
+                    {%- if society.mysqldbs %}
+                        <li>
+                            Database{% if society.mysqldbs|length > 1 %}s{% else %} name{% endif %}:
+                            {%- for db in society.mysqldbs %}
+                            <code>{{ db }}</code>
+                            {%- endfor %}
+                        </li>
+                    {%- endif %}
+                </ul>
+                <hr>
+                <div class="text-muted">
+                    <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
+                    <pre class="shell"><b>{{ member.crsid }}@pip $ mysql -u {{ society.mysqluser }} -p {% if society.mysqldbs|length == 1 %}{{ society.mysqldbs[0] }}{% else %}<i>database</i>{% endif %}</b>
 Enter password:
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 ...
@@ -109,69 +127,85 @@ Welcome to the MySQL monitor.  Commands end with ; or \g.
 Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 mysql&gt;</pre>
-                                <p>Here, <code>-u {{ member.mysqluser or society.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the password, and {% if society.mysqldbs|length > 1 %}<code><em>database</em></code> at the end switches to the database of that name{% else %}<code>{{ society.mysqldbs[0] }}</code> at the end switches to the society's database{% endif %}.</p>
-                                <p>Note that you can connect with either the society MySQL account, or your personal MySQL account.  Any scripts or sites in your society file space should use the society account, in order to avoid leaking your personal password to other admins.</p>
-                            </div>
-                        {% else %}
-                            <hr>
-                            <div class="text-muted">
-                                <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="text-muted">
-                            <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
-                        </div>
-                    {% endif %}
+                    <p>
+                        Here, <code>-u {{ society.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the corresponding password, and
+                        {%- if society.mysqldbs|length == 1 %}
+                            <code>{{ society.mysqldbs[0] }}</code> at the end connects to the society database
+                        {%- else %}
+                            <code><em>database</em></code> at the end switches to the database of that name
+                        {%- endif -%}
+                        .  On the shell, you can connect using your own account, whereas any scripts or software should use the society account.
+                    </p>
                 </div>
-                <div class="card-footer">
-                    {% if society.mysqluser %}
-                        <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}" rel="modal" class="btn btn-secondary">Reset password</a>
-                    {% endif %}
-                    {% if not society.mysqldbs %}
-                        <a href="{{ url_for('society.create_database', society=society.society, type='mysql') }}" rel="modal" class="btn btn-secondary">Create database{% if not society.mysqluser %} and user{% endif %}</a>
-                    {% endif %}
-                </div>
+            {%- else %}
+            <div class="text-muted">
+                <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
             </div>
-            <div class="card">
-                <h5 class="card-header">PostgreSQL databases</h5>
-                <div class="card-body">
-                    {% if society.pguser %}
-                        <p>Username: <code>{{ society.pguser }}</code></p>
-                        {% if society.pgdbs %}
-                            <p>Database{% if society.pgdbs|length > 1 %}s{% else %} name{% endif %}: {% for db in society.pgdbs %}<code>{{ db }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                            <hr>
-                            <div class="text-muted">
-                                <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                                <pre class="shell"><strong>{{ member.crsid }}@pip $ psql -h postgres {% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.pgdbs[0] }}{% endif %}</strong>
+            {%- endif %}
+        </div>
+        <div class="card-footer">
+            {%- if society.mysqluser %}
+            <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- endif %}
+            {%- if not society.mysqldbs %}
+            <a href="{{ url_for('society.create_database', society=society.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create society database{% if not society.mysqluser %} and user{% endif %}</a>
+            {%- endif %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">PostgreSQL databases</h4>
+            {%- if society.pguser %}
+                <ul class="list-unstyled">
+                    <li>Username: <code>{{ society.pguser }}</code></li>
+                    {%- if society.pgdbs %}
+                        <li>
+                            Database{% if society.pgdbs|length > 1 %}s{% else %} name{% endif %}:
+                            {%- for db in society.pgdbs %}
+                            <code>{{ db }}</code>
+                            {%- endfor %}
+                        </li>
+                    {%- endif %}
+                </ul>
+                <hr>
+                <div class="text-muted">
+                    <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
+                    <pre class="shell"><b>{{ member.crsid }}@pip $ psql -h postgres {% if society.pgdbs|length == 1 %}{{ society.pgdbs[0] }}{% else %}<i>database</i>{% endif %}</b>
 psql (9.5.9)
 SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
 Type "help" for help.
 
-{% if society.pgdbs|length > 1 %}<em>database</em>{% else %}{{ society.pgdbs[0] }}{% endif %}=&gt;</pre>
-                                {% if society.pgdbs|length > 1 %}
-                                    <p>Here, <code><em>database</em></code> switches to the database of that name.</p>
-                                {% else %}
-                                    <p>Here, <code>{{ society.pgdbs[0] }}</code> switches to the society's database.</p>
-                                {% endif %}
-                                <p>You don't need to provide a password, authentication is handled by the currently logged in user (so scripts running as your account also do not need a password).</p>
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="text-muted">
-                            <p>This society doesn't have a PostgreSQL user or database at the moment. You can create one below if needed.</p>
-                        </div>
-                    {% endif %}
+{% if society.pgdbs|length == 1 %}{{ society.pgdbs[0] }}{% else %}<i>database</i>{% endif %}=&gt;</pre>
+                    <p>
+                        Here, <code>-h postgres</code> connects to the PostgreSQL server, which is on a different machine to the shell server
+                        {%- if society.pgdbs|length == 1 -%}
+                            {%- if society.pgdbs[0] == member.crsid -%}
+                                .  By default, you are connected to the database that matches your logon username.
+                            {%- else -%}
+                                , and <code>{{ society.pgdbs[0] }}</code> switches to your database.
+                            {%- endif -%}
+                        {%- else -%}
+                            , and <code><em>database</em></code> switches to the database of that name.
+                            {%- if society.pgdbs and society.pgdbs[0] == member.crsid %}
+                            If omitted, you are connected to the database that matches your logon username.
+                            {%- endif %}
+                        {%- endif %}
+                        Ident authentication is available, so passwords shouldn't be needed &ndash; on the shell, you can connect using your own account, whereas any scripts or software use the society account.</p>
+                    </p>
                 </div>
-                <div class="card-footer">
-                    {% if society.pguser %}
-                        <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}" rel="modal" class="btn btn-secondary">Reset password</a>
-                    {% endif %}
-                    {% if not society.pgdbs %}
-                        <a href="{{ url_for('society.create_database', society=society.society, type='postgres') }}" rel="modal" class="btn btn-secondary">Create database{% if not society.pguser %} and user{% endif %}</a>
-                    {% endif %}
+            {%- else %}
+                <div class="text-muted">
+                    <p>You don't have a PostgreSQL user or database at the moment. You can create one below if needed.</p>
                 </div>
-            </div>
+            {%- endif %}
+        </div>
+        <div class="card-footer">
+            {%- if society.pguser %}
+                <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- endif %}
+            {%- if not society.pgdbs %}
+                <a href="{{ url_for('society.create_database', society=society.society, type='postgres') }}" rel="modal" class="btn btn-outline-primary">Create society database{% if not society.pguser %} and user{% endif %}</a>
+            {%- endif %}
         </div>
     </div>
 </div>
