@@ -2,25 +2,21 @@
 {% from "macros.html" import soc_desc_soc %}
 
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ url_for('society.home', society=society.society) }}">{{ society.society }}</a> &rarr; Add Admin</h1>
-    <p>Society accounts are managed by users with personal SRCF accounts.  You can elect an additional administrator, who will be given shared access to the {{ soc_desc_soc(society) }} account.</p>
-    <ul>
-        <li>They will be able to edit the files of the society website.</li>
-        <li>They will be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
-        <li>They will not be provided with existing society account passwords (for example, databases and lists).  You can reset these from the society management page if needed.</li>
-    </ul>
-    <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
-        <div class="form-group{{ sif(error, ' error') }}">
-            <label>New administrator: <input name="crsid" type="text" value="{{ crsid }}" autofocus required></label>
-            {%- if error %}
-            <p class="error-help-block">{{ error }}</p>
-            {%- endif %}
-        </div>
-        <div class="form-group">
-            <input type="submit" value="Confirm">
-            <a href="{{ url_for('society.home', society=society.society) }}" class="cancel">Cancel</a>
-        </div>
-    </form>
-</div>
+<h2>Add administrator</h2>
+<p>Society accounts are managed by users with personal SRCF accounts.  You can elect an additional administrator, who will be given shared access to the <strong>{{ society.description }}</strong> <small class="text-muted">{{ society.society }}</small> account.</p>
+<ul>
+    <li>They will be able to edit the files of the society website.</li>
+    <li>They will be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
+    <li>They will not be provided with existing society account passwords (for example, databases and lists).  You can reset these from the society management page if needed.</li>
+</ul>
+<form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
+    <div class="form-group">
+        <input name="crsid" type="text" class="form-control{% if error %} is-invalid{% endif %}" value="{{ crsid }}" placeholder="Administrator's CRSid" autofocus required>
+        {%- if error %}
+            <small class="invalid-feedback">{{ error }}</small>
+        {%- endif %}
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Add">
+    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
 {% endblock %}

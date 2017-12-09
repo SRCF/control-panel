@@ -1,14 +1,10 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ url_for('society.home', society=society.society) }}">{{ society.society }}</a> &rarr; Create {{ name }} Database</h1>
-    <p>A new society database{% if not soc_user %} and {{ name }} account{% endif %} will be created{% if mem_user %}.  Your personal account will also be granted access to the database{% else %}, along with a personal account for you to use{% endif %}.</p>
-    <form action="{{ url_for('society.create_database', society=society.society, type=type) }}" method="post">
-        <div class="form-group">
-            <input type="submit" value="Confirm">
-            <a href="{{ url_for('society.home', society=society.society) }}" class="cancel">Cancel</a>
-        </div>
-    </form>
-</div>
+<h2>Create {{ name }} database</h2>
+<p>A new society database{% if not soc_user %} and {{ name }} account{% endif %} will be created.</p>
+<form action="{{ url_for('society.create_database', society=society.society, type=type) }}" method="post">
+    <input type="submit" class="btn btn-outline-primary" value="Create">
+    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
 {% endblock %}

@@ -2,21 +2,17 @@
 {% from "macros.html" import mem_name_crsid, soc_desc_soc %}
 
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ url_for('society.home', society=society.society) }}">{{ society.society }}</a> &rarr; Remove Admin</h1>
-    <p>Are you sure you want to remove {{ mem_name_crsid(target) }} from the {{ soc_desc_soc(society) }} account?</p>
-    <ul>
-        <li>They will no longer be able to edit the files of the society website.</li>
-        <li>They will no longer be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
-        <li>If they know society database passwords or society mailing list passwords then they will still know, and be able to use them. You can reset these from the society management page.</li>
-        <li>If they could log into a CMS/webapp/Wordpress, they will continue to be able to do so. You would have to remove their account separately.</li>
-        <li>It is feasible for a malicious admin to leave back-doors; contact the sysadmins if you are concerned.</li>
-    </ul>
-    <form action="{{ url_for('society.remove_admin', society=society.society, target_crsid=target.crsid) }}" method="post">
-        <div class="form-group">
-            <input type="submit" value="Confirm">
-            <a href="{{ url_for('society.home', society=society.society) }}" class="cancel">Cancel</a>
-        </div>
-    </form>
-</div>
+<h2>Remove administrator</h2>
+<p>Are you sure you want to remove <strong>{{ target.name }}</strong> <small class="text-muted">{{ target.crsid }}</small> from the <strong>{{ society.description }}</strong> <small class="text-muted">{{ society.society }}</small> account?</p>
+<ul>
+    <li>They will no longer be able to edit the files of the society website.</li>
+    <li>They will no longer be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
+    <li>If they know society database passwords or society mailing list passwords then they will still know, and be able to use them. You can reset these from the society management page.</li>
+    <li>If they could log into a CMS/webapp/Wordpress, they will continue to be able to do so. You would have to remove their account separately.</li>
+    <li>It is feasible for a malicious admin to leave back-doors; contact the sysadmins if you are concerned.</li>
+</ul>
+<form action="{{ url_for('society.remove_admin', society=society.society, target_crsid=target.crsid) }}" method="post">
+    <input type="submit" class="btn btn-outline-primary" value="Remove">
+    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
 {% endblock %}
