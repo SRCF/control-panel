@@ -1,7 +1,0 @@
-{
-    "pythonpath": "/societies/srcf-admin/control-hackday",
-    "hostname": "srcf-admin.soc.srcf.net",
-    "secret": "",
-    "test_raven": false,
-    "web_directory": "/control-hackday"
-}
