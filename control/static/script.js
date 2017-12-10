@@ -11,7 +11,7 @@ $(document).ready(function() {
                 $("#action-modal").modal();
             },
             error: function(jqXHR, status, error) {
-                $("#action-modal-content").html("Sorry, we're having trouble doing that.");
+                $("#action-modal-content").html('Sorry, we\'re having trouble doing that.  Your Raven session may have expired &ndash; please reload the page and try again, or <a href="mailto:soc-srcf-admin@lists.cam.ac.uk">contact the sysadmins</a> if this message persists.');
                 $("#action-modal").modal();
             }
         });
