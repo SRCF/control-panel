@@ -29,6 +29,8 @@ srcf_db_sess = sqlalchemy.orm.scoped_session(
     scopefunc=flask._request_ctx_stack.__ident_func__
 )
 
+class InactiveUser(NotFound): pass
+
 # Use the request session in srcf.database.queries
 get_member = partial(srcf.database.queries.get_member,  session=srcf_db_sess)
 def get_society(name):
@@ -120,13 +122,15 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
 
     return flask.redirect(flask.url_for('jobs.status', id=j.job_id))
 
-def find_member():
+def find_member(allow_inactive=False):
     """ Gets a CRSID and member object from the Raven authentication data """
     crsid = raven.principal
     try:
         mem = get_member(crsid)
     except KeyError:
         raise NotFound
+    if not mem.user and not allow_inactive:
+        raise InactiveUser
 
     return crsid, mem
 
@@ -138,6 +142,8 @@ def find_mem_society(society):
         soc = get_society(society)
     except KeyError:
         raise NotFound
+    if not mem.user:
+        raise InactiveUser
 
     if mem not in soc.admins:
         raise Forbidden

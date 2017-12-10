@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+from werkzeug.exceptions import NotFound
 
 from .utils import srcf_db_sess as sess
 from .utils import create_job_maybe_email_and_redirect, find_member
@@ -10,13 +11,47 @@ import re
 bp = Blueprint("member", __name__)
 
 
+def validate_email(crsid, email):
+    if not email:
+        return "Please enter your email address."
+    elif not utils.email_re.match(email):
+        return "That address doesn't look valid."
+    elif email.endswith("@srcf.net"):
+        return "This should be an external email address."
+    elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk")):
+        named = email.split("@")[0]
+        if not named == crsid:
+            return "You should use only your own Hermes address."
+    return None
+
+
 @bp.route('/member')
 def home():
-    crsid, mem = find_member()
+    crsid, mem = find_member(allow_inactive=True)
+    if not mem.user:
+        return redirect(url_for('member.reactivate'))
 
     inspect_services.lookup_all(mem)
 
     return render_template("member/home.html", member=mem)
+
+@bp.route("/reactivate", methods=["GET", "POST"])
+def reactivate():
+    crsid, mem = find_member(allow_inactive=True)
+    if mem.user:
+        raise NotFound
+
+    email = mem.email
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        error = validate_email(crsid, email)
+
+    if request.method == "POST" and not error:
+        return create_job_maybe_email_and_redirect(
+                    jobs.Reactivate, member=mem, email=email)
+    else:
+        return render_template("member/reactivate.html", member=mem, email=email, error=error)
 
 @bp.route("/member/email", methods=["GET", "POST"])
 def update_email_address():
@@ -26,18 +61,10 @@ def update_email_address():
     error = None
     if request.method == "POST":
         email = request.form.get("email", "").strip()
-        if not email:
-            error = "Please enter your email address."
-        elif mem.email == email:
+        if mem.email == email:
             error = "That's the address we have already."
-        elif not utils.email_re.match(email):
-            error = "That address doesn't look valid."
-        elif email.endswith("@srcf.net"):
-            error = "This should be an external email address."
-        elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk")):
-            named = email.split("@")[0]
-            if not named == crsid:
-                error = "You should use only your own Hermes address."
+        else:
+            error = validate_email(crsid, email)
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
