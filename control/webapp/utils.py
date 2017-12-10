@@ -113,6 +113,8 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     if j.state == "unapproved":
         body = "You can approve or reject the job here: {0}" \
                 .format(flask.url_for("admin.view_jobs", state="unapproved", _external=True))
+        if j.owner.danger:
+            body = "WARNING: This user has their danger flag set.\n\n" + body
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
         srcf.mail.mail_sysadmins(subject, body)
 
