@@ -140,7 +140,7 @@ def find_mem_society(society):
         raise NotFound
 
     if mem not in soc.admins:
-        auth_admin()
+        raise Forbidden
 
     return mem, soc
 

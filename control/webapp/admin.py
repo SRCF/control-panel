@@ -19,7 +19,6 @@ def before_request():
     utils.auth_admin()
 
 @bp.route('/admin')
-@bp.route('/admin/')
 def home():
     job_row = srcf.database.Job
     q = sess.query(
