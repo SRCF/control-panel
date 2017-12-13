@@ -61,7 +61,7 @@ def create_mailing_list():
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
                     jobs.CreateUserMailingList, member=mem,
-                    listname=request.form["listname"])
+                    listname=listname)
     else:
         return render_template("member/create_mailing_list.html", member=mem, listname=listname, error=error)
 

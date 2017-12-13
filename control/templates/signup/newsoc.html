@@ -9,7 +9,7 @@
     <div class="form-group row">
         <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="society">Short name</label>
         <div class="col-lg-10 col-md-9 col-sm-8">
-            <input type="text" id="society" name="society" class="form-control{% if errors.society is defined %} is-invalid{% endif %}" value="{{ society }}" required>
+            <input type="text" id="society" name="society" class="form-control{% if errors.society is defined %} is-invalid{% endif %}" value="{{ society }}" autofocus required>
             {%- if errors.society is defined %}
                 <small class="invalid-feedback">{{ errors.society }}</small>
             {%- endif %}
