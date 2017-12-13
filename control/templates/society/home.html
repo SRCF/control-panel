@@ -56,6 +56,27 @@
                     <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/{{ society.society }}/</span></li>
                 {%- endif %}
                 <li>Web root: <code>/societies/{{ society.society }}/public_html</code></li>
+            </ul>
+            {%- if society.website.vhosts %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Custom domain</th>
+                            <th>Document root</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {%- for domain in society.website.vhosts %}
+                            <tr>
+                                <td>{% if domain.wild %}<i class="fa fa-indent" title="Wildcard subdomains"></i> {% endif %}{{ domain.domain }}</td>
+                                <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %}</td>
+                                <td><a href="{{ url_for('society.remove_vhost', society=society.society, domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a></td>
+                            </tr>
+                        {%- endfor %}
+                    </tbody>
+                </table>
+            {%- endif %}
             <hr>
             <div class="text-muted">
                 {%- if not society.website.exists %}
@@ -67,7 +88,11 @@
                 {%- elif society.website.state == "legacyredirect" %}
                     <p>We are redirecting requests for <strong>www.srcf.ucam.org/{{ society.society }}/</strong> to your primary address.</p>
                 {%- endif %}
+                <p>If you have a custom domain, you can serve your SRCF website from the root domain or any subdomain.  It will need to resolve to our server, after which it can serve either your <code>public_html</code> directory, or a specific subdirectory inside.</p>
             </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('society.add_vhost', society=society.society) }}" rel="modal" class="btn btn-outline-primary">Add custom domain</a>
         </div>
     </div>
     <div class="card">

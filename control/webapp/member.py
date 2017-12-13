@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+from werkzeug.exceptions import NotFound, Forbidden
 
 from .utils import srcf_db_sess as sess
 from .utils import create_job_maybe_email_and_redirect, find_member
 from . import utils, inspect_services
 from srcf.controllib import jobs
+from srcf.database import Domain
 
 import re
 
@@ -117,3 +119,50 @@ def create_database(type):
                    "postgres": inspect_services.lookup_pguser}[type]
         has_user = inspect(mem.crsid)
         return render_template("member/create_database.html", member=mem, type=type, name=formatted_name, user=has_user)
+
+@bp.route("/member/domains/add", methods=["GET", "POST"])
+def add_vhost():
+    crsid, mem = find_member()
+
+    domain = ""
+    root = ""
+    errors = {}
+    if request.method == "POST":
+        domain = request.form.get("domain", "").strip()
+        root = request.form.get("root", "").strip()
+        if domain.startswith("www."):
+            domain = domain[4:]
+        if domain:
+            try:
+                record = sess.query(Domain).filter(Domain.domain == domain)[0]
+            except IndexError:
+                pass
+            else:
+                errors["domain"] = "This domain is already registered."
+        else:
+            errors["domain"] = "Please enter a domain or subdomain."
+
+    if request.method == "POST" and not errors:
+        return create_job_maybe_email_and_redirect(
+                    jobs.AddUserVhost, member=mem,
+                    domain=domain, root=root)
+    else:
+        return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
+
+@bp.route("/member/domains/<domain>/remove", methods=["GET", "POST"])
+def remove_vhost(domain):
+    crsid, mem = find_member()
+
+    try:
+        record = sess.query(Domain).filter(Domain.domain == domain)[0]
+    except IndexError:
+        raise NotFound
+    if not record.owner == crsid:
+        raise Forbidden
+
+    if request.method == "POST":
+        return create_job_maybe_email_and_redirect(
+                    jobs.RemoveUserVhost, member=mem,
+                    domain=domain)
+    else:
+        return render_template("member/remove_vhost.html", member=mem, domain=domain)

@@ -5,6 +5,7 @@ from .utils import srcf_db_sess as sess
 from .utils import create_job_maybe_email_and_redirect, find_mem_society
 from srcf.controllib import jobs
 from srcf.controllib.jobs import Job
+from srcf.database import Domain
 
 from . import utils, inspect_services
 
@@ -146,3 +147,50 @@ def create_database(society, type):
         has_mem_user = inspect(mem.crsid)
         has_soc_user = inspect(soc.society)
         return render_template("society/create_database.html", society=soc, member=mem, type=type, name=formatted_name, mem_user=has_mem_user, soc_user=has_soc_user)
+
+@bp.route("/societies/<society>/domains/add", methods=["GET", "POST"])
+def add_vhost(society):
+    mem, soc = find_mem_society(society)
+
+    domain = ""
+    root = ""
+    errors = {}
+    if request.method == "POST":
+        domain = request.form.get("domain", "").strip()
+        root = request.form.get("root", "").strip()
+        if domain.startswith("www."):
+            domain = domain[4:]
+        if domain:
+            try:
+                record = sess.query(Domain).filter(Domain.domain == domain)[0]
+            except IndexError:
+                pass
+            else:
+                errors["domain"] = "This domain is already registered."
+        else:
+            errors["domain"] = "Please enter a domain or subdomain."
+
+    if request.method == "POST" and not errors:
+        return create_job_maybe_email_and_redirect(
+                    jobs.AddSocietyVhost, member=mem, society=soc,
+                    domain=domain, root=root)
+    else:
+        return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+
+@bp.route("/societies/<society>/domains/<domain>/remove", methods=["GET", "POST"])
+def remove_vhost(society, domain):
+    mem, soc = find_mem_society(society)
+
+    try:
+        record = sess.query(Domain).filter(Domain.domain == domain)[0]
+    except IndexError:
+        raise NotFound
+    if not record.owner == soc.society:
+        raise Forbidden
+
+    if request.method == "POST":
+        return create_job_maybe_email_and_redirect(
+                    jobs.RemoveSocietyVhost, member=mem, society=soc,
+                    domain=domain)
+    else:
+        return render_template("society/remove_vhost.html", society=soc, member=mem, domain=domain)

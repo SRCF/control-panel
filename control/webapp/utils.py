@@ -110,6 +110,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     j = cls.new(*args, **kwargs)
     srcf_db_sess.add(j.row)
     srcf_db_sess.flush() # so that job_id is filled out
+    j.resolve_references(srcf_db_sess)
 
     if j.state == "unapproved":
         body = "You can approve or reject the job here: {0}" \
