@@ -15,17 +15,17 @@
       <div class="container">
         <h1 class="navbar-brand mb-0">
           <a class="text-danger" href="{{ DOMAIN_WEB }}/">SRCF</a>
-          <small class="d-none d-sm-inline-block d-md-none d-lg-inline-block"><a class="text-primary" href="{{ DOMAIN_WEB }}">Student-Run Computing Facility</a></small>
+          <small><a class="text-primary" href="{{ DOMAIN_WEB }}">Student-Run Computing Facility</a></small>
         </h1>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('home.home') }}"><i class="fa fa-wrench"></i> <strong>Control Panel</strong></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('home.home') }}"><i class="fa fa-wrench"></i> Control Panel</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ DOMAIN_WEB }}/services"><i class="fa fa-cubes"></i> Services</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ DOMAIN_WEB }}/contact-addresses"><i class="fa fa-life-ring"></i> Contact Us</a></li>
-            <li class="nav-item"><a class="nav-link" href="https://webmail.srcf.net"><i class="fa fa-envelope-o"></i> Webmail</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ DOMAIN_WEB }}/contact"><i class="fa fa-paper-plane-o"></i> Contact</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('signup.signup') }}"><i class="fa fa-user"></i> <strong>Join</strong></a></li>
           </ul>
         </div>
       </div>
@@ -49,21 +49,21 @@
           <div class="col-md-4">
             <h5>Membership</h5>
             <ul class="fa-ul">
-              <li><a href="{{ url_for('signup.signup') }}"><i class="fa fa-li fa-user"></i> Join</a></li>
-              <li><a href="{{ url_for('signup.newsoc') }}"><i class="fa fa-li fa-users"></i> New Group Account</a></li>
-              <li><a href="{{ DOMAIN_WEB }}/services"><i class="fa fa-li fa-cubes"></i> Service List</a></li>
-              <li><a href="{{ DOMAIN_WEB }}/tos"><i class="fa fa-li fa-balance-scale"></i> Terms of Service</a></li>
+              <li><a href="{{ url_for('signup.signup') }}"><i class="fa fa-li fa-user"></i> Join the SRCF</a></li>
+              <li><a href="{{ url_for('signup.newsoc') }}"><i class="fa fa-li fa-users"></i> Create society account</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/services"><i class="fa fa-li fa-cubes"></i> List of services</a></li>
               <li><a href="{{ DOMAIN_WEB }}/donate"><i class="fa fa-li fa-money"></i> Donate</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/tos"><i class="fa fa-li fa-balance-scale"></i> Terms of service</a></li>
             </ul>
           </div>
           <div class="col-md-4">
             <h5>Services</h5>
             <ul class="fa-ul">
-              <li><a href="{{ url_for('home.home') }}"><i class="fa fa-li fa-wrench"></i> Control Panel</a></li>
+              <li><a href="{{ url_for('home.home') }}"><i class="fa fa-li fa-wrench"></i> Control panel</a></li>
               <li><a href="https://webmail.srcf.net"><i class="fa fa-li fa-envelope-o"></i> Webmail</a></li>
-              <li><a href="https://lists.srcf.net"><i class="fa fa-li fa-bullhorn"></i> Mailing Lists</a></li>
-              <li><a href="https://www.srcf.net/terminal/"><i class="fa fa-li fa-terminal"></i> Web Terminal</a></li>
-              <li><a href="http://status.srcf.net"><i class="fa fa-li fa-toggle-on"></i> Server Status</a></li>
+              <li><a href="https://lists.srcf.net"><i class="fa fa-li fa-bullhorn"></i> Mailing lists</a></li>
+              <li><a href="https://www.srcf.net/terminal/"><i class="fa fa-li fa-terminal"></i> Web terminal</a></li>
+              <li><a href="http://status.srcf.net"><i class="fa fa-li fa-toggle-on"></i> Server status</a></li>
             </ul>
           </div>
           <div class="col-md-4">
@@ -72,7 +72,7 @@
               <li><a href="{{ DOMAIN_WEB }}/committee"><i class="fa fa-li fa-id-card-o"></i> Committee</a></li>
               <li><a href="{{ DOMAIN_WEB }}/constitution"><i class="fa fa-li fa-university"></i> Constitution</a></li>
               <li><a href="{{ DOMAIN_WEB }}/minutes/"><i class="fa fa-li fa-book"></i> Minutes</a></li>
-              <li><a href="{{ DOMAIN_WEB }}/contact-addresses"><i class="fa fa-li fa-life-ring"></i> Contact Us</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/contact"><i class="fa fa-li fa-paper-plane-o"></i> Contact addresses</a></li>
               <li><a href="https://wiki.srcf.net"><i class="fa fa-li fa-bookmark-o"></i> Wiki</a></li>
             </ul>
           </div>

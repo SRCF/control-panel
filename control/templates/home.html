@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h2>Control Panel</h2>
+<h2>Control panel</h2>
 <p>Hello, <b>{{ member.name }}</b>.  Here is the status of your SRCF services.</p>
 {%- if member is admin %}
     <p><a href="{{ url_for('admin.home') }}" class="btn btn-outline-danger">Control panel admin</a></p>
