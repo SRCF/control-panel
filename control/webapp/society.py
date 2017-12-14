@@ -91,6 +91,10 @@ def create_mailing_list(society):
             error = "Please enter a list name."
         elif re.search(r"[^a-z0-9_-]", listname):
             error = "List names can only contain letters, numbers, hyphens and underscores."
+        else:
+            lists = inspect_services.lookup_mailinglists(society)
+            if "{}-{}".format(society, listname) in lists:
+                error = "This mailing list already exists."
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
@@ -103,6 +107,10 @@ def create_mailing_list(society):
 @bp.route("/societies/<society>/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(society, listname):
     mem, soc = find_mem_society(society)
+
+    lists = inspect_services.lookup_mailinglists(society)
+    if listname not in lists:
+        raise NotFound
 
     if request.method == "POST":
         return create_job_maybe_email_and_redirect(
