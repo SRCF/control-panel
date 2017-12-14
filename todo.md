@@ -1,5 +1,0 @@
- - Job runner.
- - Perhaps some unit tests?
- - Proper deployment.
- - Beautify
- - Restore signup page check

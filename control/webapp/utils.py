@@ -20,7 +20,7 @@ __all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",
            "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin"]
 
 
-raven = raven.flask_glue.AuthDecorator(desc="SRCF control panel")
+raven = raven.flask_glue.AuthDecorator(desc="SRCF control panel", require_ptags=None)
 
 
 # A session to use with the main srcf admin database (PostGres)
@@ -28,6 +28,8 @@ srcf_db_sess = sqlalchemy.orm.scoped_session(
     srcf.database.Session,
     scopefunc=flask._request_ctx_stack.__ident_func__
 )
+
+class InactiveUser(NotFound): pass
 
 # Use the request session in srcf.database.queries
 get_member = partial(srcf.database.queries.get_member,  session=srcf_db_sess)
@@ -115,18 +117,22 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     if j.state == "unapproved":
         body = "You can approve or reject the job here: {0}" \
                 .format(flask.url_for("admin.view_jobs", state="unapproved", _external=True))
+        if j.owner.danger:
+            body = "WARNING: This user has their danger flag set.\n\n" + body
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
         srcf.mail.mail_sysadmins(subject, body)
 
     return flask.redirect(flask.url_for('jobs.status', id=j.job_id))
 
-def find_member():
+def find_member(allow_inactive=False):
     """ Gets a CRSID and member object from the Raven authentication data """
     crsid = raven.principal
     try:
         mem = get_member(crsid)
     except KeyError:
         raise NotFound
+    if not mem.user and not allow_inactive:
+        raise InactiveUser
 
     return crsid, mem
 
@@ -138,9 +144,11 @@ def find_mem_society(society):
         soc = get_society(society)
     except KeyError:
         raise NotFound
+    if not mem.user:
+        raise InactiveUser
 
     if mem not in soc.admins:
-        auth_admin()
+        raise Forbidden
 
     return mem, soc
 

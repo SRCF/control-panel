@@ -19,7 +19,6 @@ def before_request():
     utils.auth_admin()
 
 @bp.route('/admin')
-@bp.route('/admin/')
 def home():
     job_row = srcf.database.Job
     q = sess.query(
@@ -58,9 +57,10 @@ def status(id):
         raise NotFound(id)
 
     job_home_url = url_for('admin.view_jobs', state=job.state)
+    for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.raven.principal
     owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
 
-    return render_template("jobs/status.html", job=job, job_home_url=job_home_url, owner_in_context=owner_in_context)
+    return render_template("jobs/status.html", job=job, job_home_url=job_home_url, for_society=for_society, owner_in_context=owner_in_context)
 
 @bp.route('/admin/jobs/<int:id>/approve', defaults={"state": "unapproved", "approved": True})
 @bp.route('/admin/jobs/<int:id>/reject',  defaults={"state": "unapproved", "approved": False})

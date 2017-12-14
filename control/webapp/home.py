@@ -14,6 +14,8 @@ def home():
         mem = utils.get_member(crsid)
     except KeyError:
         return redirect(url_for('signup.signup'))
+    if not mem.user:
+        return redirect(url_for('member.reactivate'))
 
     inspect_services.lookup_all(mem, fast=True)
     for soc in mem.societies:
