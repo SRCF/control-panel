@@ -6,10 +6,13 @@ from sqlalchemy import func as sql_func
 import srcf.database
 
 import math
+from binascii import unhexlify
+from datetime import datetime
 
 from .utils import srcf_db_sess as sess
 from . import utils
 from srcf.controllib.jobs import Job, SocietyJob
+from srcf.database import JobLog
 
 
 bp = Blueprint("admin", __name__)
@@ -59,11 +62,14 @@ def status(id):
     if not job:
         raise NotFound(id)
 
+    log = list(sess.query(JobLog).filter(JobLog.job_id == id).order_by(JobLog.time))
+
     job_home_url = url_for('admin.view_jobs', state=job.state)
     for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.raven.principal
     owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
 
-    return render_template("jobs/status.html", job=job, job_home_url=job_home_url, for_society=for_society, owner_in_context=owner_in_context)
+    return render_template("admin/status.html", job=job, log=log, job_home_url=job_home_url,
+                           for_society=for_society, owner_in_context=owner_in_context, unhexlify=unhexlify)
 
 @bp.route('/admin/jobs/<int:id>/approve', defaults={"state": "unapproved", "approved": True})
 @bp.route('/admin/jobs/<int:id>/reject',  defaults={"state": "unapproved", "approved": False})
@@ -76,14 +82,16 @@ def set_state(id, state, approved=False):
     if not job.state == state:
         raise Forbidden(id)
 
+    log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
+                 message="Job {0} by sysadmins".format({"unapproved": "approved" if approved else "rejected",
+                                                        "queued": "cancelled",
+                                                        "running": "aborted"}[state]))
     if approved:
         job.set_state("queued")
     else:
-        msg = job.state_message or "Job {0} by sysadmin".format({"unapproved": "rejected",
-                                                                 "queued": "cancelled",
-                                                                 "running": "aborted"}[state])
-        job.set_state("failed", msg)
+        job.set_state("failed", job.state_message or log.message)
 
+    sess.add(log)
     sess.add(job.row)
 
     return redirect(url_for("admin.view_jobs", state=state))
