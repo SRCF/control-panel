@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "admin/home.html" %}
 
 {% block body %}
-<h2>{{ state|title }} jobs</h2>
+{{ super() }}
 {%- if max_pages > 1 %}
     <nav aria-label="Page">
         <ul class="pagination">
@@ -12,10 +12,11 @@
     </nav>
 {%- endif %}
 {%- if jobs %}
-    <table class="table table-sm">
+    <table class="table table-sm jobs">
         <thead>
             <tr>
                 <th>#</th>
+                <th>Time</th>
                 <th>Owner</th>
                 <th>Type</th>
                 <th>Message</th>
@@ -28,6 +29,7 @@
             {%- for job in jobs %}
                 <tr class="{{ job.state }}">
                     <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
+                    <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state_message or ("&mdash;"|safe) }}</td>

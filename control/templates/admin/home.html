@@ -2,9 +2,15 @@
 
 {% block body %}
 <h2>Job admin</h2>
-<ul class="list-unstyled">
-    {%- for key, count in job_counts %}
-        <li><a href="{{ url_for('admin.view_jobs', state=key) }}">{{ key|title }}: <strong>{{ count }}</strong></a></li>
-    {%- endfor %}
-</ul>
+<nav>
+    <ul class="pagination">
+        {%- for key, count in job_counts %}
+            <li class="page-item{% if state is defined and key == state %} active{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.view_jobs', state=key) }}">
+                    {{ key|title }} <span class="badge badge-{% if state is defined and key == state %}light{% else %}primary{% endif %}">{{ count }}</span>
+                </a>
+            </li>
+        {%- endfor %}
+    </ul>
+</nav>
 {% endblock body %}

@@ -12,10 +12,11 @@
     </nav>
 {%- endif %}
 {%- if jobs %}
-    <table class="table table-sm">
+    <table class="table table-sm jobs">
         <thead>
             <tr>
                 <th>#</th>
+                <th>Time</th>
                 <th>Description</th>
                 <th>Status</th>
                 <th>Message</th>
@@ -25,6 +26,7 @@
             {%- for job in jobs %}
                 <tr class="{{ job.state }}">
                     <td><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
+                    <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state|capitalize }}</td>
                     <td>{{ job.state_message or ("&mdash;"|safe) }}</td>

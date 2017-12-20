@@ -3,6 +3,10 @@
     padding-bottom: 15px;
 }
 
+table.jobs tr :nth-child(2) {
+    white-space: nowrap;
+}
+
 pre.shell {
     background-color: #444;
     border-radius: .25rem;
