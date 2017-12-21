@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% set page_title = "Job details" %}
+{% set page_subtitle = "#" ~ job.job_id %}
+{% set page_parent = url_for('jobs.society_home', name=owner_in_context) if for_society else url_for('jobs.home') %}
+
 {% block head %}
 {%- if job.state in ("queued", "running") %}
 <meta http-equiv="refresh" content="3">
@@ -7,11 +11,13 @@
 {% endblock %}
 
 {% block body %}
-<h2>Job #{{ job.job_id }}{% if job.owner %} for {{ owner_in_context }}{% endif %}</h2>
-<p>{{ job }}</p>
-{%- if for_society %}
-    <p>Initiated by: {{ job.owner }}</p>
-{%- endif %}
+<blockquote class="blockquote">{{ job }}</blockquote>
+<p>
+    Owner: {{ owner_in_context }}
+    {%- if for_society %}
+        <br>Initiated by: {{ job.owner }}
+    {%- endif %}
+</p>
 {%- if job.state == "unapproved" %}
     <h3>To be checked by a sysadmin</h3>
     <p>An SRCF sysadmin needs to review this job before it can proceed.  This should not take long, and you should receive an email when it is complete.</p>

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
+{% set page_title = "Join the SRCF" %}
+
 {% block body %}
-<h2>Join the SRCF</h2>
 <p>Hello, and welcome to the SRCF!  Before you can use our services, you'll need to sign up for a personal account.  To apply for SRCF membership, please fill in the form below.</p>
 <p>Note that to assist your application, we have attempted to guess values based on information available to anyone on the CUDN. These are not stored until you complete the application form and give us explicit permission to do so.</p>
 <form action="{{ url_for('signup.signup') }}" method="post">

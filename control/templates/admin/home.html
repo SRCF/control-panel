@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
+{% set page_title = "Job admin" %}
+{% set page_parent = url_for('home.home') %}
+
 {% block body %}
-<h2>Job admin</h2>
 <nav>
     <ul class="pagination">
         {%- for key, count in job_counts %}

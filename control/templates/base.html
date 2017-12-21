@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Control Panel - Student-Run Computing Facility (SRCF)</title>
+    <title>Control Panel{% if page_title is defined %}: {{ page_title }}{% endif %} - Student-Run Computing Facility (SRCF)</title>
     <!-- TODO: Replace back to /_srcf/ -->
     <link href="/_srcf.bs/vendor/css/bootstrap.min.css" rel="stylesheet">
     <link href="/_srcf.bs/vendor/css/font-awesome.min.css" rel="stylesheet">
@@ -31,6 +31,17 @@
       </div>
     </nav>
     <main role="main" class="container">
+      {%- if page_title is defined %}
+        <h2>
+          {%- if page_parent is defined %}
+            <a href="{{ page_parent }}" title="Back"><i class="fa fa-arrow-left"></i></a>
+          {%- endif %}
+          {{ page_title }}
+          {%- if page_subtitle is defined %}
+            <small class="text-muted">{{ page_subtitle }}</small>
+          {%- endif %}
+        </h2>
+      {%- endif %}
       {% block body %}{% endblock %}
     </main>
     <div id="action-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">

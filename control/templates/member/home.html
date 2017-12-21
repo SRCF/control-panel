@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
+{% set page_title = member.name %}
+{% set page_subtitle = member.crsid %}
+{% set page_parent = url_for('home.home') %}
+
 {% block body %}
-<h2>{{ member.name }} <small class="text-muted">{{ member.crsid }}</small></h2>
 <p>Date joined: <b>{{ member.joined.strftime('%B %G') }}</b></p>
+<p><a href="{{ url_for('jobs.home') }}" class="btn btn-outline-secondary">Job history</a></p>
 <div class="card-columns">
     <div class="card">
         <div class="card-body">
