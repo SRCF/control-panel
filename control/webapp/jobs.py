@@ -27,7 +27,7 @@ def home():
 
 @bp.route('/jobs/<name>')
 def society_home(name):
-    society = utils.get_society(name)
+    _, society = utils.find_mem_society(name)
     page = int(request.args["page"]) if "page" in request.args else 1
     jobs = Job.find_by_society(sess, name)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
