@@ -6,6 +6,10 @@
 table.jobs tr :nth-child(2) {
     white-space: nowrap;
 }
+table pre {
+    margin-top: 0.25rem;
+    margin-bottom: 0;
+}
 
 pre.shell {
     background-color: #444;

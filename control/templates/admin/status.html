@@ -16,6 +16,27 @@
         <a class="btn btn-outline-secondary" href="{{ url_for('admin.set_state', id=job.job_id, state=job.state) }}" onclick="return confirm('Warning: this won\'t stop a running job, only set its status to failed!');">Move to failed</a>
     </p>
 {%- endif %}
+<h3>Data</h3>
+{% if job.row.args %}
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k, v in job.row.args.items() %}
+                <tr>
+                    <td>{{ k }}</td>
+                    <td>{% if v %}<pre>{{ v }}</pre>{% else %}&mdash;{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No data required for this job.</p>
+{% endif %}
 <h3>Log</h3>
 {% if log %}
     <table class="table table-sm jobs">
