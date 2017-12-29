@@ -47,8 +47,11 @@ def status(id):
     if not job.visible_to(utils.raven.principal):
         raise NotFound(id)
 
-    for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.raven.principal
-    if for_society:
+    for_society = isinstance(job, SocietyJob) and (job.owner is None or job.owner.crsid != utils.raven.principal)
+    if job.owner is None:
+        owner_in_context = None
+        job_home_url = None
+    elif for_society:
         owner_in_context = job.society
         job_home_url = url_for('jobs.society_home', name=owner_in_context)
     else:

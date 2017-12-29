@@ -8,9 +8,9 @@
 
 {% block body %}
 <div class="main">
-	<h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; <a href="{{ job_home_url }}" class="action">Job history{% if job.owner %} for {{ owner_in_context }}{% endif %}</a> &rarr; Job #{{ job.job_id }}</h1>
+	<h1><a href="{{ url_for('home.home') }}">Control Panel</a>{% if job_home_url %} &rarr; <a href="{{ job_home_url }}" class="action">Job history{% if job.owner %} for {{ owner_in_context }}{% endif %}</a>{% endif %} &rarr; Job #{{ job.job_id }}</h1>
     <p>Description: {{ job }}</p>
-    {% if for_society %}<p>Initiated by: {{ job.owner }}</p>{% endif %}
+    {% if job.owner and for_society %}<p>Initiated by: {{ job.owner }}</p>{% endif %}
     {%- if job.state == "unapproved" %}
     <h3>To be checked by a sysadmin</h3>
     <p>An SRCF sysadmin needs to review this job before it can proceed.  This should not take long, and you should receive an email when it is complete.</p>
