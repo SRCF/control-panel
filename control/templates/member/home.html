@@ -113,7 +113,7 @@ psql (9.5.9)
 SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
 Type "help" for help.
 
-{% if member.pgdbs|length > 1 %}<em>database</em>{% else %}{{ member.mysqldbs[0] }}{% endif %}=&gt;</pre>
+{% if member.pgdbs|length > 1 %}<em>database</em>{% else %}{{ member.pgdbs[0] }}{% endif %}=&gt;</pre>
                     {% if member.pgdbs|length > 1 %}
                         <p>Here, <code><em>database</em></code> switches to the database of that name{% elif not member.pgdbs[0] == member.pguser %}.  If omitted, it will connect by default to the database that matches your logon username.</p>
                     {% elif not member.pgdbs[0] == member.crsid %}
