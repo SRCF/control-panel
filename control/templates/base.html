@@ -4,10 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Control Panel{% if page_title is defined %}: {{ page_title }}{% endif %} - Student-Run Computing Facility (SRCF)</title>
-    <!-- TODO: Replace back to /_srcf/ -->
-    <link href="/_srcf.bs/vendor/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/_srcf.bs/vendor/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/_srcf.bs/srcf-bs.css" rel="stylesheet">
+    <link href="/_srcf/vendor/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/_srcf/vendor/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/_srcf/srcf-bs.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
   </head>
   <body>
@@ -90,9 +89,9 @@
         </div>
       </div>
     </footer>
-    <script src="/_srcf.bs/vendor/js/jquery.min.js"></script>
-    <script src="/_srcf.bs/vendor/js/popper.min.js"></script>
-    <script src="/_srcf.bs/vendor/js/bootstrap.min.js"></script>
+    <script src="/_srcf/vendor/js/jquery.min.js"></script>
+    <script src="/_srcf/vendor/js/popper.min.js"></script>
+    <script src="/_srcf/vendor/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>
