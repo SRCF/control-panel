@@ -99,13 +99,13 @@ def newsoc():
     except KeyError:
         return redirect(url_for('signup.signup'))
 
+    errors = {}
+
     if request.method == 'POST':
         values = {}
         for key in ("society", "description"):
             values[key] = request.form.get(key, "").strip()
         values["admins"] = re.findall("\w+", request.form.get("admins", ""))
-
-        errors = {}
 
         if crsid not in values["admins"]:
             errors["admins"] = "You need to add yourself as an admin."
@@ -136,15 +136,7 @@ def newsoc():
         if not values["description"]:
             errors["description"] = "Please enter the full name of the society."
 
-        any_error = False
-        for i in errors.values():
-            if i:
-                any_error = True
-                break
-
-        if any_error:
-            return render_template("signup/newsoc.html", errors=errors, **values)
-        else:
+        if not errors:
             return create_job_maybe_email_and_redirect(
                         jobs.CreateSociety, member=mem, **values)
 
@@ -156,4 +148,4 @@ def newsoc():
             "admins": [crsid]
         }
 
-        return render_template("signup/newsoc.html", errors={}, **values)
+    return render_template("signup/newsoc.html", errors=errors, **values)

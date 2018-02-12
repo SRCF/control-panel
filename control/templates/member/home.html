@@ -1,22 +1,36 @@
 {% extends "base.html" %}
 
+{% set page_title = member.name %}
+{% set page_subtitle = member.crsid %}
+{% set page_parent = url_for('home.home') %}
+
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; {{ member.crsid }} &bullet; {{ member.name }}</h1>
-    <p>Date joined: <span class="data">{{ member.joined.strftime('%B %G') }}</span></p>
-    <div class="col left">
-        <h3>Email</h3>
-        <p>Current email address: <span class="data">{{ member.email }}</span> <a href="{{ url_for('member.update_email_address') }}" rel="modal">Update</a></p>
-        <div class="info">
-            <p>This address will be subscribed to the <code>soc-srcf</code> and <code>soc-srcf-users</code> mailing lists, and will be used if the sysadmins need to contact you about your account.</p>
-            <p>Note that this does not affect the delivery of emails sent to <span class="data">{{ member.crsid }}@srcf.net</span>.  By default, mail will be forwarded to the address you provided when first signing up.  See details on <a href="https://www.srcf.net/faq/email#forwarding">configuring email forwarding</a> for how to amend or disable this.
+<p>Date joined: <b>{{ member.joined.strftime('%B %G') }}</b></p>
+<p><a href="{{ url_for('jobs.home') }}" class="btn btn-outline-secondary">Job history</a></p>
+<div class="card-columns">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Email</h4>
+            <p>Current email address: <strong>{{ member.email }}</strong></p>
+            <hr>
+            <div class="text-muted">
+                <p>This address will be subscribed to the <em>soc-srcf</em> and <em>soc-srcf-users</em> mailing lists, and will be used if the sysadmins need to contact you about your account.</p>
+                <p>Note that this does not affect the delivery of emails sent to <strong>{{ member.crsid }}@srcf.net</strong>.  By default, mail will be forwarded to the address you provided when first signing up.  See details on <a href="{{ DOMAIN_WEB }}/faq/email#forwarding">configuring email forwarding</a> for how to amend or disable this.
+            </div>
         </div>
-        <h3>Shell &amp; files</h3>
-        <p>Username: <span class="data">{{ member.crsid }}</span> <a href="{{ url_for('member.reset_password', type='srcf') }}" rel="modal">Reset password</a></p>
-        <div class="info">
-            <p>Your password is used to login to the shell server <code>shell.srcf.net</code>, file server <code>files.srcf.net</code> and more.</p>
-            <p>A random password was issued when you first signed up.  You can change this to something more memorable or secure from the SRCF shell:
-            <pre class="shell"><strong>{{ member.crsid }}@pip $ passwd</strong>
+        <div class="card-footer">
+            <a href="{{ url_for('member.update_email_address') }}" rel="modal" class="btn btn-outline-primary">Update</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Shell &amp; files</h4>
+            <p>Username: <code>{{ member.crsid }}</code></p>
+            <hr>
+            <div class="text-muted">
+                <p>Your password is used to login to the shell server <strong>shell.srcf.net</strong>, file server <strong>files.srcf.net</strong>, webmail and other services.</p>
+                <p>A random password was issued when you first signed up.  You can change this to something more memorable or secure from the SRCF shell:
+                <pre class="shell"><b>{{ member.crsid }}@pip $ passwd</b>
 Changing NIS account information for {{ member.crsid }} on pip.srcf.net.
 Please enter old password:
 Changing NIS password for {{ member.crsid }} on pip.srcf.net.
@@ -24,62 +38,124 @@ Please enter new password:
 Please retype new password:
 
 The NIS password has been changed on pip.srcf.net.</pre>
-            <p>If you've forgotten it, you can request a new one above, which will be emailed to you.</p>
-        </div>
-        <h3>Website</h3>
-        {% if member.website.exists %}
-            <p>Website address: <a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a></p>
-            <p>Web root: <span class="data">/home/{{ member.crsid }}/public_html</span></p>
-            {% if member.website.state == "legacy" %}
-                <p>Legacy URL: <span class="data">www.srcf.ucam.org/~{{ member.crsid }}/</span></p>
-                <div class="info">
-                    <p>We are currently also serving your site from <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new URL scheme as default (with a redirect from old to new).</p>
-                </div>
-            {% elif member.website.state == "legacyredirect" %}
-                <p>Legacy redirect: <span class="data">www.srcf.ucam.org/~{{ member.crsid }}/</span></p>
-                <div class="info">
-                    <p>We are also redirecting requests for <span class="data">www.srcf.ucam.org/~{{ member.crsid }}/</span> to your new URL.</p>
-                </div>
-            {% endif %}
-        {% else %}
-            <div class="info">
-                <p>You don't currently have a website set up.  You can do this by uploading pages to your web root folder, <span class="data">/home/{{ member.crsid }}/public_html</span>.  Anything here will then become available at <span class="data">{{ member.crsid }}.user.srcf.net</span>.</p>
+                <p>If you've forgotten it, you can request a password reset, which will generate a new random password and email it to you.</p>
             </div>
-        {% endif %}
-        <h3>Mailing lists</h3>
-        {% if member.mailinglists %}
-            <ul>
-                {% for list in member.mailinglists|sort %}
-                    <li>
-                        <p>
-                            <span class="data">{{ list }}</span>@srcf.net
-                            <a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}" rel="modal">Reset password</a>
-                        </p>
-                        <p>
-                            <a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a> &middot;
-                            <a href="https://www.srcf.net/mailman/admin/{{ list }}">List admin</a> &middot;
-                            <a href="https://www.srcf.net/mailman/admindb/{{ list }}">Mod queue</a> &middot;
-                            <a href="https://www.srcf.net/mailman/roster/{{ list }}">Subscribers</a>
-                        </p>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        <p><a href="{{ url_for('member.create_mailing_list') }}" rel="modal">New mailing list</a></p>
-        <div class="info">
-            <p>We provide personal Mailman mailing lists with addresses of the form <span class="data">{{ member.crsid }}-<em>name</em></span>@srcf.net.</p>
-            <p>Mailman provides its own admin panel for each list, which can be found at <span class="data">https://www.srcf.net/mailman/admin/<em>list-name</em></span>.</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('member.reset_password', type='srcf') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
         </div>
     </div>
-    <div class="col right">
-        <h3>MySQL databases</h3>
-        {% if member.mysqluser %}
-            <p>Username: <span class="data">{{ member.mysqluser }}</span> <a href="{{ url_for('member.reset_password', type='mysql') }}" rel="modal">Reset password</a></p>
-            {% if member.mysqldbs %}
-                <p>Database{% if member.mysqldbs|length > 1 %}s{% else %} name{% endif %}: {% for db in member.mysqldbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                <div class="info">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Website</h4>
+            <ul class="list-unstyled">
+                <li>
+                    {%- if member.website.state in ("legacy", "legacyredirect") %}
+                        Primary address:
+                    {%- else %}
+                        Address:
+                    {%- endif %}
+                    {%- if member.website.exists %}
+                        <strong><a href="http://{{ member.crsid }}.user.srcf.net">{{ member.crsid }}.user.srcf.net</a></strong>
+                    {%- else %}
+                        <strong>{{ member.crsid }}.user.srcf.net</strong>
+                    {%- endif %}
+                </li>
+                {%- if member.website.state == "legacy" %}
+                    <li>Legacy URL: <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a></li>
+                {%- elif member.website.state == "legacyredirect" %}
+                    <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/~{{ member.crsid }}/</span></li>
+                {%- endif %}
+                <li>Web root: <code>/home/{{ member.crsid }}/public_html</code></li>
+            </ul>
+            {%- if member.website.vhosts %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Custom domain</th>
+                            <th>Document root</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {%- for domain in member.website.vhosts %}
+                            <tr>
+                                <td>{% if domain.wild %}[*.]{% endif %}{{ domain.domain }}</td>
+                                <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %}</td>
+                                <td><a href="{{ url_for('member.remove_vhost', domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a></td>
+                            </tr>
+                        {%- endfor %}
+                    </tbody>
+                </table>
+            {%- endif %}
+            <hr>
+            <div class="text-muted">
+                {%- if not member.website.exists %}
+                    <p>You don't currently have a website set up.</p>
+                {%- endif %}
+                <p>Upload pages or files to your web root directory, and they'll be published on your website.  Note that newly-uploaded websites may take up to 20 minutes before they start serving.</p>
+                {%- if member.website.state == "legacy" %}
+                    <p>We are currently also serving your site from <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/"><strong>www.srcf.ucam.org/~{{ member.crsid }}/</strong></a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new primary address as default (with a redirect from old to new).</p>
+                {%- elif member.website.state == "legacyredirect" %}
+                    <p>We are redirecting requests for <strong>www.srcf.ucam.org/~{{ member.crsid }}/</strong> to your primary address.</p>
+                {%- endif %}
+                <p>If you have a custom domain, you can serve your SRCF website from the root domain or any subdomain.  It will need to resolve to our server, after which it can serve either your <code>public_html</code> directory, or a specific subdirectory inside.</p>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('member.add_vhost') }}" rel="modal" class="btn btn-outline-primary">Add custom domain</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Mailing lists</h4>
+            {%- for list in member.mailinglists|sort %}
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ list }}</b>@srcf.net</h6>
+                        <ul class="list-inline">
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a></li>
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admin/{{ list }}">List admin</a></li>
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admindb/{{ list }}">Mod queue</a></li>
+                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/roster/{{ list }}">Subscribers</a></li>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}" rel="modal" class="btn btn-outline-primary btn-sm">Reset password</a>
+                    </div>
+                </div>
+            {%- endfor %}
+            {%- if member.mailinglists %}
+                <hr>
+            {%- endif %}
+            <div class="text-muted">
+                <p>We provide personal Mailman mailing lists with addresses of the form <strong>{{ member.crsid }}-<em>name</em>@srcf.net</strong>.</p>
+                <p>Mailman provides its own admin panel for each list, which can be found at <strong>https://www.srcf.net/mailman/admin/<em>list</em></strong>.</p>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('member.create_mailing_list') }}" rel="modal" class="btn btn-outline-primary">New mailing list</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">MySQL databases</h4>
+            {%- if member.mysqluser %}
+                <ul class="list-unstyled">
+                    <li>Username: <code>{{ member.mysqluser }}</code></li>
+                    {%- if member.mysqldbs %}
+                        <li>
+                            Database{% if member.mysqldbs|length > 1 %}s{% else %} name{% endif %}:
+                            {%- for db in member.mysqldbs %}
+                            <code>{{ db }}</code>
+                            {%- endfor %}
+                        </li>
+                    {%- endif %}
+                </ul>
+                <hr>
+                <div class="text-muted">
                     <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                    <pre class="shell"><strong>{{ member.crsid }}@pip $ mysql -u {{ member.mysqluser }} -p {% if member.mysqldbs|length > 1 %}<em>database</em>{% else %}{{ member.mysqldbs[0] }}{% endif %}</strong>
+                    <pre class="shell"><b>{{ member.crsid }}@pip $ mysql -u {{ member.mysqluser }} -p {% if member.mysqldbs|length == 1 %}{{ member.mysqldbs[0] }}{% else %}<i>database</i>{% endif %}</b>
 Enter password:
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 ...
@@ -87,48 +163,91 @@ Welcome to the MySQL monitor.  Commands end with ; or \g.
 Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 mysql&gt;</pre>
-                    <p>Here, <code>-u {{ member.mysqluser }}</code> specifies your username, <code>-p</code> prompts for your password, and {% if member.mysqldbs|length > 1 %}<code><em>database</em></code> at the end switches to the database of that name{% else %}<code>{{ member.mysqldbs[0] }}</code> at the end connects to your database{% endif %}.</p>
+                    <p>
+                        Here, <code>-u {{ member.mysqluser }}</code> specifies your username, <code>-p</code> prompts for your password, and
+                        {%- if member.mysqldbs|length == 1 %}
+                            <code>{{ member.mysqldbs[0] }}</code> at the end connects to your database
+                        {%- else %}
+                            <code><em>database</em></code> at the end switches to the database of that name
+                        {%- endif -%}
+                        .
+                    </p>
+                    {%- if not member.mysqldbs %}
+                        <p>You don't currently have a personal database, most likely because a MySQL account was created for you to manage a society database.</p>
+                    {%- endif %}
                 </div>
-            {% else %}
-                <p><a href="{{ url_for('member.create_database', type='mysql') }}" rel="modal">Create personal database</a></p>
-                <div class="info">
-                    <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
-                </div>
-            {% endif %}
-        {% else %}
-            <p><a href="{{ url_for('member.create_database', type='mysql') }}" rel="modal">Create personal database and user</a></p>
-            <div class="info">
+            {%- else %}
+            <div class="text-muted">
                 <p>You will likely need a MySQL database if you intend to run a CMS website, such as WordPress or Drupal.</p>
             </div>
-        {% endif %}
-        <h3>PostgreSQL databases</h3>
-        {% if member.pguser %}
-            <p>Username: <span class="data">{{ member.pguser }}</span> <a href="{{ url_for('member.reset_password', type='postgres') }}" rel="modal">Reset password</a></p>
-            {% if member.pgdbs %}
-                <p>Database{% if member.pgdbs|length > 1 %}s{% else %} name{% endif %}: {% for db in member.pgdbs %}<span class="data">{{ db }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                <div class="info">
+            {%- endif %}
+        </div>
+        <div class="card-footer">
+            {%- if member.mysqluser %}
+            <a href="{{ url_for('member.reset_password', type='mysql') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- endif %}
+            {%- if not member.mysqldbs %}
+            <a href="{{ url_for('member.create_database', type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create personal database{% if not member.mysqluser %} and user{% endif %}</a>
+            {%- endif %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">PostgreSQL databases</h4>
+            {%- if member.pguser %}
+                <ul class="list-unstyled">
+                    <li>Username: <code>{{ member.pguser }}</code></li>
+                    {%- if member.pgdbs %}
+                        <li>
+                            Database{% if member.pgdbs|length > 1 %}s{% else %} name{% endif %}:
+                            {%- for db in member.pgdbs %}
+                            <code>{{ db }}</code>
+                            {%- endfor %}
+                        </li>
+                    {%- endif %}
+                </ul>
+                <hr>
+                <div class="text-muted">
                     <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                    <pre class="shell"><strong>{{ member.crsid }}@pip $ psql -h postgres{% if member.pgdbs|length > 1 %} <em>database</em>{% elif not member.pgdbs[0] == member.crsid %} {{ member.mysqldbs[0] }}{% endif %}</strong>
+                    <pre class="shell"><b>{{ member.crsid }}@pip $ psql -h postgres{% if member.pgdbs|length == 1 %}{% if not member.pgdbs[0] == member.crsid %} {{ member.pgdbs[0] }}{% endif %}{% else %} <i>database</i>{% endif %}</b>
 psql (9.5.9)
 SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
 Type "help" for help.
 
-{% if member.pgdbs|length > 1 %}<em>database</em>{% else %}{{ member.pgdbs[0] }}{% endif %}=&gt;</pre>
-                    {% if member.pgdbs|length > 1 %}
-                        <p>Here, <code><em>database</em></code> switches to the database of that name{% elif not member.pgdbs[0] == member.pguser %}.  If omitted, it will connect by default to the database that matches your logon username.</p>
-                    {% elif not member.pgdbs[0] == member.crsid %}
-                        <p>Here, <code>{{ member.pgdbs[0] }}</code> switches to your database.</p>
-                    {% else %}
-                        <p>By default, you are connected to the database that matches your logon username.</p>
-                    {% endif %}
-                    <p>You don't need to provide a password, authentication is handled by the currently logged in user (so scripts running as your account also do not need a password).</p>
+{% if member.pgdbs|length == 1 %}{{ member.pgdbs[0] }}{% else %}<i>database</i>{% endif %}=&gt;</pre>
+                    <p>Here, <code>-h postgres</code> connects to the PostgreSQL server, which is on a different machine to the shell server.  Ident authentication is available, which means you (and any scripts running as your account) shouldn't need to specify your password.</p>
+                    {%- if member.pgdbs|length == 1 %}
+                        {%- if member.pgdbs[0] == member.crsid %}
+                            <p>By default, you are connected to the database that matches your logon username.</p>
+                        {%- else %}
+                            <p>Here, <code>{{ member.pgdbs[0] }}</code> switches to your database.</p>
+                        {%- endif %}
+                    {%- else %}
+                        <p>
+                            Here, <code><em>database</em></code> switches to the database of that name.
+                            {%- if member.pgdbs and member.pgdbs[0] == member.crsid %}
+                            If omitted, you are connected to the database that matches your logon username.
+                            {%- endif %}
+                        </p>
+                    {%- endif %}
+                    {%- if not member.pgdbs %}
+                        <p>You don't currently have a personal database, most likely because a PostgreSQL account was created for you to manage a society database.</p>
+                    {%- endif %}
                 </div>
-            {% else %}
-                <a href="{{ url_for('member.create_database', type='postgres') }}" rel="modal">Create personal database</a>
-            {% endif %}
-        {% else %}
-            <a href="{{ url_for('member.create_database', type='postgres') }}" rel="modal">Create personal database and user</a>
-        {% endif %}
+            {%- else %}
+                <div class="text-muted">
+                    <p>You don't have a PostgreSQL user or database at the moment. You can create one below if needed.</p>
+                </div>
+            {%- endif %}
+        </div>
+        <div class="card-footer">
+            {%- if member.pguser %}
+                <a href="{{ url_for('member.reset_password', type='postgres') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- endif %}
+            {%- if not member.pgdbs %}
+                <a href="{{ url_for('member.create_database', type='postgres') }}" rel="modal" class="btn btn-outline-primary">Create personal database{% if not member.pguser %} and user{% endif %}</a>
+            {%- endif %}
+        </div>
     </div>
 </div>
 {% endblock body %}

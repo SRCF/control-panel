@@ -1,75 +1,113 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="main">
-    <h1>Control Panel</h1>
-    <p>Hello, <span class="data">{{ member.name }}</span>.  Here is the status of your SRCF services. &mdash; <a href="{{ url_for('jobs.home') }}">Job history</a>{% if member is admin %} &bullet; <a href="{{ url_for('admin.home') }}">Control panel admin</a>{% endif %}</p>
-    <h3>Your account</h3>
-    <ul class="acctlist">
-        <li class="acct">
-            <div class="head"><span class="data">{{ member.crsid }}</span> &bullet; <span class="data">{{ member.name }}</span> &mdash; <a href="{{ url_for('member.home') }}">Manage</a></div>
-            <ul class="acctattribs">
-                <li class="meta">Date joined: <span class="data">{{ member.joined.strftime('%B %G') }}</span></li>
-                <li class="meta">Email address: <span class="data">{{ member.email }}</span></li>
-                {%- if member.website %}
-                <li>Website: <a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a>{% if member.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>){% endif %}</li>
+<h2>Control panel</h2>
+<p>Hello, <b>{{ member.name }}</b>.  Here is the status of your SRCF services.</p>
+{%- if member is admin %}
+    <p><a href="{{ url_for('admin.home') }}" class="btn btn-outline-danger">Control panel admin</a></p>
+{%- endif %}
+<h3>Your account</h3>
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">{{ member.name }} <small class="text-muted">{{ member.crsid }}</small></h4>
+        <ul class="fa-ul">
+            <li>
+                <i class="fa fa-li fa-envelope" title="Email address"></i>
+                <strong>{{ member.email }}</strong>
+            </li>
+            {%- if member.website.exists %}
+                <li>
+                    <i class="fa fa-li fa-globe" title="Website address"></i>
+                    <strong><a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a></strong>
+                </li>
+                {%- if member.website.state == "legacy" %}
+                    <li>
+                        <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>
+                    </li>
                 {%- endif %}
-                {%- if member.mysqldbs %}
-                <li>MySQL databases:
+            {%- endif %}
+            {%- if member.mysqldbs %}
+                <li>
+                    <i class="fa fa-li fa-database" title="Databases"></i>
+                    MySQL:
                     {%- for db in member.mysqldbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-                {%- if member.pgdbs %}
-                <li>PostgreSQL databases:
+                        <code>{{ db }}</code>
+                    {%- endfor %}</li>
+            {%- endif %}
+            {%- if member.pgdbs %}
+                <li>
+                    {%- if not member.mysqldbs %}
+                        <i class="fa fa-li fa-database" title="Databases"></i>
+                    {%- endif %}
+                    PostgreSQL:
                     {%- for db in member.pgdbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
+                        <code>{{ db }}</code>
                     {%- endfor %}
                 </li>
-                {%- endif %}
-            </ul>
-        </li>
-    </ul>
-    <h3>Your society accounts</h3>
-    {%- if member.societies %}
-    <p>You are currently listed as an administrator for {{ member.societies|length }} society account{{ "" if member.societies|length == 1 else "s" }}. &mdash; <a href="{{ url_for('signup.newsoc') }}">Create new</a></p>
-    <ul class="acctlist">
-        {%- for soc in member.societies|sort(attribute='society') %}
-        <li class="acct">
-            <div class="head">
-                <span class="data">{{ soc.society }}</span> &bullet; <span class="data">{{ soc.description }}</span> &mdash; <a href="{{ url_for('society.home', society=soc.society) }}">Manage</a>  &bullet; <a href="{{ url_for('jobs.society_home', name=soc.society) }}">Jobs</a>
-            </div>
-            <ul class="acctattribs">
-                <li class="meta">Date created: <span class="data">{{ soc.joined.strftime('%B %G') }}</span></li>
-                <li class="meta">Administrators:
-                    {%- for admin in soc.admins|sort(attribute='crsid') %}
-                    <abbr title="{{ admin.name }}" class="data">{{ admin.crsid }}</abbr>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- if soc.website.exists %}
-                <li>Website: <a href="http://{{ soc.society }}.soc.srcf.net" class="data">{{ soc.society }}.soc.srcf.net</a>{% if soc.website.state == "legacy" %} (<a href="http://www.srcf.ucam.org/{{ soc.society }}/">www.srcf.ucam.org/{{ soc.society }}/</a>){% endif %}</li>
-                {%- endif %}
-                {%- if soc.mysqldbs %}
-                <li>MySQL databases:
-                    {%- for db in soc.mysqldbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-                {%- if soc.pgdbs %}
-                <li>PostgreSQL databases:
-                    {%- for db in soc.pgdbs|sort %}
-                    <span class="data">{{ db }}</span>{% if not loop.last %},{% endif %}
-                    {%- endfor %}
-                </li>
-                {%- endif %}
-            </ul>
-        </li>
-        {%- endfor %}
-    </ul>
-    {%- else %}
-    <p>You don't currently administrate any society accounts. &mdash; <a href="{{ url_for('signup.newsoc') }}">Create new</a></p>
-    {%- endif %}
+            {%- endif %}
+        </ul>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('member.home') }}" class="btn btn-outline-primary">Manage</a>
+        <a href="{{ url_for('jobs.home') }}" class="btn btn-outline-secondary">Job history</a>
+    </div>
 </div>
+<h3>Your society accounts</h3>
+{%- if member.societies %}
+    <p>You are currently listed as an administrator for {{ member.societies|length }} society account{{ "" if member.societies|length == 1 else "s" }}.</p>
+    <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-outline-primary">Create new</a></p>
+    <div class="card-columns">
+        {%- for soc in member.societies|sort(attribute='society') %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">{{ soc.description }} <small class="text-muted">{{ soc.society }}</small></h4>
+                    <ul class="fa-ul">
+                        <li>
+                            <i class="fa fa-li fa-users" title="Admins"></i>
+                            {%- for admin in soc.admins|sort(attribute='crsid') %}
+                                <abbr title="{{ admin.name }}">{{ admin.crsid }}</abbr>{% if not loop.last %},{% endif %}
+                            {%- endfor %}
+                        </li>
+                        {%- if soc.website.exists %}
+                            <li>
+                                <i class="fa fa-li fa-globe" title="Website address"></i>
+                                <strong><a href="http://{{ soc.society }}.soc.srcf.net" class="data">{{ soc.society }}.soc.srcf.net</a></strong>
+                            </li>
+                            {%- if soc.website.state == "legacy" %}
+                                <li>
+                                    <a href="http://www.srcf.ucam.org/{{ soc.society }}/">www.srcf.ucam.org/{{ soc.society }}/</a>
+                                </li>
+                            {%- endif %}
+                        {%- endif %}
+                        {%- if soc.mysqldbs %}
+                            <li>
+                                <i class="fa fa-li fa-database" title="Databases"></i>
+                                MySQL:
+                                {%- for db in soc.mysqldbs|sort %}
+                                    <code>{{ db }}</code>
+                                {%- endfor %}</li>
+                        {%- endif %}
+                        {%- if soc.pgdbs %}
+                            <li>
+                                {%- if not soc.mysqldbs %}
+                                    <i class="fa fa-li fa-database" title="Databases"></i>
+                                {%- endif %}
+                                PostgreSQL:
+                                {%- for db in soc.pgdbs|sort %}
+                                    <code>{{ db }}</code>
+                                {%- endfor %}
+                            </li>
+                        {%- endif %}
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('society.home', society=soc.society) }}" class="btn btn-outline-primary">Manage</a>
+                    <a href="{{ url_for('jobs.society_home', name=soc.society) }}" class="btn btn-outline-secondary">Job history</a>
+                </div>
+            </div>
+        {%- endfor %}
+    </div>
+{%- else %}
+    <p>You don't currently administrate any society accounts.</p><p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-secondary">Create new</a></p>
+{%- endif %}
 {% endblock %}

@@ -1,23 +1,18 @@
 {% extends "base.html" %}
 
+{% set page_title = "Job admin" %}
+{% set page_parent = url_for('home.home') %}
+
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; Administration</h1>
-    <table>
-        <thead>
-            <tr>
-                {%- for key, count in job_counts %}
-                <th>{{ key|title }}</th>
-                {%- endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                {%- for key, count in job_counts %}
-                <td><a href="{{ url_for('admin.view_jobs', state=key) }}">{{ count }}</a></td>
-                {%- endfor %}
-            </tr>
-        </tbody>
-    </table>
-</div>
+<nav>
+    <ul class="pagination">
+        {%- for key, count in job_counts %}
+            <li class="page-item{% if state is defined and key == state %} active{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.view_jobs', state=key) }}">
+                    {{ key|title }} <span class="badge badge-{% if state is defined and key == state %}light{% else %}primary{% endif %}">{{ count }}</span>
+                </a>
+            </li>
+        {%- endfor %}
+    </ul>
+</nav>
 {% endblock body %}

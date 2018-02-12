@@ -1,16 +1,25 @@
 {% extends "base.html" %}
 
+{% set page_title = "Job history" %}
+{% set page_subtitle = owner_in_context %}
+{% set page_parent = url_for('society.home', society=owner_in_context) if for_society else url_for('member.home') %}
+
 {% block body %}
-<div class="main">
-    <h1><a href="{{ url_for('home.home') }}">Control Panel</a> &rarr; Job history for {{ owner_in_context }}</h1>
-    {%- if max_pages > 1 %}
-    <p>Page: {% for i in range(1, max_pages + 1) %}{% if i == page %}<strong>{{ i }}</strong>{% else %}<a href="?page={{ i }}" {% if i == page + 1 %}rel="next"{% elif i == page - 1 %}rel="prev"{% endif %}>{{ i }}</a>{% endif %}{% if not loop.last %} {% endif %}{% endfor %}</p>
-    {%- endif %}
-    {%- if jobs %}
-    <table class="jobs">
+{%- if max_pages > 1 %}
+    <nav aria-label="Page">
+        <ul class="pagination">
+            {%- for i in range(1, max_pages + 1) %}
+                <li class="page-item{% if i == page %} active{% endif %}"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+            {%- endfor %}
+        </ul>
+    </nav>
+{%- endif %}
+{%- if jobs %}
+    <table class="table table-sm jobs">
         <thead>
             <tr>
                 <th>#</th>
+                <th>Time</th>
                 <th>Description</th>
                 <th>Status</th>
                 <th>Message</th>
@@ -18,17 +27,17 @@
         </thead>
         <tbody>
             {%- for job in jobs %}
-            <tr class="{{ job.state }}">
-                <td><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
-                <td>{{ job }}</td>
-                <td>{{ job.state|capitalize }}</td>
-                <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
-            </tr>
+                <tr class="{{ job.state }}">
+                    <td><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
+                    <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
+                    <td>{{ job }}</td>
+                    <td>{{ job.state|capitalize }}</td>
+                    <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
+                </tr>
             {%- endfor %}
         </tbody>
     </table>
-    {%- else %}
+{%- else %}
     <p>No jobs to show.</p>
-    {%- endif %}
-</div>
+{%- endif %}
 {% endblock body %}

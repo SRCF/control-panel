@@ -1,7 +1,6 @@
-{% macro mem_name_crsid(m) %}
-<span class="data">{{ m.name }}</span> (<code>{{ m.crsid }}</code>)
+{% macro name_id(name, id) %}
+<strong>{{ name }}</strong> <small class="text-muted">{{ id }}</small>
 {% endmacro %}
 
-{% macro soc_desc_soc(s) %}
-<span class="data">{{ s.description }}</span> (<code>{{ s.society }}</code>)
-{% endmacro %}
+{% macro mem_name_crsid(m) %}{{ name_id(m.name, m.crsid) }}{% endmacro %}
+{% macro soc_desc_soc(s) %}{{ name_id(s.description, s.society) }}{% endmacro %}

@@ -1,50 +1,74 @@
 {% extends "base.html" %}
 
+{% set page_title = "Join the SRCF" %}
+
 {% block body %}
-<div class="main">
-    <h1>Control Panel &rarr; Signup</h1>
-    <p>Hello, and welcome to the SRCF!  Before you can use our services, you'll need to sign up for a personal SRCF account.  To apply for SRCF membership, please fill in the form below.</p>
-    <p>Note that to assist your application, we have attempted to guess values based on information available to anyone on the CUDN. These are not stored until you complete the application form and give us explicit permission to do so.</p>
-    <form action="{{ url_for('signup.signup') }}" method="post" class="signup-form">
-        <div class="form-group">
-            <label>CRSid: {{ crsid }}</label>
-            <p class="help-block">This is the part before the "@cam.ac.uk" in your University of Cambridge email address.</p>
+<p>Hello, and welcome to the SRCF!  Before you can use our services, you'll need to sign up for a personal account.  To apply for SRCF membership, please fill in the form below.</p>
+<p>Note that to assist your application, we have attempted to guess values based on information available to anyone on the CUDN. These are not stored until you complete the application form and give us explicit permission to do so.</p>
+<form action="{{ url_for('signup.signup') }}" method="post">
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label">CRSid</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="text" class="form-control-plaintext" value="{{ crsid }}" readonly>
+            <small class="form-text text-muted">This is the part before the "@cam.ac.uk" in your University of Cambridge email address.</small>
         </div>
-        <div class="form-group{{ sif(errors.preferred_name, ' error') }}">
-            <label>Preferred name: <input type="text" name="preferred_name" value="{{ preferred_name }}" autofocus required></label>
-            {%- if errors.preferred_name is defined and errors.preferred_name %}
-            <p class="error-help-block">{{ errors.preferred_name }}</p>
-            {%- endif %}
-            <p class="help-block">Please only use unaccented English characters in your name.</p>
-        </div>
-        <div class="form-group{{ sif(errors.surname, ' error') }}">
-            <label>Surname: <input type="text" name="surname" value="{{ surname }}" required></label>
-            {%- if errors.surname is defined and errors.surname %}
-            <p class="error-help-block">{{ errors.surname }}</p>
+    </div>
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="preferred-name">Preferred name</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="text" id="preferred-name" name="preferred_name" class="form-control{% if errors.preferred_name is defined %} is-invalid{% endif %}" value="{{ preferred_name }}" autofocus required>
+            {%- if errors.preferred_name is defined %}
+                <small class="invalid-feedback">{{ errors.preferred_name }}</small>
             {%- endif %}
         </div>
-        <div class="form-group{{ sif(errors.email, ' error') }}">
-            <label>Email address: <input type="text" name="email" value="{{ email }}" required></label>
-            {%- if errors.email is defined and errors.email %}
-            <p class="error-help-block">{{ errors.email }}</p>
+    </div>
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="surname">Surname</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="text" id="surname" name="surname" class="form-control{% if errors.surname is defined %} is-invalid{% endif %}" value="{{ surname }}" required>
+            {%- if errors.surname is defined %}
+                <small class="invalid-feedback">{{ errors.surname }}</small>
             {%- endif %}
-            <p class="help-block">This is your preferred contact address, and will be the email address to which email sent to your SRCF account is redirected to by default.</p>
+            <small class="form-text text-muted">Please only use unaccented English characters in your name.</small>
         </div>
-        <div class="form-group{{ sif(errors.social, ' error') }}">
-            <label><input type="checkbox" name="social" {{ sif(social, 'checked') }}> Social mailing list subscription</label>
-            <p class='help-block'>We have a mailing list (soc-srcf-social@lists.cam.ac.uk) used to organise various social events such as pub meets and LAN parties.  If you wish to be added to the list, check this box.</p>
+    </div>
+    <div class="form-group row">
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="email">Email address</label>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+            <input type="email" id="email" name="email" class="form-control{% if errors.email is defined %} is-invalid{% endif %}" value="{{ email }}" required>
+            {%- if errors.email is defined %}
+                <small class="invalid-feedback">{{ errors.email }}</small>
+            {%- endif %}
+            <small class="form-text text-muted">This is your preferred contact address, and will be the email address to which email sent to your SRCF account is redirected to by default.</small>
         </div>
-        <div class="form-group {{ sif(errors.dpa, 'error') }}">
-            <label><input type="checkbox" name="dpa" {{ sif(dpa, 'checked') }} required> DPA confirmation</label>
-            <p class="help-block">In creating your account, we store the above information.  The Data Protection Act requires us to explicitly seek your permission to keep the above personal data on our server, for the purposes of providing your account facilities and keeping you informed about the SRCF as a society.</p>
-        </div>
-        <div class="form-group {{ sif(errors.tos, 'error') }}">
-            <label><input type="checkbox" name="tos" {{ sif(tos, 'checked') }} required> ToS acceptance</label>
-            <p class='help-block'>All members are required to abide by our <a href="https://srcf.net/tos" target="_blank">Terms of Service</a>.</p>
-        </div>
-        <div class="form-group">
-            <input type="submit" value="Submit">
-        </div>
-    </form>
-</div>
+    </div>
+    <div class="form-check">
+        <label class="form-check-label">
+            <input type="checkbox" name="social" class="form-check-input" {% if social %} checked{% endif %}>
+            Join the social mailing list
+        </label>
+        <small class="form-text text-muted">We have a mailing list (soc-srcf-social@lists.cam.ac.uk) used to organise various social events such as pub meets and LAN parties.  If you wish to be added to the list, check this box.</small>
+    </div>
+    <div class="form-check">
+        <label class="form-check-label">
+            <input type="checkbox" name="dpa" class="form-check-input" {% if dpa %} checked{% endif %} required>
+            DPA confirmation
+        </label>
+        {%- if errors.dpa is defined %}
+            <small class="form-text text-danger">Please allow us to store your information.</small>
+        {%- endif %}
+        <small class="form-text text-muted">In creating your account, we store the above information.  The Data Protection Act requires us to explicitly seek your permission to keep the above personal data on our server, for the purposes of providing your account facilities and keeping you informed about the SRCF as a society.</small>
+    </div>
+    <div class="form-check">
+        <label class="form-check-label">
+            <input type="checkbox" name="tos" class="form-check-input" {% if tos %} checked{% endif %} required>
+            Accept the ToS
+        </label>
+        {%- if errors.dpa is defined %}
+            <small class="form-text text-danger">Please accept the terms.</small>
+        {%- endif %}
+        <small class="form-text text-muted">All members are required to abide by our <a href="{{ DOMAIN_WEB }}/tos" target="_blank">Terms of Service</a>.</small>
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Join">
+</form>
 {% endblock %}

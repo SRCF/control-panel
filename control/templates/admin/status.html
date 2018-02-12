@@ -1,0 +1,68 @@
+{% extends "jobs/status.html" %}
+
+{% block body %}
+{{ super() }}
+{%- if job.state == "unapproved" %}
+    <p>
+        <a class="btn btn-outline-primary" href="{{ url_for('admin.set_state', id=job.job_id, state=job.state, approved=True) }}">Approve</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('admin.set_state', id=job.job_id, state=job.state, approved=False) }}">Reject</a>
+    </p>
+{%- elif job.state == "queued" %}
+    <p>
+        <a class="btn btn-outline-danger" href="{{ url_for('admin.set_state', id=job.job_id, state=job.state) }}">Cancel</a>
+    </p>
+{%- elif job.state == "running" %}
+    <p>
+        <a class="btn btn-outline-secondary" href="{{ url_for('admin.set_state', id=job.job_id, state=job.state) }}" onclick="return confirm('Warning: this won\'t stop a running job, only set its status to failed!');">Move to failed</a>
+    </p>
+{%- endif %}
+<h3>Data</h3>
+{% if job.row.args %}
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k, v in job.row.args.items() %}
+                <tr>
+                    <td>{{ k }}</td>
+                    <td>{% if v %}<pre>{{ v }}</pre>{% else %}&mdash;{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No data required for this job.</p>
+{% endif %}
+<h3>Log</h3>
+{% if log %}
+    <table class="table table-sm jobs">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Time</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in log %}
+                <tr>
+                    <td>{{ entry.type }}</td>
+                    <td>{{ entry.time }}</td>
+                    <td>
+                        {{ entry.message }}
+                        {% if entry.raw %}
+                            <pre>{{ unhexlify(entry.raw[2:]).decode("utf-8") if entry.raw.startswith("\\x") else entry.raw }}</pre>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No log entries recorded.</p>
+{% endif %}
+{% endblock %}

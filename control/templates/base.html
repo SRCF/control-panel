@@ -1,46 +1,98 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Student-Run Computing Facility (SRCF) - SRCF control panel</title>
-        <link rel="stylesheet" href="/_srcf/style.css">
-        <link rel="stylesheet" href="{{ url_for('static', filename='jquery.modal.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        {% block head %}{% endblock %}
-    </head>
-    <body>
-        <div class="topbox" style="overflow: auto;">
-            <div class="logo" style="margin-bottom: 10px;">
-                <h1><a href="http://www.srcf.net/">srcf</a></h1>
-                <h2><a href="http://www.srcf.net/">student-run computing facility</a></h2>
-            </div>
-            <div class="menu">
-                <p style="margin-bottom: 0px;">
-                    For prospective members:&nbsp;
-                    <b><a href="https://www.srcf.net/signup/">Join</a></b> |
-                    <a href="http://www.srcf.net/tos">Terms of Service</a> |
-                    <a href="http://www.srcf.net/services/">Services</a><br/>
-                    For existing members:&nbsp;
-                    <b><a href="http://webmail.srcf.net/">Webmail</a></b> |
-                    <a href="http://www.srcf.net/mailman/listinfo">Mailing lists</a> |
-                    <a href="http://www.srcf.net/mailman/admin">List administration</a><br/>
-                    About the society:&nbsp;
-                    <a href="http://www.srcf.net/committee">Committee</a> |
-                    <a href="http://www.srcf.net/constitution">Constitution</a> |
-                    <a href="http://www.srcf.net/contact-addresses">Contact Addresses</a> |
-                    <a href="http://www.srcf.net/minutes/">Minutes</a>
-                </p>
-                <p style="margin-top: 8px; margin-bottom: 15px;">
-                    <a href="https://www.srcf.net/donate"><img src="//www.srcf.net/_srcf/images/paypal-make-a-donation.gif" width="110" height="23" alt="Make A Donation" style="border:0px; margin-bottom: -7px;"/></a> |
-                    <a href="http://www.srcf.net/faq/">Frequently Asked Questions</a> |
-                    <a href="http://www.srcf.net/socs/">Societies</a> |
-                    <a href="http://status.srcf.net/">System status</a>
-                </p>
-            </div>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Control Panel{% if page_title is defined %}: {{ page_title }}{% endif %} - Student-Run Computing Facility (SRCF)</title>
+    <!-- TODO: Replace back to /_srcf/ -->
+    <link href="/_srcf.bs/vendor/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/_srcf.bs/vendor/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/_srcf.bs/srcf-bs.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
+      <div class="container">
+        <h1 class="navbar-brand mb-0">
+          <a class="text-danger" href="{{ DOMAIN_WEB }}/">SRCF</a>
+          <small><a class="text-primary" href="{{ DOMAIN_WEB }}">Student-Run Computing Facility</a></small>
+        </h1>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('home.home') }}"><i class="fa fa-wrench"></i> Control Panel</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ DOMAIN_WEB }}/services"><i class="fa fa-cubes"></i> Services</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ DOMAIN_WEB }}/contact"><i class="fa fa-paper-plane-o"></i> Contact</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('signup.signup') }}"><i class="fa fa-user"></i> <strong>Join</strong></a></li>
+          </ul>
         </div>
-        {% block body %}{% endblock %}
-        <div class="modal-spinner"></div>
-        <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.3.min.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static', filename='jquery.modal.min.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static', filename='script.js') }}"></script>
-    </body>
+      </div>
+    </nav>
+    <main role="main" class="container">
+      {%- if page_title is defined %}
+        <h2>
+          {%- if page_parent is defined %}
+            <a href="{{ page_parent }}" title="Back"><i class="fa fa-arrow-left"></i></a>
+          {%- endif %}
+          {{ page_title }}
+          {%- if page_subtitle is defined %}
+            <small class="text-muted">{{ page_subtitle }}</small>
+          {%- endif %}
+        </h2>
+      {%- endif %}
+      {% block body %}{% endblock %}
+    </main>
+    <div id="action-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="container">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div id="action-modal-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4">
+            <h5>Membership</h5>
+            <ul class="fa-ul">
+              <li><a href="{{ url_for('signup.signup') }}"><i class="fa fa-li fa-user"></i> Join the SRCF</a></li>
+              <li><a href="{{ url_for('signup.newsoc') }}"><i class="fa fa-li fa-users"></i> Create society account</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/services"><i class="fa fa-li fa-cubes"></i> List of services</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/donate"><i class="fa fa-li fa-money"></i> Donate</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/tos"><i class="fa fa-li fa-balance-scale"></i> Terms of service</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h5>Services</h5>
+            <ul class="fa-ul">
+              <li><a href="{{ url_for('home.home') }}"><i class="fa fa-li fa-wrench"></i> Control panel</a></li>
+              <li><a href="https://webmail.srcf.net"><i class="fa fa-li fa-envelope-o"></i> Webmail</a></li>
+              <li><a href="https://lists.srcf.net"><i class="fa fa-li fa-bullhorn"></i> Mailing lists</a></li>
+              <li><a href="https://www.srcf.net/terminal/"><i class="fa fa-li fa-terminal"></i> Web terminal</a></li>
+              <li><a href="http://status.srcf.net"><i class="fa fa-li fa-toggle-on"></i> Server status</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h5>About</h5>
+            <ul class="fa-ul">
+              <li><a href="{{ DOMAIN_WEB }}/committee"><i class="fa fa-li fa-id-card-o"></i> Committee</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/constitution"><i class="fa fa-li fa-university"></i> Constitution</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/minutes/"><i class="fa fa-li fa-book"></i> Minutes</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/contact"><i class="fa fa-li fa-paper-plane-o"></i> Contact addresses</a></li>
+              <li><a href="{{ DOMAIN_WEB }}/faq/"><i class="fa fa-li fa-bookmark-o"></i> FAQs</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script src="/_srcf.bs/vendor/js/jquery.min.js"></script>
+    <script src="/_srcf.bs/vendor/js/popper.min.js"></script>
+    <script src="/_srcf.bs/vendor/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
 </html>
