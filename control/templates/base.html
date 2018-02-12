@@ -8,6 +8,7 @@
     <link href="/_srcf/vendor/css/font-awesome.min.css" rel="stylesheet">
     <link href="/_srcf/srcf-bs.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    {% block head %}{% endblock %}
   </head>
   <body>
     <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
