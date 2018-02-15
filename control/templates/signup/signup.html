@@ -42,14 +42,14 @@
             <small class="form-text text-muted">This is your preferred contact address, and will be the email address to which email sent to your SRCF account is redirected to by default.</small>
         </div>
     </div>
-    <div class="form-check">
+    <div class="form-group form-check">
         <label class="form-check-label">
             <input type="checkbox" name="social" class="form-check-input" {% if social %} checked{% endif %}>
             Join the social mailing list
         </label>
         <small class="form-text text-muted">We have a mailing list (soc-srcf-social@lists.cam.ac.uk) used to organise various social events such as pub meets and LAN parties.  If you wish to be added to the list, check this box.</small>
     </div>
-    <div class="form-check">
+    <div class="form-group form-check">
         <label class="form-check-label">
             <input type="checkbox" name="dpa" class="form-check-input" {% if dpa %} checked{% endif %} required>
             DPA confirmation
@@ -59,7 +59,7 @@
         {%- endif %}
         <small class="form-text text-muted">In creating your account, we store the above information.  The Data Protection Act requires us to explicitly seek your permission to keep the above personal data on our server, for the purposes of providing your account facilities and keeping you informed about the SRCF as a society.</small>
     </div>
-    <div class="form-check">
+    <div class="form-group form-check">
         <label class="form-check-label">
             <input type="checkbox" name="tos" class="form-check-input" {% if tos %} checked{% endif %} required>
             Accept the ToS
