@@ -13,13 +13,12 @@
     <p>By default, a custom domain will serve the same site as your SRCF domain, <strong>{{ society.society }}.soc.srcf.net</strong>.  You may optionally specify a subdirectory of your <code>public_html</code> directory, where a different site should be served from.</p>
     <div class="form-group">
         <div class="input-group">
-            <span class="input-group-addon">public_html/</span>
+            <span class="input-group-prepend input-group-text">public_html /</span>
             <input name="root" type="text" class="form-control{% if "root" in errors %} is-invalid{% endif %}" value="{{ root }}" placeholder="Document root">
+            {%- if "root" in errors %}
+                <small class="invalid-feedback">{{ errors.root }}</small>
+            {%- endif %}
         </div>
-        {%- if "root" in errors %}
-            {# .invalid-feedback incompatible with input groups. #}
-            <small class="text-danger">{{ errors.root }}</small>
-        {%- endif %}
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Add">
     <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
