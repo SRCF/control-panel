@@ -6,14 +6,13 @@
 <form action="{{ url_for('member.create_mailing_list') }}" method="post">
     <div class="form-group">
         <div class="input-group">
-            <span class="input-group-addon">{{ member.crsid }}-</span>
+            <span class="input-group-prepend input-group-text">{{ member.crsid }}-</span>
             <input name="listname" type="text" class="form-control{% if error %} is-invalid{% endif %}" value="{{ listname }}" placeholder="List name" autofocus required>
-            <span class="input-group-addon">@srcf.net</span>
+            <span class="input-group-append input-group-text">@srcf.net</span>
+            {%- if error %}
+                <small class="invalid-feedback">{{ error }}</small>
+            {%- endif %}
         </div>
-        {%- if error %}
-            {# .invalid-feedback incompatible with input groups. #}
-            <small class="text-danger">{{ error }}</small>
-        {%- endif %}
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Create">
     <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
