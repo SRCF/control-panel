@@ -24,8 +24,8 @@ def signup():
         mem = utils.get_member(crsid)
     except KeyError:
         pass
-    # else:
-    #     return redirect(url_for('home.home'))
+    else:
+        return redirect(url_for('home.home'))
 
     if request.method == 'POST':
         values = {}
