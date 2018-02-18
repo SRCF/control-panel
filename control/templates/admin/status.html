@@ -1,4 +1,6 @@
-{% extends "jobs/status.html" %}
+{% extends "jobs/status_base.html" %}
+
+{% set page_parent = url_for('admin.view_jobs', state=job.state) %}
 
 {% block body %}
 {{ super() }}
