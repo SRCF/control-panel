@@ -32,6 +32,10 @@
                     <td>{% if v %}<pre>{{ v }}</pre>{% else %}&mdash;{% endif %}</td>
                 </tr>
             {% endfor %}
+            <tr>
+                <td>creation time</td>
+                <td>{% if job.created_at %}<pre>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</pre>{% else %}&mdash;{% endif %}</td>
+            </tr>
         </tbody>
     </table>
 {% else %}
