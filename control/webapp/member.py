@@ -42,7 +42,7 @@ def reactivate():
     if mem.user:
         raise NotFound
 
-    email = mem.email
+    email = None
     error = None
     if request.method == "POST":
         email = request.form.get("email", "").strip()
