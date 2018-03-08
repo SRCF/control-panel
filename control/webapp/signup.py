@@ -34,13 +34,7 @@ def signup():
         for key in ("dpa", "tos", "social"):
             values[key] = bool(request.form.get(key, False))
 
-        errors = {
-            "preferred_name": False,
-            "surname": False,
-            "dpa": not values["dpa"],
-            "tos": not values["tos"],
-            "social": False
-        }
+        errors = {}
 
         # Don't allow a single initial
         if len(values["preferred_name"]) <= 1:
@@ -53,13 +47,12 @@ def signup():
         elif not utils.email_re.match(values["email"]):
             errors["email"] = "That address doesn't look valid."
 
-        any_error = False
-        for i in errors.values():
-            if i:
-                any_error = True
-                break
+        if not values["dpa"]:
+            errors["dpa"] = "Please allow us to store your information."
+        if not values["tos"]:
+            errors["tos"] = "Please accept the terms."
 
-        if any_error:
+        if errors:
             return render_template("signup/signup.html", crsid=crsid, errors=errors, **values)
         else:
             del values["dpa"], values["tos"]

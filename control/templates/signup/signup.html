@@ -55,7 +55,7 @@
             DPA confirmation
         </label>
         {%- if errors.dpa is defined %}
-            <small class="form-text text-danger">Please allow us to store your information.</small>
+            <small class="form-text text-danger">{{ errors.dpa }}</small>
         {%- endif %}
         <small class="form-text text-muted">In creating your account, we store the above information.  The Data Protection Act requires us to explicitly seek your permission to keep the above personal data on our server, for the purposes of providing your account facilities and keeping you informed about the SRCF as a society.</small>
     </div>
@@ -65,7 +65,7 @@
             I accept the <a href="{{ DOMAIN_WEB }}/tos" target="_blank">Terms of Service</a>
         </label>
         {%- if errors.tos is defined %}
-            <small class="form-text text-danger">Please accept the terms.</small>
+            <small class="form-text text-danger">{{ errors.tos }}</small>
         {%- endif %}
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Join">

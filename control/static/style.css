@@ -36,3 +36,7 @@ ul.traceback {
 ul.traceback li {
     white-space: pre-wrap;
 }
+
+.form-text.text-danger {
+    color: #dc3545 !important;
+}
