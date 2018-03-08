@@ -42,10 +42,10 @@ def signup():
             "social": False
         }
 
-        # don't allow initials
-        if len(re.sub(r"[^a-z]", "", values["preferred_name"], re.IGNORECASE)) <= 1:
-            errors["preferred_name"] = "Please tell us your full preferred name."
-        if len(re.sub(r"[^a-z]", "", values["surname"], re.IGNORECASE)) <= 1:
+        # Don't allow a single initial
+        if len(values["preferred_name"]) <= 1:
+            errors["preferred_name"] = "Please tell us your preferred name."
+        if len(values["surname"]) <= 1:
             errors["surname"] = "Please tell us your surname."
 
         if not values["email"]:
