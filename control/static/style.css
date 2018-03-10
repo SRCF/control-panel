@@ -37,6 +37,9 @@ ul.traceback li {
     white-space: pre-wrap;
 }
 
+.form-submit-only {
+    display: inline-block;
+}
 .form-text.text-danger {
     color: #dc3545 !important;
 }

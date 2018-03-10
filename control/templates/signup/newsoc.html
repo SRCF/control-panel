@@ -4,11 +4,10 @@
 {% set page_parent = url_for('home.home') %}
 
 {% block body %}
-<p>To apply for a shared society account on the SRCF, please fill in the form below.  Once the society account is created, you will be able to use the control panel to create any databases or mailing lists.</p>
-<p>Before you apply for your shared account, please make sure that there is not already an account set up for your organisation (a <a href="/socs/">list of all societies hosted</a> is available to help with this). Sometimes accounts get created and forgotten about as people involved with the organisation move on. It is simpler for us to just add new administrators to an existing account rather than creating a duplicate, and it makes things less confusing for visitors to your website.</p>
-
-<p>Society accounts are identified by a <em>short name</em>, which will form part of your society website URL (<span class="text-danger">name</span>.soc.srcf.net) and mailing addresses (e.g. <span class="text-danger">name</span>-admins@srcf.net).  Short names <strong>cannot be changed after account creation</strong>, so choose wisely.</p>
-<p>Please note that all named users that wish to be administrators on the account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.  It is strongly recommended to <strong>nominate at least one additional administrator besides yourself</strong>, in order to maintain continuity of the account in the event of an administrator leaving the University. Accounts with no active admins may be suspended without warning.</p>
+<p>To apply for a shared society account on the SRCF, please fill in the form below.  Once created, you'll be able to use the control panel to create any databases or mailing lists.</p>
+<p>Before applying, please ensure we don't already have an existing account for the same purpose.  You may wish to confirm with your predecessors (if representing an existing real-world group), or check our <a href="{{ DOMAIN_WEB }}/socs/">list of all society accounts</a>.  Multiple accounts for the same group are not permitted.</p>
+<p>Society accounts are identified by a <em>short name</em>, which will form part of your society website URL (<strong><span class="var">name</span>.soc.srcf.net</strong>) and mailing addresses (e.g. <strong><span class="var">name</span>-admins@srcf.net</strong>).</p>
+<p>Please note that all named users that wish to be administrators on the account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.</p>
 <form action="{{ url_for('signup.newsoc') }}" method="post">
     <div class="form-group row">
         <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="society">Short name</label>
@@ -37,9 +36,9 @@
             {%- if errors.admins is defined %}
                 <small class="invalid-feedback">{{ errors.admins }}</small>
             {%- endif %}
-            <small class="form-text text-muted">Please enter the CRSids of all users to be added as society admins, separated by commas.  A person's CRSid is the part before the "@cam.ac.uk" in his or her University of Cambridge email address.  You must include yourself in this list.</small>
+            <small class="form-text text-muted">Please enter the CRSids of all users to be added as society admins, separated by commas.  You must include yourself in this list.</small>
         </div>
     </div>
-    <input type="submit" class="btn btn-outline-primary" value="Create">
+    <input type="submit" class="btn btn-outline-primary" value="Review &amp; confirm creation">
 </form>
 {% endblock %}

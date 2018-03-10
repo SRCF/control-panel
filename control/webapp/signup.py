@@ -16,6 +16,7 @@ SOC_SOCIETY_RE = re.compile(r'^[a-z]+$')
 
 bp = Blueprint("signup", __name__)
 
+
 @bp.route("/signup", methods=["get", "post"])
 def signup():
     crsid = utils.raven.principal
@@ -83,6 +84,17 @@ def signup():
 
         return render_template("signup/signup.html", crsid=crsid, errors={}, **values)
 
+
+def make_keywords(desc):
+    keywords = set()
+    for word in re.sub("[^a-z]", " ", desc.lower()).split():
+        if word in ("the", "cu", "cambridge", "university", "college", "soc", "society"):
+            continue
+        while word.endswith("s"):
+            word = word[:-1]
+        keywords.add(word)
+    return keywords
+
 @bp.route("/signup/society", methods=["get", "post"])
 def newsoc():
     crsid = utils.raven.principal
@@ -129,7 +141,20 @@ def newsoc():
         if not values["description"]:
             errors["description"] = "Please enter the full name of the society."
 
-        if not errors:
+        if request.form.get("edit") or errors:
+            return render_template("signup/newsoc.html", errors=errors, **values)
+
+        elif not request.form.get("confirm"):
+            similar = []
+            keywords = make_keywords(values["description"])
+            for soc in sess.query(Society):
+                words = make_keywords(soc.description)
+                if keywords <= words:
+                    similar.append(soc)
+            return render_template("signup/newsoc_confirm.html",
+                    current_admins=current_admins, similar=similar, **values)
+
+        else:
             return create_job_maybe_email_and_redirect(
                         jobs.CreateSociety, member=mem, **values)
 
@@ -141,4 +166,4 @@ def newsoc():
             "admins": [crsid]
         }
 
-    return render_template("signup/newsoc.html", errors=errors, **values)
+        return render_template("signup/newsoc.html", errors=errors, **values)

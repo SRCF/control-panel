@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% from "macros.html" import mem_name_crsid, soc_desc_soc %}
+
+{% set page_title = "Confirm society account creation" %}
+
+{% block body %}
+<p>Please check any suggestions below before continuing.  An SRCF sysadmin will need to approve your request, after which you can manage your new society account from the control panel.</p>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Short name: <strong>{{ society }}</strong></h5>
+        <p class="text-danger"><strong>This can't be changed after account creation!</strong>  Make sure you're happy with it.</p>
+        <p>Your admin contact address will be <strong>{{ society }}-admins@srcf.net</strong>.</p>
+        <p>You will be able to create other addresses or mailing lists of the form <strong>{{ society }}-<span class="var">something</span>@srcf.net</strong>.</p>
+        {% if society.endswith("soc") %}
+        <p class="text-danger">You've ended your society short name with "soc", meaning your website address will be <strong>{{ society }}.soc.srcf.net</strong>.</p>
+        {% else %}
+            <p>Your website address will be <strong>{{ society }}.soc.srcf.net</strong>.</p>
+        {% endif %}
+        <p>If you have a custom domain of your own, you can add it to the account after creation.</p>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Full name: <strong>{{ description }}</strong></h5>
+        {% if similar|length == 1 %}
+            <p>Possible duplicate society: {{ soc_desc_soc(similar[0]) }}</p>
+            <p class="text-danger">If this represents you, <strong>don't submit this form!</strong>
+            <p>Please contact the owners of the account at <a href="mailto:{{ similar[0].society }}-admins@srcf.net"><strong>{{ similar[0].society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
+        {% elif similar %}
+            <p>Possible duplicate societies:</p>
+            <ul>
+                {% for soc in similar %}
+                    <li>{{ soc_desc_soc(soc) }} (<a href="mailto:{{ soc.society }}-admins@srcf.net">contact</a>)</li>
+                {% endfor %}
+            </ul>
+            <p class="text-danger">If one of these represents you, <strong>don't submit this form!</strong></p>
+            <p>Please contact the owners of that account (e.g. <strong>{{ similar[0].society }}-admins@srcf.net</strong> for {{ similar[0].description }}) to request your addition as an admin.</p>
+        {% endif %}
+        {% if similar %}
+            <p>If you're unable to make contact, you may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins.</p>
+            <p>This check may not find all duplicates, check our <a href="{{ DOMAIN_WEB }}/socs/">list of all society accounts</a> for any other potential matches.</p>
+        {% else %}
+            <p>No obvious duplicates found, but check our <a href="{{ DOMAIN_WEB }}/socs/">list of all society accounts</a> for any potential matches.</p>
+        {% endif %}
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        {% if current_admins|length == 1 %}
+        <h5 class="card-title">Administrator: {{ mem_name_crsid(current_admins[0]) }}</h5>
+        <p class="text-danger">We'd <strong>strongly recommend</strong> nominating multiple account administrators before account creation.</p>
+        <p>If you leave the university or otherwise become unavailable as the sole admin of the account, it will become orphaned and liable to be taken down.</p>
+        {% else %}
+        <h5 class="card-title">Administrators: <strong>{{ current_admins|length }}</strong></h5>
+        <ul>
+            {% for admin in current_admins %}
+                <li>{{ mem_name_crsid(admin) }}</li>
+            {% endfor %}
+        </ul>
+        <p>If the last admin of the account leaves the university or otherwise becomes unavailable, the account will become orphaned and liable to be taken down.</p>
+        {% endif %}
+        <p>Ensure any successors have access to the account in good time for a smooth handover.</p>
+    </div>
+</div>
+<p>
+    <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
+        <input type="hidden" name="society" value="{{ society }}">
+        <input type="hidden" name="description" value="{{ description }}">
+        <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
+        <input type="hidden" name="confirm" value="on">
+        <input type="submit" class="btn btn-outline-primary" value="Looks good, create account">
+    </form>
+    <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
+        <input type="hidden" name="society" value="{{ society }}">
+        <input type="hidden" name="description" value="{{ description }}">
+        <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
+        <input type="hidden" name="edit" value="on">
+        <input type="submit" class="btn btn-outline-secondary" value="Go back and edit">
+    </form>
+</p>
+{% endblock %}
