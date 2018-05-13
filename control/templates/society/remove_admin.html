@@ -2,14 +2,19 @@
 {% from "macros.html" import mem_name_crsid, soc_desc_soc %}
 
 {% block body %}
-<h2>Remove administrator</h2>
-<p>Are you sure you want to remove {{ mem_name_crsid(target) }} from the {{ soc_desc_soc(society) }} account?</p>
 {%- if target == member %}
+    <h2>Remove yourself</h2>
+    <p>Are you sure you want to remove yourself from the {{ soc_desc_soc(society) }} account?</p>
     <ul>
         <li>You will no longer be able to edit the files of the society website.</li>
         <li>You will no longer be able to use your <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
     </ul>
+    {%- if society.admins|length == 1 %}
+        <p class="text-danger"><b>Warning:</b> you are the last admin of this society. If you remove yourself, {{ society.description }} will become an orphan society, and will be deleted if no new admin is appointed.</p>
+    {%- endif %}
 {%- else %}
+    <h2>Remove administrator</h2>
+    <p>Are you sure you want to remove {{ mem_name_crsid(target) }} from the {{ soc_desc_soc(society) }} account?</p>
     <ul>
         <li>They will no longer be able to edit the files of the society website.</li>
         <li>They will no longer be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
