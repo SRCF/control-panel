@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 from functools import partial
+from urllib.parse import urlparse
 
 import flask
 import jinja2
@@ -45,6 +46,23 @@ def temp_mysql_conn():
         # A throwaway connection
         flask.g.mysql = mysql_conn()
     return flask.g.mysql
+
+
+def parse_domain_name(domain):
+    if "//" in domain:
+        parts = urlparse(domain.rstrip("/"))
+        if parts.path:
+            raise ValueError("Please enter the domain without including a path.")
+        domain = parts.netloc
+        if domain.startswith("www."):
+            domain = domain[4:]
+        if not domain:
+            raise ValueError("Please enter a domain or subdomain.")
+        return domain
+    elif "/" in domain or ":" in domain:
+        raise ValueError("Please enter the domain without including a path.")
+    else:
+        return domain
 
 
 # Template helpers

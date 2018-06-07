@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for
 from werkzeug.exceptions import NotFound, Forbidden
 
 from .utils import srcf_db_sess as sess
-from .utils import create_job_maybe_email_and_redirect, find_member
+from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_member
 from . import utils, inspect_services
 from srcf.controllib import jobs
 from srcf.database import Domain
@@ -165,23 +165,21 @@ def add_vhost():
     errors = {}
     if request.method == "POST":
         domain = request.form.get("domain", "").strip()
-        parts = urlparse(domain)
-        if parts.path:
-            errors["domain"] = "Please enter the domain without including a path."
-        else:
-            domain = parts.netloc
-            root = request.form.get("root", "").strip()
-            if domain.startswith("www."):
-                domain = domain[4:]
-            if domain:
+        root = request.form.get("root", "").strip()
+        if domain:
+            try:
+                domain = parse_domain_name(domain)
+            except ValueError as e:
+                errors["domain"] = e.args[0]
+            else:
                 try:
                     record = sess.query(Domain).filter(Domain.domain == domain)[0]
                 except IndexError:
                     pass
                 else:
                     errors["domain"] = "This domain is already registered."
-            else:
-                errors["domain"] = "Please enter a domain or subdomain."
+        else:
+            errors["domain"] = "Please enter a domain or subdomain."
 
     if request.method == "POST" and not errors:
         return create_job_maybe_email_and_redirect(
