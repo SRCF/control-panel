@@ -70,7 +70,7 @@ def lookup_mailinglists(prefix):
 
 def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
-    path = os.path.join(os.path.expanduser("~" + prefix), "public_html")
+    path = os.path.join("/public", "home" if is_member else "societies", prefix, "public_html")
     web = {"exists": (os.path.exists(path) and len(os.listdir(path)) > 0), "state": None,
            "vhosts": list(sess.query(srcf.database.Domain).filter(srcf.database.Domain.owner == prefix))}
     if web["exists"]:
