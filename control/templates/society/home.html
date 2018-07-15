@@ -75,7 +75,7 @@
                             <tr>
                                 <td>
                                     {% if domain.wild %}[*.]{% endif %}{{ domain.domain }}
-                                    {% if "xn--" in domain.domain %}
+                                    {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>
                                         ({% if domain.wild %}[*.]{% endif %}{{ domain.domain.encode("ascii").decode("idna") }})
                                     {% endif %}
