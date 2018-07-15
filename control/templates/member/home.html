@@ -80,7 +80,13 @@ The NIS password has been changed on pip.srcf.net.</pre>
                     <tbody>
                         {%- for domain in member.website.vhosts %}
                             <tr>
-                                <td>{% if domain.wild %}[*.]{% endif %}{{ domain.domain }}</td>
+                                <td>
+                                    {% if domain.wild %}[*.]{% endif %}{{ domain.domain }}
+                                    {% if "xn--" in domain.domain %}
+                                        <br>
+                                        ({% if domain.wild %}[*.]{% endif %}{{ domain.domain.encode("ascii").decode("idna") }})
+                                    {% endif %}
+                                </td>
                                 <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %}</td>
                                 <td><a href="{{ url_for('member.remove_vhost', domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a></td>
                             </tr>

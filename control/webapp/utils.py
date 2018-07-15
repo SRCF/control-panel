@@ -58,11 +58,13 @@ def parse_domain_name(domain):
             domain = domain[4:]
         if not domain:
             raise ValueError("Please enter a domain or subdomain.")
-        return domain
     elif "/" in domain or ":" in domain:
         raise ValueError("Please enter the domain without including a path.")
-    else:
+    if all(ord(char) < 128 for char in domain):
         return domain
+    else:
+        # convert to punycode
+        return domain.encode("idna").decode("ascii")
 
 
 # Template helpers
