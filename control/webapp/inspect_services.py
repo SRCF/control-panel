@@ -71,8 +71,12 @@ def lookup_mailinglists(prefix):
 def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
     path = os.path.join("/public", "home" if is_member else "societies", prefix, "public_html")
-    web = {"exists": (os.path.exists(path) and len(os.listdir(path)) > 0), "state": None,
-           "vhosts": list(sess.query(srcf.database.Domain).filter(srcf.database.Domain.owner == prefix))}
+    web = {"vhosts": list(sess.query(srcf.database.Domain).filter(srcf.database.Domain.owner == prefix)), "state": None}
+    try:
+        web["exists"] = os.path.exists(path) and len(os.listdir(path)) > 0
+    except OSError:
+        # May exist, but we can't read it -- assume active as users may have hidden the contents.
+        web["exists"] = True
     if web["exists"]:
         with open("/societies/srcf-admin/{0}webstatus".format("member" if is_member else "soc")) as f:
             for line in f:
