@@ -24,7 +24,7 @@
         <h5 class="card-title">Full name: <strong>{{ description }}</strong></h5>
         {% if similar|length == 1 %}
             <p>Possible duplicate society: {{ soc_desc_soc(similar[0]) }}</p>
-            <p class="text-danger">If this represents you, <strong>don't submit this form!</strong>
+            <p class="text-danger">If this represents you, <strong>don't submit this form!</strong></p>
             <p>Please contact the owners of the account at <a href="mailto:{{ similar[0].society }}-admins@srcf.net"><strong>{{ similar[0].society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
         {% elif similar %}
             <p>Possible duplicate societies:</p>

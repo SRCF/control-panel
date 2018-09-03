@@ -3,6 +3,7 @@ import operator
 import re
 
 from flask import Blueprint, render_template, redirect, url_for, request
+from sqlalchemy.orm.exc import NoResultFound
 
 from srcf.database import Member, Society
 from srcf.controllib import jobs
@@ -124,13 +125,6 @@ def newsoc():
             errors["admins"] = "The following admins do not have personal SRCF accounts: {0}" \
                     .format(", ".join(x for x in values["admins"] if x not in current_admin_crsids))
 
-        try:
-            soc = utils.get_society(values["society"])
-        except KeyError:
-            pass
-        else:
-            errors["society"] = "A society with this name already exists."
-
         if not values["society"]:
             errors["society"] = "Please enter a society short name."
         elif len(values["society"]) > 16:
@@ -140,6 +134,23 @@ def newsoc():
 
         if not values["description"]:
             errors["description"] = "Please enter the full name of the society."
+
+        try:
+            soc = utils.get_society(values["society"])
+        except KeyError:
+            pass
+        else:
+            errors["existing"] = soc
+            errors["society"] = "A society with this short name already exists."
+
+        try:
+            soc = sess.query(Society).filter(Society.description == values["description"]).one()
+        except NoResultFound:
+            pass
+        else:
+            if "existing" not in errors:
+                errors["existing"] = soc
+            errors["description"] = "A society with this full name already exists."
 
         if request.form.get("edit") or errors:
             return render_template("signup/newsoc.html", errors=errors, **values)
