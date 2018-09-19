@@ -6,6 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for
 
 from .utils import srcf_db_sess as sess
 from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_mem_society
+from . import utils
 from srcf.controllib import jobs
 from srcf.controllib.jobs import Job
 from srcf.database import Domain
@@ -13,6 +14,16 @@ from srcf.database import Domain
 from . import utils, inspect_services
 
 bp = Blueprint("society", __name__)
+
+
+def validate_email(email):
+    if not email:
+        return None
+    elif not utils.email_re.match(email):
+        return "That address doesn't look valid."
+    elif email.endswith("@srcf.net"):
+        return "This should be an external email address."
+    return None
 
 
 @bp.route('/societies/<society>')
@@ -23,6 +34,31 @@ def home(society):
     inspect_services.lookup_all(soc)
 
     return render_template("society/home.html", member=mem, society=soc)
+
+@bp.route("/societies/<society>/roleemail", methods=["GET", "POST"])
+def update_role_email(society):
+    mem, soc = find_mem_society(society)
+
+    email = soc.role_email
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip() or None
+        if soc.role_email != email:
+            error = validate_email(email)
+        elif email:
+            error = "That's the address we have already."
+        else:
+            error = "No address is currently set."
+
+    if request.method == "POST" and not error:
+        return create_job_maybe_email_and_redirect(
+            jobs.UpdateSocietyRoleEmail,
+            requesting_member=mem,
+            society=soc,
+            email=email
+        )
+    else:
+        return render_template("society/update_role_email.html", society=soc, email=email, error=error)
 
 @bp.route("/societies/<society>/admins/add", methods=["GET", "POST"])
 def add_admin(society):
