@@ -16,7 +16,7 @@
     <div class="form-group row">
         <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="preferred-name">First name</label>
         <div class="col-lg-10 col-md-9 col-sm-8">
-            <input type="text" id="preferred-name" name="preferred_name" class="form-control{% if errors.preferred_name is defined %} is-invalid{% endif %}" value="{{ preferred_name }}" autofocus required>
+            <input type="text" id="preferred-name" name="preferred_name" class="form-control{% if errors.preferred_name is defined %} is-invalid{% endif %}" value="{{ preferred_name }}" required>
             {%- if errors.preferred_name is defined %}
                 <small class="invalid-feedback">{{ errors.preferred_name }}</small>
             {%- endif %}
