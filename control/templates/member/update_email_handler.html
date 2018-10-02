@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Update email configuration</h2>
+<p>You can choose how we process email sent to your SRCF email address, <strong>{{ member.crsid }}@srcf.net</strong>.</p>
+<form action="{{ url_for('member.update_email_handler') }}" method="post">
+    <div class="form-group">
+        <div class="radio">
+            <label>
+                <input type="radio" name="mail_handler" id="mail_handler_forward" value="forward"{% if mail_handler == "forward" %} checked{% endif %}>
+                <strong>Forward email</strong> to your contact address: <strong>{{ member.email }}</strong>
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="mail_handler" id="mail_handler_hades" value="hades"{% if mail_handler == "hades" %} checked{% endif %}>
+                <strong>Use the SRCF Hades email service</strong>
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="mail_handler" id="mail_handler_pip" value="pip"{% if mail_handler == "pip" %} checked{% endif %}>
+                <strong>Use a .forward file</strong> in your home directory, or a legacy mailbox on pip
+            </label>
+        </div>
+    </div>
+    <input type="submit" class="btn btn-outline-primary btnNext" value="Next">
+    <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
+{% endblock %}

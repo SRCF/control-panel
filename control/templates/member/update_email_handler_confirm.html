@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Update email configuration</h2>
+<p>You are about to change your email configuration from <strong>{{ old_mail_handler }}</strong> to <strong>{{ mail_handler }}</strong>.</p>
+
+<div class="alert alert-danger pb-0">
+{% if old_mail_handler == "forward" %}
+    <p>Email to <strong>{{ member.crsid }}@srcf.net</strong> will no longer be forwarded to <strong>{{ member.email }}</strong>.</p>
+{% elif old_mail_handler == "pip" %}
+    <p>If you have one, your <strong>.forward</strong> file will no longer be used.</p>
+{% endif %}
+{% if mail_handler != "forward" %}
+    <p>Email messages will <strong>not</strong> be automatically migrated from your current mail server (but you can copy mail in via IMAP if you like).</p>
+{% endif %}
+{% if old_mail_handler != "forward" %}
+    <p>{% if old_mail_handler == "pip" %}If you have one, y{% else %}Y{% endif %}our mailbox on <strong>{{ old_mail_handler }}</strong> will no longer receive any new email.</p>
+{% endif %}
+</div>
+
+<div class="alert alert-info pb-0">
+{% if mail_handler == "hades" %}
+    <p>You will have to use <strong><a href="https://webmail.hades.srcf.net/">webmail.hades.srcf.net</a></strong> to read your SRCF email, or <a href="{{ DOMAIN_WEB }}/faq/email-hades">configure your email application</a> to connect to the SRCF Hades email service.</p>
+{% elif mail_handler == "pip" %}
+    <p>You will have to <strong>either</strong>:</p>
+    <ul>
+        <li>ensure that you have a <strong>.forward</strong> file on <strong>shell.srcf.net / files.srcf.net</strong> to process your email as needed, <strong>or</strong></li>
+        <li><strong><a href="{{ DOMAIN_WEB }}/faq/email-pip">configure your email application</a></strong> to connect to the legacy SRCF email service, <strong>or</strong></li>
+        <li>use <strong><a href="https://webmail.srcf.net/">webmail.srcf.net</a></strong>, the legacy SRCF webmail service, to read your SRCF email.</li>
+    </ul>
+{% elif mail_handler == "forward" %}
+    <p>Email to <strong>{{ member.crsid }}@srcf.net</strong> will start to be forwarded to <strong>{{ member.email }}</strong>.</p>
+{% endif %}
+</div>
+
+{% if old_mail_handler != "forward" %}
+    <p>You will still be able to access any <strong>old email</strong> stored on {{ old_mail_handler }} as you do now, or via {% if old_mail_handler == "hades" %}<a href="https://webmail.hades.srcf.net/">webmail.hades.srcf.net</a>{% else %}<a href="https://webmail.srcf.net/">webmail.srcf.net</a>{% endif %}.</p>
+{% endif %}
+
+<p class="text-muted">The change may take up to five minutes to take effect.</p>
+
+<form action="{{ url_for('member.update_email_handler') }}" method="post">
+    <input type="hidden" name="mail_handler" value="{{ mail_handler }}">
+    <input type="submit" name="confirm" class="btn btn-outline-primary" value="Confirm changes">
+    <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
+
+{% endblock %}

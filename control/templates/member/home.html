@@ -10,16 +10,32 @@
 <div class="card-columns">
     <div class="card">
         <div class="card-body">
-            <h4 class="card-title">Email</h4>
-            <p>Current email address: <strong>{{ member.email }}</strong></p>
+            <h4 class="card-title">SRCF membership</h4>
+            <p>Your contact address: <strong>{{ member.email }}</strong></p>
             <hr>
             <div class="text-muted">
                 <p>This address will be subscribed to the <em>soc-srcf</em> and <em>soc-srcf-users</em> mailing lists, and will be used if the sysadmins need to contact you about your account.</p>
-                <p>Note that this does not affect the delivery of emails sent to <strong>{{ member.crsid }}@srcf.net</strong>.  By default, mail will be forwarded to the address you provided when first signing up.  See details on <a href="{{ DOMAIN_WEB }}/faq/email#forwarding">configuring email forwarding</a> for how to amend or disable this.
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ url_for('member.update_email_address') }}" rel="modal" class="btn btn-outline-primary">Update</a>
+            <a href="{{ url_for('member.update_email_address') }}" rel="modal" class="btn btn-outline-primary">Update contact address</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Email</h4>
+            <p>Your SRCF email address: <strong>{{ member.crsid }}@srcf.net</strong></p>
+            <hr>
+            <p>This is configured to
+                {%- if member.mail_handler == 'pip' %} deliver mail <a href="{{ DOMAIN_WEB }}/faq/email"><strong>using .forward</strong> or a legacy mailbox on pip</a>
+                {%- elif member.mail_handler == 'hades' %} deliver mail to <strong>the SRCF mail service, Hades</strong>
+                {%- elif member.mail_handler == 'forward' %} <strong>forward mail to your contact address</strong> ({{ member.email }})
+                {%- else %} <strong>deliver to {{ member.mail_handler }}
+                {%- endif %}.
+            </p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('member.update_email_handler') }}" rel="modal" class="btn btn-outline-primary">Change email configuration</a>
         </div>
     </div>
     <div class="card">

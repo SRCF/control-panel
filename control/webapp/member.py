@@ -61,6 +61,27 @@ def update_email_address():
     else:
         return render_template("member/update_email_address.html", member=mem, email=email, error=error)
 
+@bp.route("/member/srcf-email", methods=["GET", "POST"])
+def update_email_handler():
+    crsid, mem = find_member()
+
+    mail_handler = mem.mail_handler
+    if request.method == "POST":
+        mail_handler = request.form.get("mail_handler", "").strip()
+        if mem.mail_handler == mail_handler:
+            # No change requested
+            return redirect(url_for("member.home"))
+
+    if request.method == "POST":
+        if not request.form.get("confirm", ""):
+            return render_template("member/update_email_handler_confirm.html", member=mem,
+                        old_mail_handler=mem.mail_handler, mail_handler=mail_handler)
+        else:
+            return create_job_maybe_email_and_redirect(
+                        jobs.UpdateMailHandler, member=mem, mail_handler=mail_handler)
+    else:
+        return render_template("member/update_email_handler.html", member=mem, mail_handler=mail_handler)
+
 @bp.route("/member/mailinglist", methods=["GET", "POST"])
 def create_mailing_list():
     crsid, mem = find_member()

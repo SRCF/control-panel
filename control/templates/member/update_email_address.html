@@ -3,7 +3,7 @@
 {% block body %}
 <h2>Update email address</h2>
 <p>You can update the email address we have on record for you, which will be used by the sysadmins should they need to contact you, and which will be used for subscriptions to any <em>soc-srcf</em> mailing lists.</p>
-<p>This does not affect the delivery of emails sent to <strong>{{ member.crsid }}@srcf.net</strong> &ndash; for that, you will also need to update the <code>.forward</code> file in your home directory.</p>
+<p>This does not affect the delivery of emails sent to <strong>{{ member.crsid }}@srcf.net</strong>.</p>
 <form action="{{ url_for('member.update_email_address') }}" method="post">
     <div class="form-group">
         <input name="email" type="email" class="form-control{% if error %} is-invalid{% endif %}" value="{{ email }}" placeholder="Email address" autofocus required>

@@ -35,7 +35,7 @@ def signup():
 
     if request.method == 'POST':
         values = {}
-        for key in ("preferred_name", "surname", "email"):
+        for key in ("preferred_name", "surname", "email", "mail_handler"):
             values[key] = request.form.get(key, "").strip()
         for key in ("dpa", "tos", "social"):
             values[key] = bool(request.form.get(key, False))
