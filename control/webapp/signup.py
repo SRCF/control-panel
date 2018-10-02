@@ -44,10 +44,9 @@ def signup():
         if len(values["surname"]) <= 1:
             errors["surname"] = "Please tell us your surname."
 
-        if not values["email"]:
-            errors["email"] = "Please enter your email address."
-        elif not utils.email_re.match(values["email"]):
-            errors["email"] = "That address doesn't look valid."
+        email_err = utils.validate_member_email(crsid, values["email"])
+        if email_err is not None:
+            errors["email"] = email_err
 
         if not values["dpa"]:
             errors["dpa"] = "Please allow us to store your information."

@@ -182,3 +182,31 @@ def auth_admin():
             return None
     else:
         raise Forbidden
+
+
+def validate_member_email(crsid, email):
+    """
+    Validate an email address destined to be a member's registered address.
+
+    Does sane checks like preventing SRCF addresses (which defeat the point of
+    the registered address), and preventing email addresses that we know don't
+    belong to the member (e.g. @cam.ac.uk addresses with a different CRSid).
+
+    Returns None if valid, or a user-friendly error message otherwise.
+    """
+    if isinstance(email, str):
+        email = email.lower()
+
+    if not email:
+        return "Please enter your email address."
+    elif not email_re.match(email):
+        return "That address doesn't look valid."
+    elif email.endswith(("@srcf.net", "@srcf.ucam.org", "@hades.srcf.net")):
+        return "This should be an external email address."
+    elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk",
+                         "@universityofcambridgecloud.onmicrosoft.com")):
+        named = email.split("@")[0].split("+")[0]
+        if named != crsid:
+            return "You should use only your own University email address."
+
+    return None

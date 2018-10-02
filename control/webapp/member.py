@@ -14,20 +14,6 @@ import re
 bp = Blueprint("member", __name__)
 
 
-def validate_email(crsid, email):
-    if not email:
-        return "Please enter your email address."
-    elif not utils.email_re.match(email):
-        return "That address doesn't look valid."
-    elif email.endswith("@srcf.net"):
-        return "This should be an external email address."
-    elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk")):
-        named = email.split("@")[0]
-        if not named == crsid:
-            return "You should use only your own Hermes address."
-    return None
-
-
 @bp.route('/member')
 def home():
     crsid, mem = find_member(allow_inactive=True)
@@ -48,7 +34,7 @@ def reactivate():
     error = None
     if request.method == "POST":
         email = request.form.get("email", "").strip()
-        error = validate_email(crsid, email)
+        error = utils.validate_member_email(crsid, email)
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
@@ -67,7 +53,7 @@ def update_email_address():
         if mem.email == email:
             error = "That's the address we have already."
         else:
-            error = validate_email(crsid, email)
+            error = utils.validate_member_email(crsid, email)
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
