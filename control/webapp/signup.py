@@ -21,13 +21,14 @@ bp = Blueprint("signup", __name__)
 @bp.route("/signup", methods=["get", "post"])
 def signup():
     crsid = utils.raven.principal
+    force_signup_form = ("force-signup-form" in request.args or "force-signup-form" in request.form)
 
     try:
         mem = utils.get_member(crsid)
     except KeyError:
         pass
     else:
-        if "force-signup-form" in request.args or "force-signup-form" in request.form:
+        if force_signup_form:
             pass
         else:
             return redirect(url_for('home.home'))
@@ -80,12 +81,13 @@ def signup():
             "preferred_name": preferred_name,
             "surname": surname,
             "email": crsid + "@cam.ac.uk",
+            "mail_handler": "forward",
             "dpa": False,
             "tos": False,
             "social": True
         }
 
-        return render_template("signup/signup.html", crsid=crsid, errors={}, **values)
+        return render_template("signup/signup.html", crsid=crsid, errors={}, force_signup_form=force_signup_form, **values)
 
 
 def make_keywords(desc):
