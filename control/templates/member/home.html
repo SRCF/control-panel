@@ -30,7 +30,7 @@
                 {%- if member.mail_handler == 'pip' %} deliver mail <a href="{{ DOMAIN_WEB }}/faq/email"><strong>using .forward</strong> or a legacy mailbox on pip</a>
                 {%- elif member.mail_handler == 'hades' %} deliver mail to <strong>the SRCF mail service, Hades</strong>
                 {%- elif member.mail_handler == 'forward' %} <strong>forward mail to your contact address</strong> ({{ member.email }})
-                {%- else %} <strong>deliver to {{ member.mail_handler }}
+                {%- else %} <strong>deliver to {{ member.mail_handler }}</strong>
                 {%- endif %}.
             </p>
         </div>
