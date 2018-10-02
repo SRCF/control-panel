@@ -27,7 +27,10 @@ def signup():
     except KeyError:
         pass
     else:
-        return redirect(url_for('home.home'))
+        if "force-signup-form" in request.args or "force-signup-form" in request.form:
+            pass
+        else:
+            return redirect(url_for('home.home'))
 
     if request.method == 'POST':
         values = {}
