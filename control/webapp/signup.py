@@ -92,7 +92,8 @@ def signup():
 
 def make_keywords(desc):
     keywords = set()
-    for word in re.sub("[^a-z]", " ", desc.lower()).split():
+    formatted = re.sub("[^a-z]", " ", desc.lower().replace("'", ""))
+    for word in formatted.split():
         if word in ("the", "cu", "cambridge", "university", "college", "soc", "society"):
             continue
         while word.endswith("s"):
