@@ -34,20 +34,21 @@
         </div>
     </div>
     <div class="form-group row">
-        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="email">Email address</label>
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="email">Contact address</label>
         <div class="col-lg-10 col-md-9 col-sm-8">
             <input type="email" id="email" name="email" class="form-control{% if errors.email is defined %} is-invalid{% endif %}" value="{{ email }}" required>
             {%- if errors.email is defined %}
                 <small class="invalid-feedback">{{ errors.email }}</small>
             {%- endif %}
-            <small class="form-text text-muted">This is the contact address that the SRCF will use for communication about your membership and your account.  It may also be used as a forwarding address for {{ crsid }}@srcf.net; see below.</small>
+            <small class="form-text text-muted">This is the email address that the SRCF will use for communication about your membership and your account.</small>
         </div>
     </div>
+    <p>Your account also comes with its own email address, <strong>{{ crsid }}@srcf.net</strong>.</p>
     <div class="form-group">
         <div class="form-check">
             <label class="form-check-label">
                 <input class="form-check-input" type="radio" name="mail_handler" value="forward"{% if mail_handler == "forward" %} checked{% endif %}>
-                Forward {{ crsid }}@srcf.net email to the above address
+                Forward {{ crsid }}@srcf.net email to your contact address above
             </label>
         </div>
         <div class="form-check">
@@ -62,7 +63,7 @@
             <input type="checkbox" name="social" class="form-check-input" {% if social %} checked{% endif %}>
             Join the social mailing list
         </label>
-        <small class="form-text text-muted">We have a mailing list (soc-srcf-social@lists.cam.ac.uk) used to organise various social events such as pub meets and LAN parties.  If you wish to be added to the list, check this box.</small>
+        <small class="form-text text-muted">We have a mailing list (soc-srcf-social@lists.cam.ac.uk) used to organise various social events such as pub meets and LAN parties.  If you wish for your contact address to be added, check this box.</small>
     </div>
     <div class="form-group form-check">
         <label class="form-check-label">
