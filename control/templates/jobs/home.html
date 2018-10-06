@@ -19,6 +19,7 @@
         <thead>
             <tr>
                 <th>#</th>
+                {%- if for_society %}<th>Requester</th>{% endif -%}
                 <th>Time</th>
                 <th>Description</th>
                 <th>Status</th>
@@ -29,6 +30,7 @@
             {%- for job in jobs %}
                 <tr class="{{ job.state }}">
                     <td><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
+                    {%- if for_society %}<td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>{% endif -%}
                     <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state|capitalize }}</td>
