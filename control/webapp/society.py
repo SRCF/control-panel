@@ -16,13 +16,23 @@ from . import utils, inspect_services
 bp = Blueprint("society", __name__)
 
 
-def validate_email(email):
+def validate_soc_role_email(email):
+    if isinstance(email, str):
+        email = email.lower()
+
     if not email:
         return None
     elif not utils.email_re.match(email):
         return "That address doesn't look valid."
-    elif email.endswith("@srcf.net"):
+    elif email.endswith(("@srcf.net", "@srcf.ucam.org", "@hades.srcf.net")):
         return "This should be an external email address."
+    elif (email.endswith("@cam.ac.uk")
+          or (email.endswith(("@hermes.cam.ac.uk",
+                              "@universityofcambridgecloud.onmicrosoft.com"))
+              # check that this isn't a shared mailbox
+              and re.match(r'[0-9]$', email.split('@')[0].split('+')[0]))):
+        return "This looks like a personal email address, which isn't suitable for a role email."
+
     return None
 
 
@@ -44,7 +54,7 @@ def update_role_email(society):
     if request.method == "POST":
         email = request.form.get("email", "").strip() or None
         if soc.role_email != email:
-            error = validate_email(email)
+            error = validate_soc_role_email(email)
         elif email:
             error = "That's the address we have already."
         else:
