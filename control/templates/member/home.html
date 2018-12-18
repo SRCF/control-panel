@@ -82,7 +82,7 @@ The NIS password has been changed on pip.srcf.net.</pre>
                 {%- elif member.website.state == "legacyredirect" %}
                     <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/~{{ member.crsid }}/</span></li>
                 {%- endif %}
-                <li>Web root: <code>/home/{{ member.crsid }}/public_html</code></li>
+                <li>Web root: <code>/public/home/{{ member.crsid }}/public_html</code></li>
             </ul>
             {%- if member.website.vhosts %}
                 <table class="table table-sm">
