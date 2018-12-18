@@ -38,7 +38,7 @@
             </p>
             <hr>
             <div class="text-muted">
-                <p>Each society account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code>, databases, and managing this list of administrators.  They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
+                <p>Each society account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code> and <code>/public/societies/{{ society.society }}</code>, databases, and managing this list of administrators.  They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
                 <p>Please ensure this list is kept up-to-date &ndash; account administrators are expected to maintain and manage operation of their society accounts, and respond to any issues or requests from the sysadmins.</p>
                 {%- if society.pending_admins %}
                     <p>There are also pending admins listed above.  These users need to sign up for a personal SRCF account before they can manage this society.</p>
