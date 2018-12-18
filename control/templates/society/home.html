@@ -27,10 +27,14 @@
             {%- endif %}
             <p>
                 Admin email: <strong><a href="mailto:{{ society.email }}">{{ society.email }}</a></strong>
-                {%- if society.role_email %}
-                    <br>
-                    Role email: <strong><a href="{{ society.role_email }}">{{ society.role_email }}</a></strong>
-                {%- endif %}
+                <br>
+                Role email: <strong>
+                    {%- if society.role_email -%}
+                    <a href="mailto:{{ society.role_email }}">{{ society.role_email }}</a>
+                    {%- else -%}
+                    not configured
+                    {%- endif -%}
+                </strong>
             </p>
             <hr>
             <div class="text-muted">
@@ -42,8 +46,8 @@
             </div>
             <hr>
             <div class="text-muted">
-                <p>The admin email address above forwards to all named admins.  It is the first point of contact for the sysadmins to raise issues with the account, and to pass on or request your action on third-party requests.</p>
-                <p>{% if society.role_email %}The role address{% else %}A role address, if configured,{% endif %} will be notified win the event of the society account becoming orphaned (no remaining admins), and may also be called upon if the sysadmins are unable to reach the account admins when needed.</p>
+                <p>The <strong>admin email address</strong> above forwards to all named admins.  It is the first point of contact for the sysadmins to raise issues with the account, and to pass on or request your action on third-party requests.</p>
+                <p>{% if society.role_email %}The <strong>role address</strong>{% else %}A <strong>role address</strong>, if configured,{% endif %} will be notified in the event of the society account becoming orphaned (no remaining admins), and may also be called upon if the sysadmins are unable to reach the account admins when needed.</p>
             </div>
         </div>
         <div class="card-footer">
