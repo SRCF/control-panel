@@ -77,6 +77,33 @@ def sif(variable, val):
         return ""
 
 
+class Pagination(object):
+
+    context = 3
+
+    def __init__(self, current, total):
+        self.current = current
+        self.total = total
+
+    @property
+    def show(self):
+        return self.total > 1
+
+    def _range(self, x, y):
+        return range(x + 1, y + 1)
+
+    @property
+    def pages(self):
+        pages = set(self._range(max(0, self.current - self.context),
+                                min(self.current + self.context - 1, self.total)))
+        pages.update(self._range(0, self.context))
+        pages.update(self._range(self.total - self.context, self.total))
+        return sorted(pages)
+
+    def __iter__(self):
+        return iter(self.pages)
+
+
 def generic_error_handler(error):
     if isinstance(error, HTTPException):
         errorcode = error.code

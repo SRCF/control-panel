@@ -54,7 +54,7 @@ def view_jobs(state):
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for j in jobs: j.resolve_references(sess)
-    return render_template("admin/view_jobs.html", job_counts=job_counts(), state=state, jobs=jobs, page=page, max_pages=max_pages)
+    return render_template("admin/view_jobs.html", job_counts=job_counts(), state=state, jobs=jobs, pages=utils.Pagination(page, max_pages))
 
 @bp.route('/admin/jobs/<int:id>')
 def status(id):

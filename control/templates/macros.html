@@ -2,5 +2,36 @@
 <strong>{{ name }}</strong> <small class="text-muted">{{ id }}</small>
 {% endmacro %}
 
+{% macro _page(i, current) -%}
+<li class="page-item{% if i == current %} active{% endif %}">
+    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+</li>
+{% endmacro %}
+
+{% macro paginate(p) %}
+{%- if p.show %}
+    <nav aria-label="Page">
+        <ul class="pagination">
+            {%- for i in p %}
+                {%- if i == p.current %}
+                    <form>
+                        <input class="form-control" name="page" type="number" min="1" max="{{ p.total }}" value="{{ p.current }}" placeholder="Page" style="width: 100px">
+                    </form>
+                {%- else %}
+                    <li class="page-item{% if i == p.current %} active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                {%- endif %}
+                {%- if not loop.last and p.pages[loop.index] - i > 1 %}
+                    <li class="page-item disabled">
+                        <a class="page-link">&middot;&middot;&middot;</a>
+                    </li>
+                {%- endif %}
+            {%- endfor %}
+        </ul>
+    </nav>
+{%- endif %}
+{% endmacro %}
+
 {% macro mem_name_crsid(m) %}{{ name_id(m.name, m.crsid) }}{% endmacro %}
 {% macro soc_desc_soc(s) %}{{ name_id(s.description, s.society) }}{% endmacro %}

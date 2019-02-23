@@ -23,7 +23,7 @@ def home():
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs: job.resolve_references(sess)
-    return render_template("jobs/home.html", owner_in_context=utils.raven.principal, jobs=jobs, page=page, max_pages=max_pages, for_society=False)
+    return render_template("jobs/home.html", owner_in_context=utils.raven.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
 
 @bp.route('/jobs/<name>')
 def society_home(name):
@@ -33,7 +33,7 @@ def society_home(name):
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs: job.resolve_references(sess)
-    return render_template("jobs/home.html", owner_in_context=name, jobs=jobs, page=page, max_pages=max_pages, for_society=True)
+    return render_template("jobs/home.html", owner_in_context=name, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=True)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)

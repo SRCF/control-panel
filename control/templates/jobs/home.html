@@ -1,19 +1,12 @@
 {% extends "base.html" %}
+{% from "macros.html" import paginate %}
 
 {% set page_title = "Job history" %}
 {% set page_subtitle = owner_in_context %}
 {% set page_parent = url_for('society.home', society=owner_in_context) if for_society else url_for('member.home') %}
 
 {% block body %}
-{%- if max_pages > 1 %}
-    <nav aria-label="Page">
-        <ul class="pagination">
-            {%- for i in range(1, max_pages + 1) %}
-                <li class="page-item{% if i == page %} active{% endif %}"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-            {%- endfor %}
-        </ul>
-    </nav>
-{%- endif %}
+{{ paginate(pages) }}
 {%- if jobs %}
     <table class="table table-sm jobs">
         <thead>
