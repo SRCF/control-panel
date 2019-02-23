@@ -113,8 +113,6 @@ def remove_admin(society, target_crsid):
         raise NotFound
     if tgt not in soc.admins:
         raise NotFound
-    if tgt == mem:
-        raise Forbidden
 
     if request.method == "POST":
         return create_job_maybe_email_and_redirect(
@@ -125,7 +123,7 @@ def remove_admin(society, target_crsid):
             action="remove"
         )
     else:
-        return render_template("society/remove_admin.html", society=soc, target=tgt)
+        return render_template("society/remove_admin.html", member=mem, society=soc, target=tgt)
 
 @bp.route("/societies/<society>/mailinglist", methods=["GET", "POST"])
 def create_mailing_list(society):
