@@ -36,8 +36,6 @@ class InactiveUser(NotFound): pass
 get_member = partial(srcf.database.queries.get_member,  session=srcf_db_sess)
 def get_society(name):
     soc = srcf.database.queries.get_society(name, session=srcf_db_sess)
-    # Fix up pending_admins to remove already approved ones
-    soc.pending_admins = [x for x in soc.pending_admins if not x.crsid in (y.crsid for y in soc.admins)]
     return soc
 
 # We occasionally need a temporary MySQL connection
