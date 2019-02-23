@@ -50,7 +50,7 @@ def view_jobs(state):
     page = 1
     try:
         page = int(request.args["page"])
-    except KeyError, ValueError:
+    except (KeyError, ValueError):
         pass
 
     job_row = srcf.database.Job

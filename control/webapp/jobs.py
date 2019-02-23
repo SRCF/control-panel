@@ -23,7 +23,7 @@ def home():
     page = 1
     try:
         page = int(request.args["page"])
-    except KeyError, ValueError:
+    except (KeyError, ValueError):
         pass
 
     jobs = Job.find_by_user(sess, utils.raven.principal)
@@ -40,7 +40,7 @@ def society_home(name):
     page = 1
     try:
         page = int(request.args["page"])
-    except KeyError, ValueError:
+    except (KeyError, ValueError):
         pass
 
     jobs = Job.find_by_society(sess, name)
