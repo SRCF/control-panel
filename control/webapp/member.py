@@ -195,6 +195,35 @@ def add_vhost():
     else:
         return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
 
+
+@bp.route("/member/domains/<domain>/changedocroot", methods=["GET", "POST"])
+def change_vhost_docroot(domain):
+    crsid, mem = find_member()
+
+    root = ""
+    errors = {}
+
+    try:
+        record = sess.query(Domain).filter(Domain.domain == domain)[0]
+    except IndexError:
+        raise NotFound
+    if not record.owner == crsid:
+        raise Forbidden
+
+    if request.method == "POST":
+        root = request.form.get("root", "").strip()
+        try:
+            domain = parse_domain_name(domain)
+        except ValueError as e:
+            errors["domain"] = e.args[0]
+
+    if request.method == "POST" and not errors:
+        return create_job_maybe_email_and_redirect(
+                    jobs.ChangeUserVhostDocroot, member=mem,
+                    domain=domain, root=root)
+    else:
+        return render_template("member/change_vhost_docroot.html", member=mem, domain=domain, root=root, errors=errors)
+
 @bp.route("/member/domains/<domain>/remove", methods=["GET", "POST"])
 def remove_vhost(domain):
     crsid, mem = find_member()

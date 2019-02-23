@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Change custom domain document root</h2>
+<form action="{{ url_for('society.change_vhost_docroot', society=society.society, domain=domain) }}" method="post">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-prepend input-group-text">public_html /</span>
+            <input name="root" type="text" class="form-control{% if "root" in errors %} is-invalid{% endif %}" value="{{ root }}" placeholder="New document root">
+            {%- if "root" in errors %}
+                <small class="invalid-feedback">{{ errors.root }}</small>
+            {%- endif %}
+        </div>
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Change">
+    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
+{% endblock %}

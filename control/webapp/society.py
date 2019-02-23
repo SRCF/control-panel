@@ -233,6 +233,35 @@ def add_vhost(society):
     else:
         return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
 
+@bp.route("/societies/<society>/domains/<domain>/changedocroot", methods=["GET", "POST"])
+def change_vhost_docroot(society, domain):
+    mem, soc = find_mem_society(society)
+
+    root = ""
+    errors = {}
+
+    try:
+        record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == soc.society)[0]
+    except IndexError:
+        errors["domain"] = "This domain is not registered."
+
+    if request.method == "POST":
+        root = request.form.get("root", "").strip()
+        try:
+            domain = parse_domain_name(domain)
+        except ValueError as e:
+            errors["domain"] = e.args[0]
+        else:
+
+            errors["root"] = ""
+
+    if request.method == "POST" and not errors:
+        return create_job_maybe_email_and_redirect(
+                    jobs.ChangeSocietyVhostDocroot, member=mem, society=soc,
+                    domain=domain, root=root)
+    else:
+        return render_template("society/change_vhost_docroot.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+
 @bp.route("/societies/<society>/domains/<domain>/remove", methods=["GET", "POST"])
 def remove_vhost(society, domain):
     mem, soc = find_mem_society(society)
