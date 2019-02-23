@@ -18,7 +18,14 @@ per_page = 25
 
 @bp.route('/jobs')
 def home():
-    page = int(request.args["page"]) if "page" in request.args else 1
+
+    # Best-effort parsing of ?page= falling back to 1 in all error cases
+    page = 1
+    try:
+        page = int(request.args["page"])
+    except KeyError, ValueError:
+        pass
+
     jobs = Job.find_by_user(sess, utils.raven.principal)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
@@ -28,7 +35,14 @@ def home():
 @bp.route('/jobs/<name>')
 def society_home(name):
     _, society = utils.find_mem_society(name)
-    page = int(request.args["page"]) if "page" in request.args else 1
+
+    # Best-effort parsing of ?page= falling back to 1 in all error cases
+    page = 1
+    try:
+        page = int(request.args["page"])
+    except KeyError, ValueError:
+        pass
+
     jobs = Job.find_by_society(sess, name)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]

@@ -45,7 +45,14 @@ per_page = 25
 @bp.route('/admin/jobs/done',       defaults={"state": "done"})
 @bp.route('/admin/jobs/failed',     defaults={"state": "failed"})
 def view_jobs(state):
-    page = int(request.args["page"]) if "page" in request.args else 1
+
+    # Best-effort parsing of ?page= falling back to 1 in all error cases
+    page = 1
+    try:
+        page = int(request.args["page"])
+    except KeyError, ValueError:
+        pass
+
     job_row = srcf.database.Job
     jobs = sess.query(job_row) \
                     .filter(job_row.state == state) \
