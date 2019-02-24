@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h2>Change custom domain document root</h2>
+<h2>Change document root</h2>
 <form action="{{ url_for('society.change_vhost_docroot', society=society.society, domain=domain) }}" method="post">
+    <p>By default, a custom domain will serve the same site as your SRCF domain, <strong>{{ society.society }}.soc.srcf.net</strong>.  You may optionally specify a subdirectory of your <code>public_html</code> directory, where a different site should be served from.</p>
+    <p>You are changing the document root for <strong>{{ domain }}</strong>.</p>
     <div class="form-group">
         <div class="input-group">
             <span class="input-group-prepend input-group-text">public_html /</span>
