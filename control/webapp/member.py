@@ -197,20 +197,18 @@ def add_vhost():
     else:
         return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
 
-
 @bp.route("/member/domains/<domain>/changedocroot", methods=["GET", "POST"])
 def change_vhost_docroot(domain):
     crsid, mem = find_member()
 
-    root = ""
     errors = {}
 
     try:
-        record = sess.query(Domain).filter(Domain.domain == domain)[0]
+        record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == crsid)[0]
     except IndexError:
         raise NotFound
-    if not record.owner == crsid:
-        raise Forbidden
+
+    root = record.root.replace("public_html/", "") if record.root else ""
 
     if request.method == "POST":
         root = request.form.get("root", "").strip()

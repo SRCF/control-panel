@@ -239,13 +239,14 @@ def add_vhost(society):
 def change_vhost_docroot(society, domain):
     mem, soc = find_mem_society(society)
 
-    root = ""
     errors = {}
 
     try:
         record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == soc.society)[0]
     except IndexError:
-        errors["domain"] = "This domain is not registered."
+        raise NotFound
+
+    root = record.root.replace("public_html/", "") if record.root else ""
 
     if request.method == "POST":
         root = request.form.get("root", "").strip()
