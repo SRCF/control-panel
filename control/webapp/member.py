@@ -11,6 +11,8 @@ from srcf.database import Domain
 
 import re
 
+import string
+
 bp = Blueprint("member", __name__)
 
 
@@ -212,6 +214,8 @@ def change_vhost_docroot(domain):
 
     if request.method == "POST":
         root = request.form.get("root", "").strip()
+        if any([ch in root for ch in string.whitespace + "\\" + "\"" + "\'"]) or ".." in root:
+            errors["root"] = "This document root is invalid."
         try:
             domain = parse_domain_name(domain)
         except ValueError as e:

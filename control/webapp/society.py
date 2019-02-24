@@ -13,6 +13,8 @@ from srcf.database import Domain
 
 from . import utils, inspect_services
 
+import string
+
 bp = Blueprint("society", __name__)
 
 
@@ -247,13 +249,12 @@ def change_vhost_docroot(society, domain):
 
     if request.method == "POST":
         root = request.form.get("root", "").strip()
+        if any([ch in root for ch in string.whitespace + "\\" + "\"" + "\'"]) or ".." in root:
+            errors["root"] = "This document root is invalid."
         try:
             domain = parse_domain_name(domain)
         except ValueError as e:
             errors["domain"] = e.args[0]
-        else:
-
-            errors["root"] = ""
 
     if request.method == "POST" and not errors:
         return create_job_maybe_email_and_redirect(
