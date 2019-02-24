@@ -89,6 +89,7 @@
                         {%- for domain in society.website.vhosts %}
                             <tr>
                                 <td>
+                                    {% if domain.domain in society.website.certs %}<i class="fa fa-lock" aria-label="HTTPS activated for {{ domain.domain }}" title="HTTPS activated for {{ domain.domain }}"></i>{% endif %}
                                     {% if domain.wild %}[*.]{% endif %}{{ domain.domain }}
                                     {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>

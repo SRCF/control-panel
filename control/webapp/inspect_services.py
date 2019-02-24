@@ -72,6 +72,9 @@ def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
     path = os.path.join("/public", "home" if is_member else "societies", prefix, "public_html")
     web = {"vhosts": list(sess.query(srcf.database.Domain).filter(srcf.database.Domain.owner == prefix)), "state": None}
+    domains = [domain.domain for domain in web["vhosts"]]
+    certs = sess.query(srcf.database.HTTPSCert.domain).filter(srcf.database.HTTPSCert.domain.in_(domains))
+    web["certs"] = [cert[0] for cert in certs]
     try:
         web["exists"] = os.path.exists(path) and len(os.listdir(path)) > 0
     except OSError:

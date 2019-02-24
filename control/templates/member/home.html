@@ -97,6 +97,7 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         {%- for domain in member.website.vhosts %}
                             <tr>
                                 <td>
+                                    {% if domain.domain in member.website.certs %}<i class="fa fa-lock" aria-label="HTTPS activated for {{ domain.domain }}" title="HTTPS activated for {{ domain.domain }}"></i>{% endif %}
                                     {% if domain.wild %}[*.]{% endif %}{{ domain.domain }}
                                     {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>
