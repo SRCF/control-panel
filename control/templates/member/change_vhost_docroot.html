@@ -8,7 +8,7 @@
     <div class="form-group">
         <div class="input-group">
             <span class="input-group-prepend input-group-text">public_html /</span>
-            <input name="root" type="text" class="form-control{% if "root" in errors %} is-invalid{% endif %}" value="{{ root }}" placeholder="New document root">
+            <input name="root" type="text" class="form-control{% if "root" in errors %} is-invalid{% endif %}" value="{{ root }}" placeholder="New document root" autofocus>
             {%- if "root" in errors %}
                 <small class="invalid-feedback">{{ errors.root }}</small>
             {%- endif %}

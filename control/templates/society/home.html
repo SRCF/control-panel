@@ -95,8 +95,11 @@
                                         ({% if domain.wild %}[*.]{% endif %}{{ domain.domain.encode("ascii").decode("idna") }})
                                     {% endif %}
                                 </td>
-                                <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %} <a href="{{ url_for('society.change_vhost_docroot', society=society.society, domain=domain.domain) }}" rel="modal" aria-label="Change document root for {{ domain.domain }}" title="Change document root for {{ domain.domain }}"><span aria-hidden="true">Change</span></a></td>
-                                <td><a href="{{ url_for('society.remove_vhost', society=society.society, domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a></td>
+                                <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %}</td>
+                                <td>
+                                    <a href="{{ url_for('society.change_vhost_docroot', society=society.society, domain=domain.domain) }}" rel="modal" aria-label="Change document root for {{ domain.domain }}" title="Change document root for {{ domain.domain }}"><i class="fa fa-pencil"></i></a>
+                                    <a href="{{ url_for('society.remove_vhost', society=society.society, domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a>
+                                </td>
                             </tr>
                         {%- endfor %}
                     </tbody>
