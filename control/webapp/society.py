@@ -25,14 +25,14 @@ def validate_soc_role_email(email):
     if not email:
         return None
     elif not utils.email_re.match(email):
-        return "That address doesn't look valid."
+        return "This doesn't look like a valid email address."
     elif email.endswith(("@srcf.net", "@srcf.ucam.org", "@hades.srcf.net")):
-        return "This should be an external email address."
-    elif (email.endswith("@cam.ac.uk")
+        return "This should be an external email address, not one provided by the SRCF."
+    elif (email.endswith(("@cam.ac.uk", "@cantab.net", "@alumni.cam.ac.uk"))
           or (email.endswith(("@hermes.cam.ac.uk",
                               "@universityofcambridgecloud.onmicrosoft.com"))
               # check that this isn't a shared mailbox
-              and re.match(r'[0-9]$', email.split('@')[0].split('+')[0]))):
+              and re.match(r'[0-9]$', '@'.join(email.split('@')[:-1]).split('+')[0]))):
         return "This looks like a personal email address, which isn't suitable for a role email."
 
     return None
