@@ -76,7 +76,8 @@ def status(id):
     owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
 
     return render_template("admin/status.html", job=job, log=log, job_home_url=job_home_url,
-                           for_society=for_society, owner_in_context=owner_in_context, unhexlify=unhexlify)
+                           for_society=for_society, owner_in_context=owner_in_context,
+                           unhexlify=unhexlify, principal=utils.raven.principal)
 
 @bp.route('/admin/jobs/<int:id>/approve', defaults={"state": "unapproved", "approved": True})
 @bp.route('/admin/jobs/<int:id>/reject',  defaults={"state": "unapproved", "approved": False})

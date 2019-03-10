@@ -72,4 +72,6 @@ def status(id):
         owner_in_context = job.owner.crsid
         job_home_url = url_for('jobs.home')
 
-    return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url)
+    mem = utils.get_member(utils.raven.principal)
+
+    return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)

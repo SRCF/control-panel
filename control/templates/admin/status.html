@@ -18,6 +18,9 @@
         <a class="btn btn-outline-secondary" href="{{ url_for('admin.set_state', id=job.job_id, state=job.state) }}" onclick="return confirm('Warning: this won\'t stop a running job, only set its status to failed!');">Move to failed</a>
     </p>
 {%- endif %}
+{%- if job.visible_to(principal) %}
+<a class="btn btn-outline-primary mb-2" href="{{ url_for('jobs.status', id=job.job_id) }}">Jump to normal view</a>
+{%- endif %}
 <h3>Data</h3>
 {% if job.row.args %}
     <table class="table table-sm">
