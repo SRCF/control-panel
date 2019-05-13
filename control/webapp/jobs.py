@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, url_for
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from srcf.controllib.jobs import Job, Society, SocietyJob
+from srcf.controllib.jobs import Job, Signup, Society, SocietyJob
 from srcf.database import queries
 
 import math
@@ -72,6 +72,14 @@ def status(id):
         owner_in_context = job.owner.crsid
         job_home_url = url_for('jobs.home')
 
-    mem = utils.get_member(utils.raven.principal)
+    if not isinstance(job, Signup):
+        mem = utils.get_member(utils.raven.principal)
+    else:
+        # Signup jobs might be viewed by the new member, who doesn't yet have a
+        # DB entry, so get_member(crsid) could fail.  The purpose of this
+        # lookup (i.e. to decide whether to show the 'jump to admin view'
+        # button) doesn't make sense anyway for a signup job, so just pass None
+        # to the template
+        mem = None
 
     return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)
