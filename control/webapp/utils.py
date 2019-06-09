@@ -30,6 +30,8 @@ srcf_db_sess = sqlalchemy.orm.scoped_session(
     srcf.database.Session,
     scopefunc=flask._request_ctx_stack.__ident_func__
 )
+srcf.database.queries.disable_automatic_session(and_use_this_one_instead=srcf_db_sess)
+
 
 class InactiveUser(NotFound): pass
 
