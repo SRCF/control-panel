@@ -11,6 +11,7 @@ import sqlalchemy.orm
 import raven.flask_glue
 import raven.demoserver as raven_demoserver
 from werkzeug.exceptions import NotFound, Forbidden, HTTPException
+import yaml
 
 import srcf.database
 import srcf.database.queries
@@ -168,7 +169,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         body = "You can approve or reject the job here: {0}" \
                 .format(flask.url_for("admin.view_jobs", state="unapproved", _external=True))
         if j.row.args:
-            body = pformat(j.row.args) + "\n\n" + body
+            body = yaml.dump(j.row.args, default_flow_style=False) + "\n" + body
         if j.owner.danger:
             body = "WARNING: This user has their danger flag set.\n\n" + body
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
