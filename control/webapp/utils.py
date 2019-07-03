@@ -3,7 +3,6 @@ import sys
 import traceback
 from functools import partial
 from urllib.parse import urlparse
-from pprint import pformat
 
 import flask
 import jinja2
