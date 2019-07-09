@@ -88,11 +88,16 @@ def add_admin(society):
             try:
                 tgt = utils.get_member(crsid)
             except KeyError:
-                error = "{0} doesn't appear to be a current user.".format(crsid)
-            if tgt == mem:
-                error = "You are already an administrator."
-            elif tgt in soc.admins:
-                error = "{0} is already an administrator.".format(crsid)
+                error = "{0} isn't a SRCF member; please ask them to join.".format(crsid)
+            else:
+                if not tgt.member:
+                    error = "{0} isn't a SRCF member; please ask them to join.".format(crsid)
+                elif not tgt.user:
+                    error = "{0} doesn't have an active SRCF account; please ask them to reactivate their account by going to the SRCF Control Panel.".format(crsid)
+                elif tgt == mem:
+                    error = "You are already an administrator."
+                elif tgt in soc.admins:
+                    error = "{0} is already an administrator.".format(crsid)
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
