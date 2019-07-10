@@ -81,7 +81,7 @@ def add_admin(society):
     error = None
 
     if request.method == "POST":
-        crsid = request.form.get("crsid", "").strip()
+        crsid = request.form.get("crsid", "").strip().lower()
         if not crsid:
             error = "Please enter the new administrator's CRSid."
         else:
