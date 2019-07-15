@@ -14,8 +14,12 @@
         <div class="card-body">
             <h5 class="card-title">{{ soc_desc_soc(errors.existing) }}</h5>
             <p>This society name is already in use.  <span class="text-danger">If this represents you, <strong>don't submit this form!</strong></span></p>
-            <p>Please contact the owners of the account at <a href="mailto:{{ errors.existing.society }}-admins@srcf.net"><strong>{{ errors.existing.society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
-            <p>If you're unable to make contact, you may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins.</p>
+            {%- if errors.existing.admins %}
+                <p>Please contact the owners of the account at <a href="mailto:{{ errors.existing.society }}-admins@srcf.net"><strong>{{ errors.existing.society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
+                <p>If you're unable to make contact, you may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins.</p>
+            {%- else %}
+                <p>This account is currently suspended as there are no remaining admins.  You may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins if you wish to claim this account.</p>
+            {%- endif %}
         </div>
     </div>
 {%- endif %}
