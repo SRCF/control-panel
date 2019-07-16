@@ -1,8 +1,7 @@
-import functools
-import operator
 import re
 
 from flask import Blueprint, render_template, redirect, url_for, request
+from sqlalchemy.sql.expression import func
 from sqlalchemy.orm.exc import NoResultFound
 
 from srcf.database import Member, Society
@@ -149,7 +148,7 @@ def newsoc():
             errors["society"] = "A society with this short name already exists."
 
         try:
-            soc = sess.query(Society).filter(Society.description == values["description"]).one()
+            soc = sess.query(Society).filter(func.lower(Society.description) == values["description"].lower()).one()
         except NoResultFound:
             pass
         else:
@@ -157,16 +156,22 @@ def newsoc():
                 errors["existing"] = soc
             errors["description"] = "A society with this full name already exists."
 
+        similar = []
+        if "existing" not in errors:
+            keywords = make_keywords(values["description"])
+            for soc in sess.query(Society):
+                words = make_keywords(soc.description)
+                if keywords == words:
+                    errors["existing"] = soc
+                    errors["description"] = "A society with a matching full name already exists."
+                    break
+                elif keywords <= words:
+                    similar.append(soc)
+
         if request.form.get("edit") or errors:
             return render_template("signup/newsoc.html", errors=errors, **values)
 
         elif not request.form.get("confirm"):
-            similar = []
-            keywords = make_keywords(values["description"])
-            for soc in sess.query(Society):
-                words = make_keywords(soc.description)
-                if keywords <= words:
-                    similar.append(soc)
             return render_template("signup/newsoc_confirm.html",
                     current_admins=current_admins, similar=similar, **values)
 
