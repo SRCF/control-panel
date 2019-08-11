@@ -14,6 +14,8 @@
         <input name="crsid" type="text" class="form-control{% if error %} is-invalid{% endif %}" value="{{ crsid }}" placeholder="Administrator's CRSid" autofocus required>
         {%- if error %}
             <small class="invalid-feedback">{{ error }}</small>
+        {%- else %}
+            <small class="form-text text-muted">This is the part before the "@cam.ac.uk" in their University of Cambridge email address.</small>
         {%- endif %}
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Add">
