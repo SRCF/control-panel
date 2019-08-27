@@ -136,8 +136,11 @@ def newsoc():
         elif not SOC_SOCIETY_RE.match(values["society"]):
             errors["society"] = "Society short names may only contain lowercase letters."
 
+        keywords = make_keywords(values["description"])
         if not values["description"]:
             errors["description"] = "Please enter the full name of the society."
+        elif not keywords:
+            errors["description"] = "Please use a more descriptive full name."
 
         try:
             soc = utils.get_society(values["society"])
@@ -147,18 +150,14 @@ def newsoc():
             errors["existing"] = soc
             errors["society"] = "A society with this short name already exists."
 
-        try:
-            soc = sess.query(Society).filter(func.lower(Society.description) == values["description"].lower()).one()
-        except NoResultFound:
-            pass
-        else:
+        soc = sess.query(Society).filter(func.lower(Society.description) == values["description"].lower()).first()
+        if soc:
             if "existing" not in errors:
                 errors["existing"] = soc
             errors["description"] = "A society with this full name already exists."
 
         similar = []
         if "existing" not in errors:
-            keywords = make_keywords(values["description"])
             for soc in sess.query(Society):
                 words = make_keywords(soc.description)
                 if keywords == words:
