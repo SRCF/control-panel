@@ -68,9 +68,6 @@ def signup():
             lookup_user = utils.ldapsearch(crsid)
             surname = lookup_user["sn"][0]
             preferred_name = ""
-            if lookup_user["cn"][0] != lookup_user["displayName"][0]:
-                # user customised their name, maybe they added a first name?
-                preferred_name = lookup_user["displayName"][0].replace(surname, "").strip()
         except KeyError:
             preferred_name = ""
             surname = ""
