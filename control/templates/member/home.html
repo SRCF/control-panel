@@ -97,11 +97,16 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         {%- for domain in member.website.vhosts %}
                             <tr>
                                 <td>
-                                    {% if domain.domain in member.website.certs %}<i class="fa fa-lock" aria-label="HTTPS activated for {{ domain.domain }}" title="HTTPS activated for {{ domain.domain }}"></i>{% endif %}
-                                    {% if domain.wild %}[*.]{% endif %}{{ domain.domain }}
+                                    {% if domain.wild %}
+                                        <i class="fa fa-indent" aria-label="Wildcard subdomains for {{ domain.domain }}" title="Wildcard subdomains"></i>
+                                    {% endif %}
+                                    {% if domain.domain in member.website.certs %}
+                                        <i class="fa fa-lock" aria-label="HTTPS activated for {{ domain.domain }}" title="HTTPS activated"></i>
+                                    {% endif %}
+                                    {{ domain.domain }}
                                     {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>
-                                        ({% if domain.wild %}[*.]{% endif %}{{ domain.domain.encode("ascii").decode("idna") }})
+                                        <em>{{ domain.domain.encode("ascii").decode("idna") }}</em>
                                     {% endif %}
                                 </td>
                                 <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %}</td>
