@@ -176,17 +176,14 @@ def add_vhost():
         domain = request.form.get("domain", "").strip()
         root = request.form.get("root", "").strip()
         if domain:
-            try:
-                domain = parse_domain_name(domain)
-            except ValueError as e:
-                errors["domain"] = e.args[0]
-            else:
-                try:
-                    record = sess.query(Domain).filter(Domain.domain == domain)[0]
-                except IndexError:
-                    pass
-                else:
-                    errors["domain"] = "This domain is already registered."
+            parsed = parse_domain_name(domain)
+            if domain != parsed:
+                domain = parsed
+                errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
+            elif re.match(r"[a-z0-9]+\.(user|soc)\.srcf\.net$", domain):
+                errors["domain"] = "Default SRCF domains can't be registered here."
+            elif sess.query(Domain).filter(Domain.domain == domain).count():
+                errors["domain"] = "This domain is already registered."
         else:
             errors["domain"] = "Please enter a domain or subdomain."
 

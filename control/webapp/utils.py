@@ -48,17 +48,10 @@ def temp_mysql_conn():
 
 
 def parse_domain_name(domain):
-    if "//" in domain:
-        parts = urlparse(domain.rstrip("/"))
-        if parts.path:
-            raise ValueError("Please enter the domain without including a path.")
-        domain = parts.netloc
-        if domain.startswith("www."):
-            domain = domain[4:]
-        if not domain:
-            raise ValueError("Please enter a domain or subdomain.")
-    elif "/" in domain or ":" in domain:
-        raise ValueError("Please enter the domain without including a path.")
+    parsed = urlparse(domain)
+    domain = parsed.netloc or parsed.path.split("/", 1)[0]
+    while domain.startswith("www."):
+        domain = domain[4:]
     if all(ord(char) < 128 for char in domain):
         return domain
     else:
