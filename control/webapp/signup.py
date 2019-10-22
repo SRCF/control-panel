@@ -13,6 +13,8 @@ from .utils import create_job_maybe_email_and_redirect
 from . import utils
 
 SOC_SOCIETY_RE = re.compile(r'^[a-z]+$')
+ILLEGAL_NAME_RE = re.compile(r'[:,=\n]')
+ILLEGAL_NAME_ERR = "Please do not use any of the following characters: : , = ⏎ "
 
 bp = Blueprint("signup", __name__)
 
@@ -44,8 +46,13 @@ def signup():
         # Don't allow a single initial
         if len(values["preferred_name"]) <= 1:
             errors["preferred_name"] = "Please tell us your preferred name."
+        elif ILLEGAL_NAME_RE.search(values["preferred_name"]):
+            errors["preferred_name"] = ILLEGAL_NAME_ERR
+
         if len(values["surname"]) <= 1:
             errors["surname"] = "Please tell us your surname."
+        elif ILLEGAL_NAME_RE.search(values["surname"]):
+            errors["surname"] = ILLEGAL_NAME_ERR
 
         email_err = utils.validate_member_email(crsid, values["email"])
         if email_err is not None:
@@ -136,6 +143,8 @@ def newsoc():
         keywords = make_keywords(values["description"])
         if not values["description"]:
             errors["description"] = "Please enter the full name of the society."
+        elif ILLEGAL_NAME_RE.search(values["description"]):
+            errors["description"] = ILLEGAL_NAME_ERR
         elif not keywords:
             errors["description"] = "Please use a more descriptive full name."
 
