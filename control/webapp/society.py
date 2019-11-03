@@ -227,6 +227,8 @@ def add_vhost(society):
             if domain != parsed:
                 domain = parsed
                 errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
+            elif domain.endswith("." + soc.society + ".soc.srcf.net"):
+                pass
             elif re.match(r"[a-z0-9]+\.(user|soc)\.srcf\.net$", domain):
                 errors["domain"] = "Default SRCF domains can't be registered here."
             elif sess.query(Domain).filter(Domain.domain == domain).count():
