@@ -1,5 +1,5 @@
 from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 from sqlalchemy import func as sql_func
 
@@ -103,3 +103,11 @@ def set_state(id, state, approved=False):
     sess.add(job.row)
 
     return redirect(url_for("admin.view_jobs", state=state))
+
+@bp.route('/admin/jobs/<int:id>/add', methods = ["GET", "POST"])
+def add_note(id):
+    if request.method == "POST":
+        text = request.form.get("text", "").strip()
+        sess.add(JobLog(job_id=id, type="note", level="info", time=datetime.now(), message=text))
+        flash("Note successfully added.")
+        return redirect(url_for('admin.status', id=id))
