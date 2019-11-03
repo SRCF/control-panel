@@ -48,7 +48,7 @@ def temp_mysql_conn():
 
 
 def parse_domain_name(domain):
-    parsed = urlparse(domain)
+    parsed = urlparse(domain.lower())
     domain = parsed.netloc or parsed.path.split("/", 1)[0]
     while domain.startswith("www."):
         domain = domain[4:]
