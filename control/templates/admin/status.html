@@ -25,7 +25,7 @@
 <h3>Add note</h3>
 <form action="{{ url_for('admin.add_note', id=job.job_id) }}" method="post">
     <p>
-        <textarea name="text" placeholder="Enter text here." rows="5" cols="60"></textarea><br>
+        <textarea name="text" class="form-control" placeholder="Enter text here." rows="5"></textarea>
     </p>
     <p>
         <input type="submit" class="btn btn-outline-primary" value="Add">

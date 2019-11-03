@@ -108,6 +108,7 @@
         {%- endfor %}
     </div>
 {%- else %}
-    <p>You don't currently administrate any society accounts.</p><p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-secondary">Create new</a></p>
+    <p>You don't currently administrate any society accounts.</p>
+    <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-outline-primary">Create new</a></p>
 {%- endif %}
 {% endblock %}
