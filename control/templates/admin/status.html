@@ -22,6 +22,14 @@
 <a class="btn btn-outline-primary mb-2" href="{{ url_for('jobs.status', id=job.job_id) }}">Jump to normal view</a>
 {%- endif %}
 <p>
+{% if notes %}
+<h3>Notes</h3>
+<ul>
+    {% for entry in notes %}
+    <li>{{ entry.message }}</li>
+    {% endfor %}
+</ul>
+{%- endif %}
 <h3>Add note</h3>
 <form action="{{ url_for('admin.add_note', id=job.job_id) }}" method="post">
     <p>

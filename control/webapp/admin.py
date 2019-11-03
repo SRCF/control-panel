@@ -70,12 +70,13 @@ def status(id):
         raise NotFound(id)
 
     log = list(sess.query(JobLog).filter(JobLog.job_id == id).order_by(JobLog.time))
+    notes = [x for x in log if x.type == "note"]
 
     job_home_url = url_for('admin.view_jobs', state=job.state)
     for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.raven.principal
     owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
 
-    return render_template("admin/status.html", job=job, log=log, job_home_url=job_home_url,
+    return render_template("admin/status.html", job=job, notes=notes, log=log, job_home_url=job_home_url,
                            for_society=for_society, owner_in_context=owner_in_context,
                            unhexlify=unhexlify, principal=utils.raven.principal)
 
