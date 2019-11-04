@@ -62,20 +62,18 @@
         <p>Ensure any successors have access to the account in good time for a smooth handover.</p>
     </div>
 </div>
-<p>
-    <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
-        <input type="hidden" name="society" value="{{ society }}">
-        <input type="hidden" name="description" value="{{ description }}">
-        <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
-        <input type="hidden" name="confirm" value="on">
-        <input type="submit" class="btn btn-outline-primary" value="Looks good, create account">
-    </form>
-    <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
-        <input type="hidden" name="society" value="{{ society }}">
-        <input type="hidden" name="description" value="{{ description }}">
-        <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
-        <input type="hidden" name="edit" value="on">
-        <input type="submit" class="btn btn-outline-secondary" value="Go back and edit">
-    </form>
-</p>
+<form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
+    <input type="hidden" name="society" value="{{ society }}">
+    <input type="hidden" name="description" value="{{ description }}">
+    <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
+    <input type="hidden" name="confirm" value="on">
+    <input type="submit" class="btn btn-outline-primary" value="Looks good, create account">
+</form>
+<form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
+    <input type="hidden" name="society" value="{{ society }}">
+    <input type="hidden" name="description" value="{{ description }}">
+    <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
+    <input type="hidden" name="edit" value="on">
+    <input type="submit" class="btn btn-outline-secondary" value="Go back and edit">
+</form>
 {% endblock %}

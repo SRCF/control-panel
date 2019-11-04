@@ -10,6 +10,7 @@ from . import utils
 from srcf.controllib import jobs
 from srcf.controllib.jobs import Job
 from srcf.database import Domain
+from srcf import domains
 
 from . import utils, inspect_services
 
@@ -219,7 +220,9 @@ def add_vhost(society):
     domain = ""
     root = ""
     errors = {}
+
     if request.method == "POST":
+
         domain = request.form.get("domain", "").strip()
         root = request.form.get("root", "").strip()
         if domain:
@@ -236,10 +239,27 @@ def add_vhost(society):
         else:
             errors["domain"] = "Please enter a domain or subdomain."
 
-    if request.method == "POST" and not errors:
-        return create_job_maybe_email_and_redirect(
-                    jobs.AddSocietyVhost, member=mem, society=soc,
-                    domain=domain, root=root)
+        if request.form.get("edit") or errors:
+            return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+
+        confirm = True
+        if request.form.get("confirm"):
+            confirm = False
+        else:
+            valid = {}
+            prefixed = "www.{}".format(domain)
+            for d in (domain, prefixed):
+                valid[d] = domains.verify(d)
+            if all(v == (True, True) for v in valid.values()):
+                confirm = False
+
+        if confirm:
+            return render_template("society/add_vhost_test.html", society=soc, member=mem, domain=domain, root=root, valid=valid)
+        else:
+            return create_job_maybe_email_and_redirect(
+                        jobs.AddSocietyVhost, member=mem, society=soc,
+                        domain=domain, root=root)
+
     else:
         return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
 

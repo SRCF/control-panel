@@ -8,6 +8,7 @@ from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_
 from . import utils, inspect_services
 from srcf.controllib import jobs
 from srcf.database import Domain
+from srcf import domains
 
 import re
 
@@ -172,7 +173,9 @@ def add_vhost():
     domain = ""
     root = ""
     errors = {}
+
     if request.method == "POST":
+
         domain = request.form.get("domain", "").strip()
         root = request.form.get("root", "").strip()
         if domain:
@@ -189,10 +192,27 @@ def add_vhost():
         else:
             errors["domain"] = "Please enter a domain or subdomain."
 
-    if request.method == "POST" and not errors:
-        return create_job_maybe_email_and_redirect(
-                    jobs.AddUserVhost, member=mem,
-                    domain=domain, root=root)
+        if request.form.get("edit") or errors:
+            return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
+
+        confirm = True
+        if request.form.get("confirm"):
+            confirm = False
+        else:
+            valid = {}
+            prefixed = "www.{}".format(domain)
+            for d in (domain, prefixed):
+                valid[d] = domains.verify(d)
+            if all(v == (True, True) for v in valid.values()):
+                confirm = False
+
+        if confirm:
+            return render_template("member/add_vhost_test.html", member=mem, domain=domain, root=root, valid=valid)
+        else:
+            return create_job_maybe_email_and_redirect(
+                        jobs.AddUserVhost, member=mem,
+                        domain=domain, root=root)
+
     else:
         return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
 

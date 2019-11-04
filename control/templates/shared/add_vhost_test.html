@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% set prefixed = "www.{}".format(domain) %}
+
+{% macro info(v, record="") %}
+    {% if v is none %}
+        <p>We couldn't connect to this domain.</p>
+        <p>This may mean there are no <a href="https://wiki.srcf.net/DomainsAndHTTPS" target="_blank">{{ record }} DNS records</a> present, or the domain currently resolves to another server that isn't responding.</p>
+    {% elif v %}
+        <p>This domain resolves correctly to the SRCF webserver, and is ready to serve your site.</p>
+    {% else %}
+        <p>This domain currently resolves to a different server.</p>
+        <p>If you are using your domain to host an existing website, you can continue to register your domain here, and switch over when ready.</p>
+        <p>Otherwise, this may be a holding page provided by your domain registrar.  You should check that your <a href="https://wiki.srcf.net/DomainsAndHTTPS" target="_blank">{{ record }} DNS records</a> are configured correctly.  Remember that DNS changes may take time to propagate.</p>
+    {% endif %}
+{% endmacro %}
+
+{% macro card(v) %}
+    <div class="card">
+        <div class="card-body">
+            {% set v4, v6 = v %}
+            {% for d in varargs %}
+                <h5 class="card-title {% if v4 and v6 %}text-success{% else %}text-danger{% endif %}">
+                    <i class="fa fa-{% if v4 and v6 %}check{% else %}warning{% endif %}"></i> {{ d }}
+                </h5>
+            {% endfor %}
+            {% if v4 == v6 %}
+                {{ info(v4) }}
+            {% else %}
+                <h5>IPv4</h5>
+                {{ info(v4, "A") }}
+                <h5>IPv6</h5>
+                {{ info(v6, "AAAA") }}
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% block body %}
+<h2>Test custom domain</h2>
+<p>We will serve your website from both the base (sub)domain and the www-prefixed subdomain, though currently your DNS records don't cover all cases.</p>
+<p>You should ensure you have correct records for both IPv4 and IPv6, in order to correctly support all visitors.  If you only intend to use one of the two domain variants, you can ignore the warnings for the other.</p>
+<div class="row">
+    {% for d in (domain, prefixed) %}
+        <div class="col-md-6 d-flex align-items-stretch">
+            {{ card(valid[d], d) }}
+        </div>
+    {% endfor %}
+</div>
+<form action="{{ action }}" method="post" class="form-submit-only">
+    <input type="hidden" name="domain" value="{{ domain }}">
+    <input type="hidden" name="root" value="{{ root }}">
+    <input type="hidden" name="confirm" value="on">
+    {% if valid[domain] == (true, true) or valid[prefixed] == (true, true) %}
+        <input type="submit" class="btn btn-outline-primary" value="Looks good, add domain">
+    {% else %}
+        <input type="submit" class="btn btn-outline-danger" value="Add domain anyway">
+    {% endif %}
+</form>
+<form action="{{ action }}" method="post" class="form-submit-only">
+    <input type="hidden" name="domain" value="{{ domain }}">
+    <input type="hidden" name="root" value="{{ root }}">
+    <input type="hidden" name="edit" value="on">
+    <input type="submit" class="btn btn-outline-secondary" value="Go back and edit">
+</form>
+{% endblock %}
