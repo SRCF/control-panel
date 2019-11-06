@@ -105,7 +105,12 @@
             {%- endif %}
             <hr>
             <div class="text-muted">
-                {%- if not society.website.exists %}
+                {%- if society.website.exists %}
+                    <p>A certificate for encrypted (HTTPS) access to your website is automatically provided for the domain
+                    <i>{{ society.society }}.soc.srcf.net</i>.  For custom domains, you can opt in for a certificate, which
+                    will be issued within 24 hours of request.</p>
+                    <p aria-hidden=true>Domains with certificates already issued are marked with <i class="fa fa-lock text-dark"></i>.</p>
+                {%- else %}
                     <p>You don't currently have a website set up.</p>
                 {%- endif %}
                 <p>Upload pages or files to your web root directory, and they'll be published on your website.  Note that newly-uploaded websites may take up to 20 minutes before they start serving.</p>
@@ -119,6 +124,7 @@
         </div>
         <div class="card-footer">
             <a href="{{ url_for('society.add_vhost', society=society.society) }}" rel="modal" class="btn btn-outline-primary">Add custom domain</a>
+            <a href="https://srcf-admin.soc.srcf.net/lets-encrypt/" target="_blank" class="btn btn-outline-primary">Request HTTPS certificate</a>
         </div>
     </div>
     <div class="card">
