@@ -31,7 +31,7 @@
 </ul>
 {% endif %}
 <h3>Add note</h3>
-<form action="{{ url_for('admin.add_note', id=job.job_id) }}" method="post">
+<form action="{{ url_for('admin.add_note', job_id=job.job_id) }}" method="post">
     <p>
         <textarea name="text" class="form-control job-note-entry" placeholder="Enter text here." rows="5"></textarea>
     </p>

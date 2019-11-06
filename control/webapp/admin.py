@@ -110,12 +110,12 @@ def set_state(id, state, approved=False):
 
     return redirect(url_for("admin.view_jobs", state=state))
 
-@bp.route('/admin/jobs/<int:id>/add', methods = ["GET", "POST"])
-def add_note(id):
+@bp.route('/admin/jobs/<int:job_id>/notes', methods=["POST"])
+def add_note(job_id):
     if request.method == "POST":
         text = request.form.get("text", "").strip()
         if text:
-            sess.add(JobLog(job_id=id, type="note", level="info", time=datetime.now(),
+            sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
                             message="Note added by {}".format(utils.raven.principal), raw=text))
             flash("Note successfully added.")
         return redirect(url_for('admin.status', id=id))
