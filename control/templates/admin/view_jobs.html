@@ -21,7 +21,8 @@
         <tbody>
             {%- for job in jobs %}
                 <tr class="{{ job.state }}">
-                    <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
+                    <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a>
+                      {%- if note_count[job.job_id] %}&nbsp;<abbr title="{{ note_count[job.job_id] }} note{{ 's' if note_count[job.job_id] > 1 else '' }}"><i class="fa fa-pencil-square-o"></i></abbr>{% endif %}</td>
                     <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>
                     <td>{{ job }}</td>

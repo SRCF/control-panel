@@ -60,8 +60,13 @@ def view_jobs(state):
     jobs = [Job.of_row(r) for r in jobs]
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
-    for j in jobs: j.resolve_references(sess)
-    return render_template("admin/view_jobs.html", job_counts=job_counts(), state=state, jobs=jobs, pages=utils.Pagination(page, max_pages))
+    note_count = dict()
+    for j in jobs:
+        j.resolve_references(sess)
+        note_count[j.job_id] = sess.query(JobLog)\
+                                        .filter(JobLog.job_id == j.job_id)\
+                                        .filter(JobLog.type == 'note').count()
+    return render_template("admin/view_jobs.html", job_counts=job_counts(), state=state, jobs=jobs, note_count=note_count, pages=utils.Pagination(page, max_pages))
 
 @bp.route('/admin/jobs/<int:id>')
 def status(id):
