@@ -109,6 +109,8 @@ def set_state(id, state, approved=False):
 def add_note(id):
     if request.method == "POST":
         text = request.form.get("text", "").strip()
-        sess.add(JobLog(job_id=id, type="note", level="info", time=datetime.now(), message=text))
-        flash("Note successfully added.")
+        if text:
+            sess.add(JobLog(job_id=id, type="note", level="info", time=datetime.now(),
+                            message="Note added by {}".format(utils.raven.principal), raw=text))
+            flash("Note successfully added.")
         return redirect(url_for('admin.status', id=id))
