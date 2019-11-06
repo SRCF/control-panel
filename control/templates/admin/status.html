@@ -25,15 +25,15 @@
 {% if notes %}
 <h3>Notes</h3>
 <ul>
-    {% for entry in notes %}
-    <li>{{ entry.message }}</li>
-    {% endfor %}
+    {%- for entry in notes %}
+    <li><a href="#log-{{ entry.log_id }}">{{ entry.time }}</a>: {{ entry.message }}</li>
+    {%- endfor %}
 </ul>
-{%- endif %}
+{% endif %}
 <h3>Add note</h3>
 <form action="{{ url_for('admin.add_note', id=job.job_id) }}" method="post">
     <p>
-        <textarea name="text" class="form-control" placeholder="Enter text here." rows="5"></textarea>
+        <textarea name="text" class="form-control job-note-entry" placeholder="Enter text here." rows="5"></textarea>
     </p>
     <p>
         <input type="submit" class="btn btn-outline-primary" value="Add">
@@ -76,7 +76,7 @@
         </thead>
         <tbody>
             {% for entry in log %}
-                <tr>
+                <tr class="job-log-entry" id="log-{{ entry.log_id }}">
                     <td>{{ entry.type }}</td>
                     <td>{{ entry.time }}</td>
                     <td>

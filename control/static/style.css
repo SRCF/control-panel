@@ -43,3 +43,11 @@ ul.traceback li {
 .form-text.text-danger {
     color: #dc3545 !important;
 }
+
+textarea.job-note-entry {
+  font-family: monospace;
+}
+
+.job-log-entry:target::before {
+  content: none;
+}
