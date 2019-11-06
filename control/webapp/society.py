@@ -48,6 +48,29 @@ def home(society):
 
     return render_template("society/home.html", member=mem, society=soc)
 
+@bp.route("/societies/<society>/description", methods=["GET", "POST"])
+def update_description(society):
+    mem, soc = find_mem_society(society)
+
+    description = soc.description
+    error = None
+    if request.method == "POST":
+        description = request.form.get("description", "").strip() or None
+        if not description:
+            error = "You can't set an empty description."
+        elif description != soc.description:
+            error = "That's the description we have already."
+
+        if not error:
+            return create_job_maybe_email_and_redirect(
+                jobs.UpdateSocietyDescription,
+                requesting_member=mem,
+                society=soc,
+                description=description
+            )
+    else:
+        return render_template("society/update_description.html", society=soc, description=description, error=error)
+
 @bp.route("/societies/<society>/roleemail", methods=["GET", "POST"])
 def update_role_email(society):
     mem, soc = find_mem_society(society)

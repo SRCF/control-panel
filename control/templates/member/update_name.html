@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Update registered name</h2>
+<p>You can update the name we have on record for you.  This will also update the name on your Unix user record (in the <a href="https://en.wikipedia.org/wiki/Gecos_field" target="_blank">GECOS field</a>).</p>
+<form action="{{ url_for('member.update_name') }}" method="post">
+    {%- if 'general' in errors %}
+    <strong><small class="invalid-feedback">{{ errors.general }}</small></strong>
+    {%- endif %}
+    <div class="form-group">
+        <input name="preferred_name" type="preferred_name" class="form-control{% if 'preferred_name' in errors %} is-invalid{% endif %}" value="{{ preferred_name }}" placeholder="First name" required>
+        {%- if 'preferred_name' in errors %}
+        <small class="invalid-feedback">{{ errors.preferred_name }}</small>
+        {%- endif %}
+    </div>
+    <div class="form-group">
+        <input name="surname" type="surname" class="form-control{% if 'surname' in errors %} is-invalid{% endif %}" value="{{ surname }}" placeholder="Surname" required>
+        {%- if 'surname' in errors %}
+        <small class="invalid-feedback">{{ errors.surname }}</small>
+        {%- endif %}
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Update">
+    <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
+{% endblock %}

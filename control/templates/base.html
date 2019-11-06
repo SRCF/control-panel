@@ -51,6 +51,7 @@
             <a href="{{ page_parent }}" title="Back"><i class="fa fa-arrow-left"></i></a>
             {%- endif %}
             {{ page_title }}
+            {% block page_title_extra %}{% endblock %}
             {%- if page_subtitle is defined %}
             <small class="text-muted">{{ page_subtitle }}</small>
             {%- endif %}

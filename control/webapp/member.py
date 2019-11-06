@@ -45,6 +45,34 @@ def reactivate():
     else:
         return render_template("member/reactivate.html", member=mem, email=email, error=error)
 
+@bp.route("/member/name", methods=["GET", "POST"])
+def update_name():
+    crsid, mem = find_member()
+
+    preferred_name = mem.preferred_name
+    surname = mem.surname
+
+    errors = {}
+
+    if request.method == "POST":
+        preferred_name = request.form.get("preferred_name", "").strip()
+        surname = request.form.get("surname", "").strip()
+
+        if mem.preferred_name == preferred_name and mem.surname == surname:
+            errors['general'] = "We already have this name for you."
+        if not mem.preferred_name:
+            errors['preferred_name'] = "You need to enter a preferred (first) name."
+        if not mem.surname:
+            errors['surname'] = "You need to enter a surname."
+
+        if not errors:
+            return create_job_maybe_email_and_redirect(
+                        jobs.UpdateName, member=mem,
+                        preferred_name=preferred_name, surname=surname)
+
+    return render_template("member/update_name.html", member=mem, errors=errors,
+                           preferred_name=preferred_name, surname=surname)
+
 @bp.route("/member/email", methods=["GET", "POST"])
 def update_email_address():
     crsid, mem = find_member()
