@@ -5,6 +5,10 @@
 {% set page_subtitle = society.society %}
 {% set page_parent = url_for('home.home') %}
 
+{% block page_title_extra -%}
+<small><a rel="modal" href="{{ url_for('society.update_description', society=society.society) }}" aria-label="Update description" title="Update description"><i class="fa fa-pencil"></i></a></small>
+{%- endblock %}
+
 {% block body %}
 <p>Date created: <b>{{ society.joined.strftime('%B %G') }}</b></p>
 <p><a href="{{ url_for('jobs.society_home', name=society.society) }}" class="btn btn-outline-secondary">Job history</a></p>

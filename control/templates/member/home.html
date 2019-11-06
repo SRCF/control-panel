@@ -5,6 +5,10 @@
 {% set page_subtitle = member.crsid %}
 {% set page_parent = url_for('home.home') %}
 
+{% block page_title_extra -%}
+<small><a rel="modal" href="{{ url_for('member.update_name') }}" aria-label="Update registered name" title="Update registered name"><i class="fa fa-pencil"></i></a></small>
+{%- endblock %}
+
 {% block body %}
 <p>Date joined: <b>{{ member.joined.strftime('%B %G') }}</b></p>
 <p><a href="{{ url_for('jobs.home') }}" class="btn btn-outline-secondary">Job history</a></p>
