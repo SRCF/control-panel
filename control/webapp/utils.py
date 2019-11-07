@@ -8,8 +8,11 @@ from datetime import datetime
 import flask
 import jinja2
 import sqlalchemy.orm
-import raven.flask_glue
-import raven.demoserver as raven_demoserver
+import ucam_webauth
+import ucam_webauth.rsa
+import ucam_webauth.flask_glue
+import ucam_webauth.raven.flask_glue
+import ucam_webauth.raven.demoserver as raven_demoserver
 from werkzeug.exceptions import NotFound, Forbidden, HTTPException
 from werkzeug.contrib.fixers import ProxyFix
 import yaml
@@ -20,13 +23,32 @@ import srcf.mail
 from srcf.controllib.utils import *
 
 
-__all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",
+__all__ = ["email_re", "auth", "raven", "srcf_db_sess", "get_member", "get_society",
            "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin", "DOMAIN_WEB"]
 
 
-raven = raven.flask_glue.AuthDecorator(desc="SRCF control panel", require_ptags=None)
-
 DOMAIN_WEB = os.getenv("DOMAIN_WEB", "https://www.srcf.net")
+
+
+class WLSRequest(ucam_webauth.Request):
+    def __str__(self):
+        query_string = ucam_webauth.Request.__str__(self)
+        return "https://auth.srcf.net/wls/authenticate?" + query_string
+
+
+class WLSResponse(ucam_webauth.Response):
+    with open('/public/societies/sysadmins/pubkey500', 'rb') as f:
+        keys = {'500': ucam_webauth.rsa.load_key(f.read())}
+
+
+class WLSAuthDecorator(ucam_webauth.flask_glue.AuthDecorator):
+    request_class = WLSRequest
+    response_class = WLSResponse
+    logout_url = "https://auth.srcf.net/logout"
+
+auth = WLSAuthDecorator(desc="Control Panel", require_ptags=None)
+raven = ucam_webauth.raven.flask_glue.AuthDecorator(desc="SRCF control panel",
+                                                    require_ptags=None)
 
 
 # A session to use with the main srcf admin database (PostGres)
@@ -117,10 +139,16 @@ def setup_app(app):
     @app.before_request
     def before_request():
         if getattr(app, "deploy_config", {}).get("test_raven", False):
-            raven.request_class = raven_demoserver.Request
-            raven.response_class = raven_demoserver.Response
+            auth.request_class = raven_demoserver.Request
+            auth.response_class = raven_demoserver.Response
 
-    app.before_request(raven.before_request)
+    def auth_mux():
+        if flask.request.url_rule and flask.request.url_rule.rule == '/signup':
+            return raven.before_request()
+        else:
+            return auth.before_request()
+
+    app.before_request(auth_mux)
 
     @app.after_request
     def after_request(res):
@@ -179,7 +207,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
 
 def find_member(allow_inactive=False):
     """ Gets a CRSID and member object from the Raven authentication data """
-    crsid = raven.principal
+    crsid = auth.principal
     try:
         mem = get_member(crsid)
     except KeyError:
@@ -190,7 +218,7 @@ def find_member(allow_inactive=False):
     return crsid, mem
 
 def find_mem_society(society):
-    crsid = raven.principal
+    crsid = auth.principal
 
     try:
         mem = get_member(crsid)
@@ -207,9 +235,9 @@ def find_mem_society(society):
 
 def auth_admin():
     # I think the order before_request fns are run in is undefined.
-    assert raven.principal
+    assert auth.principal
 
-    mem = get_member(raven.principal)
+    mem = get_member(auth.principal)
     if not is_admin(mem):
         raise Forbidden
 

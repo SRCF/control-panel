@@ -27,11 +27,11 @@ def home():
     except (KeyError, ValueError):
         pass
 
-    jobs = Job.find_by_user(sess, utils.raven.principal)
+    jobs = Job.find_by_user(sess, utils.auth.principal)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs: job.resolve_references(sess)
-    return render_template("jobs/home.html", owner_in_context=utils.raven.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
+    return render_template("jobs/home.html", owner_in_context=utils.auth.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
 
 @bp.route('/jobs/<name>')
 def society_home(name):
@@ -59,7 +59,7 @@ def status(id):
     if not job:
         raise NotFound(id)
 
-    if not job.visible_to(utils.raven.principal):
+    if not job.visible_to(utils.auth.principal):
         raise NotFound(id)
 
     for_society = isinstance(job, SocietyJob) and job.society != None
@@ -74,7 +74,7 @@ def status(id):
         job_home_url = url_for('jobs.home')
 
     if not isinstance(job, Signup):
-        mem = utils.get_member(utils.raven.principal)
+        mem = utils.get_member(utils.auth.principal)
     else:
         # Signup jobs might be viewed by the new member, who doesn't yet have a
         # DB entry, so get_member(crsid) could fail.  The purpose of this

@@ -106,7 +106,7 @@ def make_keywords(desc):
 
 @bp.route("/signup/society", methods=["get", "post"])
 def newsoc():
-    crsid = utils.raven.principal
+    crsid = utils.auth.principal
 
     try:
         mem = utils.get_member(crsid)

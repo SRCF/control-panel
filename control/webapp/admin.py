@@ -79,7 +79,7 @@ def status(id):
     notes = [x for x in log if x.type == "note"]
 
     job_home_url = url_for('admin.view_jobs', state=job.state)
-    for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.raven.principal
+    for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.auth.principal
     owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
 
     return render_template("admin/status.html", job=job, notes=notes, log=log, job_home_url=job_home_url,
@@ -130,6 +130,6 @@ def add_note(job_id):
         text = request.form.get("text", "").strip()
         if text:
             sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
-                            message="Note added by {}".format(utils.raven.principal), raw=text))
+                            message="Note added by {}".format(utils.auth.principal), raw=text))
             flash("Note successfully added.")
         return redirect(url_for('admin.status', id=job_id))

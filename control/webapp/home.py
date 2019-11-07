@@ -8,7 +8,7 @@ bp = Blueprint("home", __name__)
 
 @bp.route('/')
 def home():
-    crsid = utils.raven.principal
+    crsid = utils.auth.principal
 
     try:
         mem = utils.get_member(crsid)
@@ -25,5 +25,5 @@ def home():
 
 @bp.route('/logout')
 def logout():
-    utils.raven.logout()
+    utils.auth.logout()
     return redirect(utils.DOMAIN_WEB, code=303)
