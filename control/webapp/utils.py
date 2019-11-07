@@ -19,10 +19,12 @@ from srcf.controllib.utils import *
 
 
 __all__ = ["email_re", "raven", "srcf_db_sess", "get_member", "get_society",
-           "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin"]
+           "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin", "DOMAIN_WEB"]
 
 
 raven = raven.flask_glue.AuthDecorator(desc="SRCF control panel", require_ptags=None)
+
+DOMAIN_WEB = os.getenv("DOMAIN_WEB", "https://www.srcf.net")
 
 
 # A session to use with the main srcf admin database (PostGres)
@@ -136,7 +138,7 @@ def setup_app(app):
             flask.g.mysql.close()
 
     app.jinja_env.globals["sif"] = sif
-    app.jinja_env.globals["DOMAIN_WEB"] = os.getenv("DOMAIN_WEB", "https://www.srcf.net")
+    app.jinja_env.globals["DOMAIN_WEB"] = DOMAIN_WEB
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
 

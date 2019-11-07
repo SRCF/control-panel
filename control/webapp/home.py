@@ -22,3 +22,8 @@ def home():
         inspect_services.lookup_all(soc, fast=True)
 
     return render_template("home.html", member=mem)
+
+@bp.route('/logout')
+def logout():
+    utils.raven.logout()
+    return redirect(utils.DOMAIN_WEB, code=303)
