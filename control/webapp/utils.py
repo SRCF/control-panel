@@ -200,12 +200,8 @@ def auth_admin():
     assert raven.principal
 
     mem = get_member(raven.principal)
-    for soc in mem.societies:
-        if soc.society == "srcf-admin":
-            return None
-    else:
+    if not is_admin(mem):
         raise Forbidden
-
 
 def validate_member_email(crsid, email):
     """
