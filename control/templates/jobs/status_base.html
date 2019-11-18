@@ -12,10 +12,12 @@
 {% block body %}
 <blockquote class="blockquote">{{ job }}</blockquote>
 <p>
+    {% block metadata %}
     Owner: {{ owner_in_context }}
     {%- if for_society %}
         <br>Initiated by: {{ job.owner }}
     {%- endif %}
+    {% endblock %}
 </p>
 {%- if job.state == "unapproved" %}
     <h3>To be checked by a sysadmin</h3>

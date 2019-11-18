@@ -2,6 +2,11 @@
 
 {% set page_parent = url_for('admin.view_jobs', state=job.state) %}
 
+{% block metadata %}
+{{ super() }}
+<br>Environment: {{ job.row.environment }}
+{% endblock %}
+
 {% block body %}
 {{ super() }}
 {%- if job.state == "unapproved" %}
