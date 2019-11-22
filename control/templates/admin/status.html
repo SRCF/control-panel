@@ -54,7 +54,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for k, v in job.row.args.items() %}
+            {% for k, v in job.row.args|dictsort %}
                 <tr>
                     <td>{{ k }}</td>
                     <td>{% if v %}<pre class="job-raw">{{ v }}</pre>{% else %}&mdash;{% endif %}</td>
