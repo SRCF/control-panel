@@ -57,12 +57,12 @@
             {% for k, v in job.row.args.items() %}
                 <tr>
                     <td>{{ k }}</td>
-                    <td>{% if v %}<pre>{{ v }}</pre>{% else %}&mdash;{% endif %}</td>
+                    <td>{% if v %}<pre class="job-raw">{{ v }}</pre>{% else %}&mdash;{% endif %}</td>
                 </tr>
             {% endfor %}
             <tr>
                 <td>creation time</td>
-                <td>{% if job.created_at %}<pre>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</pre>{% else %}&mdash;{% endif %}</td>
+                <td>{% if job.created_at %}<pre class="job-raw">{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</pre>{% else %}&mdash;{% endif %}</td>
             </tr>
         </tbody>
     </table>
@@ -87,7 +87,7 @@
                     <td>
                         {{ entry.message }}
                         {% if entry.raw %}
-                            <pre>{{ unhexlify(entry.raw[2:]).decode("utf-8") if entry.raw.startswith("\\x") else entry.raw }}</pre>
+                            <pre class="job-raw">{{ unhexlify(entry.raw[2:]).decode("utf-8") if entry.raw.startswith("\\x") else entry.raw }}</pre>
                         {% endif %}
                     </td>
                 </tr>

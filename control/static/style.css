@@ -51,3 +51,7 @@ textarea.job-note-entry {
 .job-log-entry:target::before {
   content: none;
 }
+
+.job-raw {
+  white-space: pre-wrap;
+}
