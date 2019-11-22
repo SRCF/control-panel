@@ -118,4 +118,4 @@ def add_note(job_id):
             sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
                             message="Note added by {}".format(utils.raven.principal), raw=text))
             flash("Note successfully added.")
-        return redirect(url_for('admin.status', id=id))
+        return redirect(url_for('admin.status', id=job_id))
