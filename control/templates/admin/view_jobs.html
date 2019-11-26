@@ -14,9 +14,7 @@
                 <th>Owner</th>
                 <th>Type</th>
                 <th>Message</th>
-                {%- if state in ("unapproved", "queued", "running") %}
-                    <th>Actions</th>
-                {%- endif %}
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -29,13 +27,20 @@
                     <td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
-                    {%- if state == "unapproved" %}
-                        <td><a href="{{ url_for('admin.set_state', id=job.job_id, state=state, approved=True) }}">Approve</a> &bullet; <a href="{{ url_for('admin.set_state', id=job.job_id, state=state, approved=False) }}">Reject</a></td>
-                    {%- elif state == "queued" %}
-                        <td><a href="{{ url_for('admin.set_state', id=job.job_id, state=state) }}">Cancel</a></td>
-                    {%- elif state == "running" %}
-                        <td><a href="{{ url_for('admin.set_state', id=job.job_id, state=state) }}" onclick="return confirm('Warning: this won\'t stop a running job, only set its status to failed!');">Move to failed</a></td>
-                    {%- endif %}
+                    <td>
+                        {%- if state == "unapproved" %}
+                            <a href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a> &bullet;
+                            <a href="{{ url_for('admin.set_state', id=job.job_id, action='reject') }}">Reject</a>
+                        {%- elif state == "queued" %}
+                            <a href="{{ url_for('admin.set_state', id=job.job_id, action='cancel') }}">Cancel</a>
+                        {%- elif state == "running" %}
+                            <a href="{{ url_for('admin.set_state', id=job.job_id, action='abort') }}" onclick="return confirm('Warning: this won\'t stop a running job, only set its status to failed!');">Abort</a>
+                        {%- elif state == "done" %}
+                            <a class="text-danger" href="{{ url_for('admin.set_state', id=job.job_id, action='repeat') }}" onclick="return confirm('Warning: this assumes the job is idempotent, or all changes have been rolled back!');">Repeat</a>
+                        {%- elif state == "failed" %}
+                            <a class="text-danger" href="{{ url_for('admin.set_state', id=job.job_id, action='retry') }}" onclick="return confirm('Warning: this assumes the job can cope with inconsistent state, or any partial changes have been rolled back!');">Retry</a>
+                        {%- endif %}
+                    </td>
                 </tr>
             {%- endfor %}
         </tbody>

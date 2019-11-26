@@ -85,30 +85,39 @@ def status(id):
                            for_society=for_society, owner_in_context=owner_in_context,
                            unhexlify=unhexlify, principal=utils.raven.principal)
 
-@bp.route('/admin/jobs/<int:id>/approve', defaults={"state": "unapproved", "approved": True})
-@bp.route('/admin/jobs/<int:id>/reject',  defaults={"state": "unapproved", "approved": False})
-@bp.route('/admin/jobs/<int:id>/cancel',  defaults={"state": "queued"})
-@bp.route('/admin/jobs/<int:id>/abort',   defaults={"state": "running"})
-def set_state(id, state, approved=False):
+
+_actions = {
+    "reject": ("unapproved", "failed"),
+    "approve": ("unapproved", "queued"),
+    "cancel": ("queued", "failed"),
+    "abort": ("running", "failed"),
+    "repeat": ("done", "queued"),
+    "retry": ("failed", "queued"),
+}
+
+@bp.route('/admin/jobs/<int:id>/<action>')
+def set_state(id, action):
+    try:
+        old, new = _actions[action]
+    except KeyError:
+        raise NotFound(action)
+
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
-    if not job.state == state:
+    elif job.state != old:
         raise Forbidden(id)
 
+    admin, _ = utils.find_member()
+
     log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
-                 message="Job {0} by sysadmins".format({"unapproved": "approved" if approved else "rejected",
-                                                        "queued": "cancelled",
-                                                        "running": "aborted"}[state]))
-    if approved:
-        job.set_state("queued")
-    else:
-        job.set_state("failed", job.state_message or log.message)
+                 message="Admin state change: {} by {}".format(action, admin))
+    job.set_state(new, (job.state_message or log.message) if new == "failed" else None)
 
     sess.add(log)
     sess.add(job.row)
 
-    return redirect(url_for("admin.view_jobs", state=state))
+    return redirect(url_for("admin.view_jobs", state=new))
 
 @bp.route('/admin/jobs/<int:job_id>/notes', methods=["POST"])
 def add_note(job_id):
