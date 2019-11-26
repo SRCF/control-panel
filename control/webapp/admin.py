@@ -87,18 +87,18 @@ def status(id):
 
 
 _actions = {
-    "reject": ("unapproved", "failed"),
-    "approve": ("unapproved", "queued"),
-    "cancel": ("queued", "failed"),
-    "abort": ("running", "failed"),
-    "repeat": ("done", "queued"),
-    "retry": ("failed", "queued"),
+    "reject": ("retried", "unapproved", "failed"),
+    "approve": ("approved", "unapproved", "queued"),
+    "cancel": ("cancelled", "queued", "failed"),
+    "abort": ("aborted", "running", "failed"),
+    "repeat": ("repeated", "done", "queued"),
+    "retry": ("retried", "failed", "queued"),
 }
 
 @bp.route('/admin/jobs/<int:id>/<action>')
 def set_state(id, action):
     try:
-        old, new = _actions[action]
+        display, old, new = _actions[action]
     except KeyError:
         raise NotFound(action)
 
@@ -109,10 +109,13 @@ def set_state(id, action):
         raise Forbidden(id)
 
     admin, _ = utils.find_member()
-
     log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
-                 message="Admin state change: {} by {}".format(action, admin))
-    job.set_state(new, (job.state_message or log.message) if new == "failed" else None)
+                 message="Admin state change: job {} by {}".format(display, admin))
+
+    message = None
+    if new == "failed":
+        message = "Job {} by sysadmins".format(display)
+    job.set_state(new, job.state_message or message)
 
     sess.add(log)
     sess.add(job.row)
