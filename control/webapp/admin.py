@@ -87,7 +87,7 @@ def status(id):
 
 
 _actions = {
-    "reject": ("retried", "unapproved", "failed"),
+    "reject": ("rejected", "unapproved", "failed"),
     "approve": ("approved", "unapproved", "queued"),
     "cancel": ("cancelled", "queued", "failed"),
     "abort": ("aborted", "running", "failed"),
