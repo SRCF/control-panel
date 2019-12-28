@@ -24,7 +24,7 @@
                 <tr class="{{ job.state }}">
                     <td><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
                     {%- if for_society %}<td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>{% endif -%}
-                    <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
+                    <td class="nowrap">{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state|capitalize }}</td>
                     <td>{{ job.state_message or ("&mdash;"|safe) }}</td>

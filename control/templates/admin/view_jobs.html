@@ -23,11 +23,11 @@
                     <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a>
                       {%- if note_count[job.job_id] %}&nbsp;<abbr title="{{ note_count[job.job_id] }} note{{ 's' if note_count[job.job_id] > 1 else '' }}"><i class="fa fa-pencil-square-o"></i></abbr>{% endif %}</td>
                     <td>{{ job.row.environment }}</td>
-                    <td>{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
+                    <td class="nowrap">{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
-                    <td>
+                    <td class="nowrap">
                         {%- if state == "unapproved" %}
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a> &bullet;
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='reject') }}">Reject</a>

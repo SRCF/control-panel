@@ -7,7 +7,7 @@ h2 .fa-arrow-left {
     padding-bottom: 15px;
 }
 
-table.jobs tr :nth-child(2) {
+table .nowrap {
     white-space: nowrap;
 }
 table pre {
