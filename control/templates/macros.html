@@ -15,7 +15,7 @@
             {%- for i in p %}
                 {%- if i == p.current %}
                     <form>
-                        <input class="form-control" name="page" type="number" min="1" max="{{ p.total }}" value="{{ p.current }}" placeholder="Page" style="width: 100px">
+                        <input class="form-control" name="page" type="number" min="1" max="{{ p.total }}" value="{{ p.current }}" placeholder="Page">
                     </form>
                 {%- else %}
                     <li class="page-item{% if i == p.current %} active{% endif %}">

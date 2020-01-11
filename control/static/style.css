@@ -44,14 +44,26 @@ ul.traceback li {
     color: #dc3545 !important;
 }
 
-textarea.job-note-entry {
-  font-family: monospace;
+.pagination input {
+    border-radius: 0;
+    width: 70px;
+}
+.pagination form:not(:first-child) input {
+    border-left: 0;
+}
+.pagination form:first-child input {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+}
+.pagination form:last-child input {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
 }
 
 .job-log-entry:target::before {
-  content: none;
+    content: none;
 }
 
 .job-raw {
-  white-space: pre-wrap;
+    white-space: pre-wrap;
 }
