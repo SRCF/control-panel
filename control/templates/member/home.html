@@ -178,7 +178,8 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         <li>
                             Database{% if member.mysqldbs|length > 1 %}s{% else %} name{% endif %}:
                             {%- for db in member.mysqldbs %}
-                            <code>{{ db }}</code>
+                                <code>{{ db }}</code>
+                                {%- if not loop.last %}, {% endif -%}
                             {%- endfor %}
                         </li>
                     {%- endif %}
@@ -232,7 +233,8 @@ mysql&gt;</pre>
                         <li>
                             Database{% if member.pgdbs|length > 1 %}s{% else %} name{% endif %}:
                             {%- for db in member.pgdbs %}
-                            <code>{{ db }}</code>
+                                <code>{{ db }}</code>
+                                {%- if not loop.last %}, {% endif -%}
                             {%- endfor %}
                         </li>
                     {%- endif %}

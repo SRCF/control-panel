@@ -32,6 +32,7 @@
                     MySQL:
                     {%- for db in member.mysqldbs|sort %}
                         <code>{{ db }}</code>
+                        {%- if not loop.last %}, {% endif -%}
                     {%- endfor %}</li>
             {%- endif %}
             {%- if member.pgdbs %}
@@ -42,6 +43,7 @@
                     PostgreSQL:
                     {%- for db in member.pgdbs|sort %}
                         <code>{{ db }}</code>
+                        {%- if not loop.last %}, {% endif -%}
                     {%- endfor %}
                 </li>
             {%- endif %}
@@ -85,6 +87,7 @@
                                 MySQL:
                                 {%- for db in soc.mysqldbs|sort %}
                                     <code>{{ db }}</code>
+                                    {%- if not loop.last %}, {% endif -%}
                                 {%- endfor %}</li>
                         {%- endif %}
                         {%- if soc.pgdbs %}
@@ -95,6 +98,7 @@
                                 PostgreSQL:
                                 {%- for db in soc.pgdbs|sort %}
                                     <code>{{ db }}</code>
+                                    {%- if not loop.last %}, {% endif -%}
                                 {%- endfor %}
                             </li>
                         {%- endif %}

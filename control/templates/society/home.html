@@ -164,7 +164,8 @@
                         <li>
                             Database{% if society.mysqldbs|length > 1 %}s{% else %} name{% endif %}:
                             {%- for db in society.mysqldbs %}
-                            <code>{{ db }}</code>
+                                <code>{{ db }}</code>
+                                {%- if not loop.last %}, {% endif -%}
                             {%- endfor %}
                         </li>
                     {%- endif %}
@@ -215,7 +216,8 @@ mysql&gt;</pre>
                         <li>
                             Database{% if society.pgdbs|length > 1 %}s{% else %} name{% endif %}:
                             {%- for db in society.pgdbs %}
-                            <code>{{ db }}</code>
+                                <code>{{ db }}</code>
+                                {%- if not loop.last %}, {% endif -%}
                             {%- endfor %}
                         </li>
                     {%- endif %}
