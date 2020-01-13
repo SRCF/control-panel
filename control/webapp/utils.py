@@ -208,7 +208,12 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
         srcf.mail.mail_sysadmins(subject, body)
 
-    return flask.redirect(flask.url_for('jobs.status', id=j.job_id))
+    flask.flash((j.job_id, str(j)), "job-created")
+    if isinstance(j, SocietyJob):
+        url = flask.url_for("society.home", society=j.society_society)
+    else:
+        url = flask.url_for("member.home")
+    return flask.redirect(url)
 
 def find_member(allow_inactive=False):
     """ Gets a CRSID and member object from the Raven authentication data """

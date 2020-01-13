@@ -56,18 +56,20 @@
             <small class="text-muted">{{ page_subtitle }}</small>
             {%- endif %}
         </h2>
-        {%- endif %}
-        {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
+      {%- endif %}
+      {%- for category, message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-primary alert-dismissible show" role="alert"{% if category == "job-created" %} data-job-status="{{ url_for("jobs.status_json", id=message[0]) }}"{% endif %}>
+          {%- if category == "raw" %}
             {{ message }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+          {%- elif category == "job-created" %}
+            {%- set job_id, job_text = message %}
+            <a class="job-text" href="{{ url_for("jobs.status", id=job_id) }}">Job #{{ job_id }}: {{ job_text }}</a>
+            <span class="message">has been submitted.</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {%- endif %}
         </div>
-        {% endfor %}
-        {% endwith %}
-        {% block body %}{% endblock %}
+      {%- endfor %}
+      {% block body %}{% endblock %}
     </main>
     <div id="action-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">

@@ -17,4 +17,36 @@ $(document).ready(function() {
         });
         ev.preventDefault();
     });
+    $(".alert[data-job-status]").each(function(i, flash) {
+        const job_url = flash.dataset.jobStatus;
+        const job_text = $(".job-text", flash).text();
+        let retry = 1;
+        function poll() {
+            const req = $.ajax(job_url);
+            req.done(function(job) {
+                retry = 1;
+                if (job.state === "done") {
+                    $(flash).removeClass("alert-primary").addClass("alert-success");
+                    $(".message", flash).text("has completed.  Reload to see any changes.");
+                    return;
+                } else if (job.state === "failed") {
+                    $(flash).removeClass("alert-primary").addClass("alert-danger");
+                    $(".message", flash).text("has failed to complete.  The sysadmins have been notified.");
+                    return;
+                } else if (job.state === "pending") {
+                    $(flash).removeClass("alert-primary").addClass("alert-warning");
+                    $(".message", flash).text("is awaiting approval from the sysadmins.");
+                } else if (job.state === "running") {
+                    $(flash).removeClass("alert-warning").addClass("alert-primary");
+                    $(".message", flash).text("is currently runnning, and will be completed shortly.");
+                }
+                setTimeout(poll, 2000);
+            });
+            req.fail(function() {
+                retry *= 2;
+                setTimeout(poll, 2000 * retry);
+            });
+        }
+        poll();
+    });
 });

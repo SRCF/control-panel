@@ -130,5 +130,5 @@ def add_note(job_id):
         if text:
             sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
                             message="Note added by {}".format(utils.auth.principal), raw=text))
-            flash("Note successfully added.")
+            flash("Note successfully added.", "raw")
         return redirect(url_for('admin.status', id=job_id))
