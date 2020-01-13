@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import vhost %}
 
 {% set page_title = member.name %}
 {% set page_subtitle = member.crsid %}
@@ -72,13 +73,13 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         Address:
                     {%- endif %}
                     {%- if member.website.exists %}
-                        <strong><a href="http://{{ member.crsid }}.user.srcf.net">{{ member.crsid }}.user.srcf.net</a></strong>
+                        {{ vhost(member.crsid + ".user.srcf.net", main=true) }}
                     {%- else %}
                         <strong>{{ member.crsid }}.user.srcf.net</strong>
                     {%- endif %}
                 </li>
                 {%- if member.website.state == "legacy" %}
-                    <li>Legacy URL: <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a></li>
+                    <li>Legacy URL: {{ vhost("www.srcf.ucam.org/~" + member.crsid) }}</li>
                 {%- elif member.website.state == "legacyredirect" %}
                     <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/~{{ member.crsid }}/</span></li>
                 {%- endif %}
@@ -97,13 +98,7 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         {%- for domain in member.website.vhosts %}
                             <tr>
                                 <td>
-                                    {% if domain.wild %}
-                                        <i class="fa fa-indent" aria-label="Wildcard subdomains for {{ domain.domain }}" title="Wildcard subdomains"></i>
-                                    {% endif %}
-                                    {% if domain.domain in member.website.certs %}
-                                        <i class="fa fa-lock" aria-label="HTTPS activated for {{ domain.domain }}" title="HTTPS activated"></i>
-                                    {% endif %}
-                                    {{ domain.domain }}
+                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in member.website.certs)) }}
                                     {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>
                                         <em>{{ domain.domain.encode("ascii").decode("idna") }}</em>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import mem_name_crsid %}
+{% from "macros.html" import mem_name_crsid, vhost %}
 
 {% set page_title = society.description %}
 {% set page_subtitle = society.society %}
@@ -58,13 +58,13 @@
                         Address:
                     {%- endif %}
                     {%- if society.website.exists %}
-                        <strong><a href="http://{{ society.society }}.soc.srcf.net">{{ society.society }}.soc.srcf.net</a></strong>
+                        {{ vhost(society.society + ".soc.srcf.net", main=true) }}
                     {%- else %}
                         <strong>{{ society.society }}.soc.srcf.net</strong>
                     {%- endif %}
                 </li>
                 {%- if society.website.state == "legacy" %}
-                    <li>Legacy URL: <a href="http://www.srcf.ucam.org/~{{ society.society }}/">www.srcf.ucam.org/{{ society.society }}/</a></li>
+                    <li>Legacy URL: {{ vhost("www.srcf.ucam.org/" + society.society) }}</li>
                 {%- elif society.website.state == "legacyredirect" %}
                     <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/{{ society.society }}/</span></li>
                 {%- endif %}
@@ -83,13 +83,7 @@
                         {%- for domain in society.website.vhosts %}
                             <tr>
                                 <td>
-                                    {% if domain.wild %}
-                                        <i class="fa fa-indent" aria-label="Wildcard subdomains for {{ domain.domain }}" title="Wildcard subdomains"></i>
-                                    {% endif %}
-                                    {% if domain.domain in society.website.certs %}
-                                        <i class="fa fa-lock" aria-label="HTTPS activated for {{ domain.domain }}" title="HTTPS activated"></i>
-                                    {% endif %}
-                                    {{ domain.domain }}
+                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in society.website.certs)) }}
                                     {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>
                                         <em>{{ domain.domain.encode("ascii").decode("idna") }}</em>

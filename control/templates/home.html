@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import vhost %}
 
 {% block body %}
 <h2>Control panel</h2>
@@ -17,14 +18,19 @@
             </li>
             {%- if member.website.exists %}
                 <li>
-                    <i class="fa fa-li fa-globe" title="Website address"></i>
-                    <strong><a href="http://{{ member.crsid }}.user.srcf.net" class="data">{{ member.crsid }}.user.srcf.net</a></strong>
+                    <i class="fa fa-li fa-globe" title="Website addresses"></i>
+                    {{ vhost(member.crsid + ".user.srcf.net", main=true) }}
                 </li>
                 {%- if member.website.state == "legacy" %}
                     <li>
-                        <a href="http://www.srcf.ucam.org/~{{ member.crsid }}/">www.srcf.ucam.org/~{{ member.crsid }}/</a>
+                        {{ vhost("www.srcf.ucam.org/~" + member.crsid) }}
                     </li>
                 {%- endif %}
+                {%- for domain in member.website.vhosts %}
+                    <li>
+                        {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in member.website.certs)) }}
+                    </li>
+                {%- endfor %}
             {%- endif %}
             {%- if member.mysqldbs %}
                 <li>
@@ -72,14 +78,19 @@
                         </li>
                         {%- if soc.website.exists %}
                             <li>
-                                <i class="fa fa-li fa-globe" title="Website address"></i>
-                                <strong><a href="http://{{ soc.society }}.soc.srcf.net" class="data">{{ soc.society }}.soc.srcf.net</a></strong>
+                                <i class="fa fa-li fa-globe" title="Website addresses"></i>
+                                {{ vhost(soc.society + ".soc.srcf.net", main=true) }}
                             </li>
                             {%- if soc.website.state == "legacy" %}
                                 <li>
-                                    <a href="http://www.srcf.ucam.org/{{ soc.society }}/">www.srcf.ucam.org/{{ soc.society }}/</a>
+                                    {{ vhost("www.srcf.ucam.org/" + soc.society) }}
                                 </li>
                             {%- endif %}
+                            {%- for domain in soc.website.vhosts %}
+                                <li>
+                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in soc.website.certs)) }}
+                                </li>
+                            {%- endfor %}
                         {%- endif %}
                         {%- if soc.mysqldbs %}
                             <li>
