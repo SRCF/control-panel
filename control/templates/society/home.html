@@ -11,7 +11,7 @@
 <div class="card-columns">
     <div class="card">
         <div class="card-body">
-            <h4 class="card-title">Administrators</h4>
+            <h4 class="card-title">Administrators ({{ society.admins|length }})</h4>
             <ul class="list-unstyled">
                 {%- for admin in society.admins|sort(attribute='crsid') %}
                     <li>
