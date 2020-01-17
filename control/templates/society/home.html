@@ -80,7 +80,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {%- for domain in society.website.vhosts %}
+                        {%- for domain in society.website.vhosts|sort(attribute="domain") %}
                             <tr>
                                 <td>
                                     {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in society.website.certs)) }}

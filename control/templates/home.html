@@ -26,7 +26,7 @@
                         {{ vhost("www.srcf.ucam.org/~" + member.crsid) }}
                     </li>
                 {%- endif %}
-                {%- for domain in member.website.vhosts %}
+                {%- for domain in member.website.vhosts|sort(attribute="domain") %}
                     <li>
                         {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in member.website.certs)) }}
                     </li>
@@ -86,7 +86,7 @@
                                     {{ vhost("www.srcf.ucam.org/" + soc.society) }}
                                 </li>
                             {%- endif %}
-                            {%- for domain in soc.website.vhosts %}
+                            {%- for domain in soc.website.vhosts|sort(attribute="domain") %}
                                 <li>
                                     {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in soc.website.certs)) }}
                                 </li>

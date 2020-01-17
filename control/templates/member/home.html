@@ -95,7 +95,7 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         </tr>
                     </thead>
                     <tbody>
-                        {%- for domain in member.website.vhosts %}
+                        {%- for domain in member.website.vhosts|sort(attribute="domain") %}
                             <tr>
                                 <td>
                                     {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in member.website.certs)) }}
