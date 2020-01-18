@@ -73,7 +73,7 @@ The NIS password has been changed on pip.srcf.net.</pre>
                         Address:
                     {%- endif %}
                     {%- if member.website.exists %}
-                        {{ vhost(member.crsid + ".user.srcf.net", main=true) }}
+                        {{ vhost(member.crsid + ".user.srcf.net") }}
                     {%- else %}
                         <strong>{{ member.crsid }}.user.srcf.net</strong>
                     {%- endif %}

@@ -2,7 +2,7 @@
 <strong>{{ name }}</strong> <small class="text-muted">{{ id }}</small>
 {% endmacro %}
 
-{% macro vhost(domain, wild=false, https=true, main=false) %}
+{% macro vhost(domain, wild=false, https=true) %}
 <a href="http{% if https %}s{% endif %}://{{ domain }}">
     {%- if wild %}
         <i class="fa fa-indent" aria-label="Wildcard subdomains for {{ domain }}" title="Wildcard subdomains"></i>
@@ -10,7 +10,7 @@
     {%- if https %}
         <i class="fa fa-lock" aria-label="HTTPS activated for {{ domain }}" title="HTTPS activated"></i>
     {%- endif %}
-    {% if main %}<strong>{% endif %}{{ domain }}{% if main %}</strong>{% endif %}
+    {{ domain }}
 </a>
 {% endmacro %}
 

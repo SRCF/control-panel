@@ -14,12 +14,12 @@
         <ul class="fa-ul">
             <li>
                 <i class="fa fa-li fa-envelope" title="Email address"></i>
-                <strong>{{ member.email }}</strong>
+                {{ member.email }}
             </li>
             {%- if member.website.exists %}
                 <li>
                     <i class="fa fa-li fa-globe" title="Website addresses"></i>
-                    {{ vhost(member.crsid + ".user.srcf.net", main=true) }}
+                    {{ vhost(member.crsid + ".user.srcf.net") }}
                 </li>
                 {%- if member.website.state == "legacy" %}
                     <li>
@@ -76,10 +76,16 @@
                                 <abbr title="{{ admin.name }}">{{ admin.crsid }}</abbr>{% if not loop.last %},{% endif %}
                             {%- endfor %}
                         </li>
+                        {%- if soc.role_email %}
+                            <li>
+                                <i class="fa fa-li fa-envelope" title="Role email address"></i>
+                                {{ soc.role_email }}
+                            </li>
+                        {%- endif %}
                         {%- if soc.website.exists %}
                             <li>
                                 <i class="fa fa-li fa-globe" title="Website addresses"></i>
-                                {{ vhost(soc.society + ".soc.srcf.net", main=true) }}
+                                {{ vhost(soc.society + ".soc.srcf.net") }}
                             </li>
                             {%- if soc.website.state == "legacy" %}
                                 <li>

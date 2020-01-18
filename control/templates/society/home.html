@@ -58,7 +58,7 @@
                         Address:
                     {%- endif %}
                     {%- if society.website.exists %}
-                        {{ vhost(society.society + ".soc.srcf.net", main=true) }}
+                        {{ vhost(society.society + ".soc.srcf.net") }}
                     {%- else %}
                         <strong>{{ society.society }}.soc.srcf.net</strong>
                     {%- endif %}
