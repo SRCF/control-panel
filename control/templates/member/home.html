@@ -135,23 +135,27 @@ The NIS password has been changed on pip.srcf.net.</pre>
     <div class="card">
         <div class="card-body">
             <h4 class="card-title">Mailing lists</h4>
-            {%- for list in member.mailinglists|sort %}
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">{{ list }}</b>@srcf.net</h6>
-                        <ul class="list-inline">
-                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a></li>
-                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admin/{{ list }}">List admin</a></li>
-                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admindb/{{ list }}">Mod queue</a></li>
-                            <li class="list-inline-item"><a href="https://www.srcf.net/mailman/roster/{{ list }}">Subscribers</a></li>
-                        </p>
-                    </div>
-                    <div class="card-footer">
-                        <a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}" rel="modal" class="btn btn-outline-primary btn-sm">Reset password</a>
-                    </div>
-                </div>
-            {%- endfor %}
             {%- if member.mailinglists %}
+                <table class="table table-sm">
+                    <tbody>
+                        {%- for list in member.mailinglists|sort %}
+                            <tr>
+                                <td>
+                                    <a href="mailto:{{ list }}@srcf.net">{{ list }}@srcf.net</a>
+                                    <ul class="list-inline small">
+                                        <li class="list-inline-item"><a href="https://www.srcf.net/mailman/listinfo/{{ list }}">List info</a></li>
+                                        <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admin/{{ list }}">List admin</a></li>
+                                        <li class="list-inline-item"><a href="https://www.srcf.net/mailman/admindb/{{ list }}">Mod queue</a></li>
+                                        <li class="list-inline-item"><a href="https://www.srcf.net/mailman/roster/{{ list }}">Subscribers</a></li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('member.reset_mailing_list_password', listname=list) }}" rel="modal" aria-label="Reset password for {{ list }}@srcf.net" title="Reset password for {{ list }}@srcf.net"><i class="fa fa-key"></i></a>
+                                </td>
+                            </tr>
+                        {%- endfor %}
+                    </tbody>
+                </table>
                 <hr>
             {%- endif %}
             <div class="text-muted">

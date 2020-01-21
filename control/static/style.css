@@ -7,11 +7,18 @@ h2 .fa-arrow-left {
     padding-bottom: 15px;
 }
 
+.card-body .text-muted:last-child {
+    margin-bottom: -1rem;
+}
+
 table .nowrap {
     white-space: nowrap;
 }
 table pre {
     margin-top: 0.25rem;
+    margin-bottom: 0;
+}
+td .list-inline {
     margin-bottom: 0;
 }
 
