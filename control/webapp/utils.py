@@ -101,12 +101,10 @@ class Pagination(object):
 
 def generic_error_handler(error):
     if isinstance(error, HTTPException):
-        errorcode = error.code
-        tb = None
+        return flask.render_template("error.html", error=error), error.code
     else:
-        errorcode = 500
         tb = traceback.format_exception(*sys.exc_info())
-    return flask.render_template("error.html", error=error, tb=tb), errorcode
+        return flask.render_template("error_tb.html", error=error, tb=tb), 500
 
 
 def setup_app(app):

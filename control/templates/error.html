@@ -1,25 +1,6 @@
-{% extends "base.html" %}
+{% extends "base_card.html" %}
 
 {% block body %}
-<div class="main">
-
-	<h1>Control Panel</h1>
-
-	<h3>Error: {{ error }}</h3>
-
-	<p>Sorry for the inconvenience.  Please contact the SRCF sysadmins, including all the information below.</p>
-
-	{% if error.description|default(none) %}
-		<p>{{ error.description }}</p>
-	{% endif %}
-
-	{%- if tb is not none %}
-	<ul class="traceback">
-		{% for tbline in tb %}
-			<li>{{ tbline|trim }}</li>
-		{% endfor %}
-	</ul>
-	{% endif %}
-
-</div>
+<h3 class="card-title">{{ error.name | capitalize }}</h3>
+<p>{{ error.description }}</p>
 {% endblock %}

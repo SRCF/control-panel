@@ -31,7 +31,8 @@ ul.traceback {
     padding: 0.5em;
     background: #eee;
     border: 1px solid #aaa;
-    color: #888;
+    border-radius: .25rem;
+    color: #444;
 }
 ul.traceback li {
     white-space: pre-wrap;
