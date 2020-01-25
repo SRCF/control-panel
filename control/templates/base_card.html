@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="float-left">
-        <a href="{{ url_for('home.home') }}" class="text-muted">control.srcf.net</a>
+        <a href="{{ url_for('home.home') }}" class="text-muted">{{ request.host_url.split("/", 3)[2].split(":", 1)[0] }}</a>
       </div>
       <div class="float-right">
         <a href="https://www.srcf.net">
