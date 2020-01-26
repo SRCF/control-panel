@@ -3,6 +3,7 @@ import sys
 import traceback
 from functools import partial
 from urllib.parse import urlparse
+from datetime import datetime
 
 import flask
 import jinja2
@@ -10,6 +11,7 @@ import sqlalchemy.orm
 import raven.flask_glue
 import raven.demoserver as raven_demoserver
 from werkzeug.exceptions import NotFound, Forbidden, HTTPException
+from werkzeug.contrib.fixers import ProxyFix
 import yaml
 
 import srcf.database
@@ -148,15 +150,21 @@ def setup_app(app):
     if not app.request_class.trusted_hosts and 'FLASK_TRUSTED_HOSTS' in os.environ:
         app.request_class.trusted_hosts = os.environ['FLASK_TRUSTED_HOSTS'].split(",")
 
+    # Make request.remote_addr work etc. (only safe if we are behind a proxy, which we always should be)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+
 
 def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     j = cls.new(*args, **kwargs)
     srcf_db_sess.add(j.row)
     srcf_db_sess.flush() # so that job_id is filled out
     j.resolve_references(srcf_db_sess)
+    source_info = "Job submitted from {0.remote_addr} via {0.host}{0.script_root}.".format(flask.request)
+    srcf_db_sess.add(srcf.database.JobLog(job_id=j.job_id, type="created", time=datetime.now(), message=source_info))
+    srcf_db_sess.flush()
 
     if j.state == "unapproved":
-        body = "You can approve or reject the job here: {0}" \
+        body = source_info + "\n\nYou can approve or reject the job here: {0}" \
                 .format(flask.url_for("admin.view_jobs", state="unapproved", _external=True))
         if j.row.args:
             body = yaml.dump(j.row.args, default_flow_style=False) + "\n" + body
