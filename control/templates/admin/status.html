@@ -83,11 +83,13 @@
         </tr>
     </thead>
     <tbody>
-        <tr class="job-log-entry">
-            <td>created</td>
-            <td>{{ job.created_at or "&mdash;" }}</td>
-            <td>&mdash;</td>
-        </tr>
+        {% if not has_create_log %}
+            <tr class="job-log-entry">
+                <td>created</td>
+                <td>{{ job.created_at or "&mdash;" }}</td>
+                <td>&mdash;</td>
+            </tr>
+        {% endif %}
         {% for entry in log %}
             <tr class="job-log-entry" id="log-{{ entry.log_id }}">
                 <td>{{ entry.type }}</td>

@@ -75,6 +75,7 @@ def status(id):
         raise NotFound(id)
 
     log = list(sess.query(JobLog).filter(JobLog.job_id == id).order_by(JobLog.time))
+    has_create_log = sess.query(JobLog).filter(JobLog.job_id == id).filter(JobLog.type == 'created').first() is not None
     notes = [x for x in log if x.type == "note"]
 
     job_home_url = url_for('admin.view_jobs', state=job.state)
@@ -83,7 +84,7 @@ def status(id):
 
     return render_template("admin/status.html", job=job, notes=notes, log=log, job_home_url=job_home_url,
                            for_society=for_society, owner_in_context=owner_in_context,
-                           unhexlify=unhexlify, principal=utils.raven.principal)
+                           unhexlify=unhexlify, principal=utils.raven.principal, has_create_log=has_create_log)
 
 
 _actions = {
