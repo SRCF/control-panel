@@ -124,14 +124,19 @@ def newsoc():
         if crsid not in values["admins"]:
             errors["admins"] = "You need to add yourself as an admin."
 
-        current_admins = sess.query(Member) \
-                .filter(Member.crsid.in_(values["admins"])) \
-                .all()
-        current_admin_crsids = [x.crsid for x in current_admins]
+        member_admins = (sess.query(Member)
+                             .filter(Member.crsid.in_(values["admins"]))
+                             .filter(Member.member == True)
+                             .all())
+        current_admins = [x for x in member_admins if x.user]
 
-        if len(values["admins"]) != len(current_admin_crsids):
-            errors["admins"] = "The following admins do not have personal SRCF accounts: {0}" \
-                    .format(", ".join(x for x in values["admins"] if x not in current_admin_crsids))
+        if len(values["admins"]) != len(member_admins):
+            errors["admins"] = ("The following admins do not have personal SRCF accounts: {0}"
+                                .format(", ".join(sorted(set(values["admins"]) - set(x.crsid for x in member_admins)))))
+        elif len(member_admins) != len(current_admins):
+            errors["admins"] = ("The following admins do not have current SRCF accounts, and must first "
+                                "reactivate their accounts by logging to the SRCF Control Panel: {0}"
+                                .format(", ".join(sorted(x.crsid for x in member_admins if x not in current_admins))))
 
         if not values["society"]:
             errors["society"] = "Please enter a society short name."
