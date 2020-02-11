@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for
 
-from . import utils, inspect_services
+from . import admin, utils, inspect_services
 
 
 bp = Blueprint("home", __name__)
@@ -21,7 +21,12 @@ def home():
     for soc in mem.societies:
         inspect_services.lookup_all(soc, fast=True)
 
-    return render_template("home.html", member=mem)
+    job_counts = None
+    if utils.is_admin(mem):
+        job_counts = [(key, count) for key, count in admin.job_counts()
+                      if key in ("unapproved", "queued", "running") and count > 0]
+
+    return render_template("home.html", member=mem, job_counts=job_counts)
 
 @bp.route('/logout')
 def logout():
