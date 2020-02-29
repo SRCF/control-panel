@@ -1,12 +1,13 @@
-from werkzeug.exceptions import NotFound
-from flask import Blueprint, render_template, request, url_for
+from werkzeug.exceptions import NotFound, Forbidden
+from flask import Blueprint, render_template, request, url_for, redirect
 
 from .utils import srcf_db_sess as sess
 from . import utils
 from srcf.controllib.jobs import Job, Signup, SocietyJob
-from srcf.database import queries
+from srcf.database import queries, JobLog
 
 import math
+from datetime import datetime
 
 import sys
 
@@ -83,3 +84,26 @@ def status(id):
         mem = None
 
     return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)
+
+
+@bp.route('/jobs/<int:id>/cancel')
+def cancel(id):
+    # Move race control logic to controllib
+    job = Job.find(sess, id)
+    if not job:
+        raise NotFound(id)
+    elif job.state != "unapproved":
+        raise Forbidden(id)
+
+    if not job.visible_to(utils.raven.principal):
+        raise NotFound(id)
+
+    log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
+                 message="Job withdrawn by owner")
+
+    job.set_state("failed", "Job withdrawn by owner")
+
+    sess.add(log)
+    sess.add(job.row)
+
+    return redirect(url_for("jobs.home"))

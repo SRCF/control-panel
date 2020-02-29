@@ -98,6 +98,7 @@ _actions = {
 
 @bp.route('/admin/jobs/<int:id>/<action>')
 def set_state(id, action):
+    # Move this race control logic to controllib
     try:
         display, old, new = _actions[action]
     except KeyError:
@@ -116,7 +117,7 @@ def set_state(id, action):
     message = None
     if new == "failed":
         message = "Job {} by sysadmins".format(display)
-    job.set_state(new, job.state_message or message)
+    job.set_state(new, message or job.state_message)
 
     sess.add(log)
     sess.add(job.row)

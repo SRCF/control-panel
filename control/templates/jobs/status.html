@@ -3,7 +3,12 @@
 {% set page_parent = url_for('jobs.society_home', name=owner_in_context) if for_society else url_for('jobs.home') %}
 {% block body %}
 {{ super() }}
-{%- if member and member is admin %}
+{%- if member %}
+<p>
+    <a class="btn btn-outline-primary" href="{{ url_for('jobs.cancel', id=job.job_id) }}">Withdraw request</a>
+</p>
+{%- if member is admin %}
 <a class="btn btn-outline-danger" href="{{ url_for('admin.status', id=job.job_id) }}">Jump to admin view</a>
+{%- endif %}
 {%- endif %}
 {% endblock %}
