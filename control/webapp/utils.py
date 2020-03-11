@@ -157,7 +157,11 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     srcf_db_sess.add(j.row)
     srcf_db_sess.flush() # so that job_id is filled out
     j.resolve_references(srcf_db_sess)
-    source_info = "Job submitted from {0.remote_addr} via {0.host}{0.script_root}.".format(flask.request)
+    if j.owner is not None:
+        source_info = "Job submitted by " + j.owner
+    else:
+        source_info = "Job submitted"
+    source_info += " from {0.remote_addr} via {0.host}{0.script_root}.".format(flask.request)
     srcf_db_sess.add(srcf.database.JobLog(job_id=j.job_id, type="created", time=datetime.now(), message=source_info))
     srcf_db_sess.flush()
 
@@ -167,7 +171,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         if j.row.args:
             body = yaml.dump(j.row.args, default_flow_style=False) + "\n" + body
         if j.owner is not None and j.owner.danger:
-            body = "WARNING: This user has their danger flag set.\n\n" + body
+            body = "WARNING: The job owner has their danger flag set.\n\n" + body
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
         srcf.mail.mail_sysadmins(subject, body)
 
