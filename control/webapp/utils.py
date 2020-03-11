@@ -158,7 +158,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     srcf_db_sess.flush() # so that job_id is filled out
     j.resolve_references(srcf_db_sess)
     if j.owner is not None:
-        source_info = "Job submitted by " + j.owner
+        source_info = "Job submitted by " + repr(j.owner)
     else:
         source_info = "Job submitted"
     source_info += " from {0.remote_addr} via {0.host}{0.script_root}.".format(flask.request)
