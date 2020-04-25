@@ -106,4 +106,8 @@ def withdraw(id):
     sess.add(log)
     sess.add(job.row)
 
-    return redirect(url_for("jobs.home"))
+    for_society = isinstance(job, SocietyJob) and job.society != None
+    if for_society:
+        return redirect(url_for("jobs.society_home", name=job.society.society))
+    else:
+        return redirect(url_for("jobs.home"))
