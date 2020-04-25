@@ -86,9 +86,9 @@ def status(id):
     return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)
 
 
-@bp.route('/jobs/<int:id>/cancel')
-def cancel(id):
-    # Move race control logic to controllib
+@bp.route('/jobs/<int:id>/withdraw')
+def withdraw(id):
+    # TODO: Move race control logic to controllib
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
