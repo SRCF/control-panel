@@ -1,5 +1,5 @@
 from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template, request, url_for, redirect
+from flask import Blueprint, render_template, request, url_for, redirect, flash
 
 from .utils import srcf_db_sess as sess
 from . import utils
@@ -92,16 +92,19 @@ def withdraw(id):
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
-    elif job.state != "unapproved":
-        raise Forbidden(id)
-
     if not job.visible_to(utils.raven.principal):
         raise NotFound(id)
 
-    log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
-                 message="Job withdrawn by owner")
+    if job.state not in ("unapproved", "queued"):
+        flash("Sorry, this job cannot be withdrawn now.")
+        return redirect(url_for("jobs.status", id=id))
 
-    job.set_state("failed", "Job withdrawn by owner")
+    log_message = "Job withdrawn by {}".format(utils.raven.principal)
+
+    log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
+                 message=log_message)
+
+    job.set_state("failed", log_message)
 
     sess.add(log)
     sess.add(job.row)

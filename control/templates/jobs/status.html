@@ -3,7 +3,7 @@
 {% set page_parent = url_for('jobs.society_home', name=owner_in_context) if for_society else url_for('jobs.home') %}
 {% block body %}
 {{ super() }}
-{%- if member %}
+{%- if member and job.state in ('queued', 'unapproved') %}
 <p>
     <a class="btn btn-outline-primary" href="{{ url_for('jobs.withdraw', id=job.job_id) }}">Withdraw request</a>
 </p>
