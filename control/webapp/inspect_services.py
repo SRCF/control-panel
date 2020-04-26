@@ -37,7 +37,7 @@ def lookup_mysqldbs(prefix):
 
 def lookup_pguser(prefix):
     """Does this PostgreSQL user exist?"""
-    q = sess.execute('SELECT rolname FROM pg_roles WHERE rolname = :user',
+    q = sess.execute('SELECT rolname FROM pg_roles WHERE rolname = :user AND rolcanlogin',
                      {"user": prefix})
     assert q.rowcount in {0, 1}
     q.fetchall()
