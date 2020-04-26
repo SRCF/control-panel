@@ -149,6 +149,21 @@ def reset_password(type):
 
         return render_template("member/reset_password.html", member=mem, type=type, name=formatted_name, affects=affects)
 
+@bp.route("/member/mysql/createuser", methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/member/postgres/createuser", methods=["GET", "POST"], defaults={"type": "postgres"})
+def create_database_account(type):
+    crsid, mem = find_member()
+
+    if request.method == "POST":
+        cls = {"mysql": jobs.ResetMySQLUserPassword,
+               "postgres": jobs.ResetPostgresUserPassword}[type]
+        return create_job_maybe_email_and_redirect(cls, member=mem)
+    else:
+        formatted_name = {"mysql": "MySQL",
+                          "postgres": "PostgreSQL"}[type]
+
+        return render_template("member/create_database_account.html", member=mem, type=type, name=formatted_name)
+
 @bp.route("/member/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(type):

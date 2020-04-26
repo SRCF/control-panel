@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Create {{ name }} database account</h2>
+<p>A new personal database account will be created.  Existing databases will not be affected.</p>
+<form action="{{ url_for('member.create_database_account', type=type) }}" method="post">
+    <input type="submit" class="btn btn-outline-primary" value="Create">
+    <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
+{% endblock %}
