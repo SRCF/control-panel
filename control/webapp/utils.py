@@ -232,7 +232,7 @@ def validate_member_email(crsid, email):
         return "That address doesn't look valid."
     elif email.endswith(("@srcf.net", "@srcf.ucam.org", "@hades.srcf.net")):
         return "This should be an external email address."
-    elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk",
+    elif email.endswith(("@cam.ac.uk", "@hermes.cam.ac.uk", "@o365.cam.ac.uk",
                          "@universityofcambridgecloud.onmicrosoft.com")):
         named = email.split("@")[0].split("+")[0]
         if named != crsid:
