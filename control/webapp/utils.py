@@ -38,8 +38,10 @@ class WLSRequest(ucam_webauth.Request):
 
 
 class WLSResponse(ucam_webauth.Response):
-    with open('/public/societies/sysadmins/pubkey500', 'rb') as f:
-        keys = {'500': ucam_webauth.rsa.load_key(f.read())}
+    keys = dict()
+    for kid in (2, 500):
+        with open('/etc/apache2/ucam_webauth_keys/pubkey{}'.format(kid), 'rb') as f:
+            keys[str(kid)] = ucam_webauth.rsa.load_key(f.read())
 
 
 class WLSAuthDecorator(ucam_webauth.flask_glue.AuthDecorator):
