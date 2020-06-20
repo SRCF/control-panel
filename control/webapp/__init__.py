@@ -4,6 +4,7 @@ from flask import Flask
 
 from . import utils, home, member, society, signup, jobs, admin
 from .flask_seasurf import SeaSurf
+from flask_talisman import Talisman
 
 
 app = Flask(__name__,
@@ -12,6 +13,7 @@ app = Flask(__name__,
 
 app.config['CSRF_CHECK_REFERER'] = False
 csrf = SeaSurf(app)
+Talisman(app)
 
 logging.basicConfig(level=logging.DEBUG if app.debug else logging.INFO)
 
