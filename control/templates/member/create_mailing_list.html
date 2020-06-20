@@ -4,6 +4,7 @@
 <h2>Create mailing list</h2>
 <p>If you want to create a new mailing list, enter the list name below.  Personal list addresses are of the form <strong>{{ member.crsid }}-<em>name</em>@srcf.net</strong>.</p>
 <form action="{{ url_for('member.create_mailing_list') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <div class="input-group">
             <span class="input-group-prepend input-group-text">{{ member.crsid }}-</span>

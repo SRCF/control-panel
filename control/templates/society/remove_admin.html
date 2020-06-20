@@ -24,6 +24,7 @@
     </ul>
 {%- endif %}
 <form action="{{ url_for('society.remove_admin', society=society.society, target_crsid=target.crsid) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="submit" class="btn btn-outline-primary" value="Remove">
     <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>

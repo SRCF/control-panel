@@ -63,6 +63,7 @@
     </div>
 </div>
 <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="society" value="{{ society }}">
     <input type="hidden" name="description" value="{{ description }}">
     <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">
@@ -70,6 +71,7 @@
     <input type="submit" class="btn btn-outline-primary" value="Looks good, create account">
 </form>
 <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="society" value="{{ society }}">
     <input type="hidden" name="description" value="{{ description }}">
     <input type="hidden" name="admins" value="{{ ", ".join(admins) }}">

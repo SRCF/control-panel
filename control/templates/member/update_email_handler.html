@@ -4,6 +4,7 @@
 <h2>Update email configuration</h2>
 <p>You can choose how we process email sent to your SRCF email address, <strong>{{ member.crsid }}@srcf.net</strong>.</p>
 <form action="{{ url_for('member.update_email_handler') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <div class="radio">
             <label>

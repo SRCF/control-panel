@@ -3,6 +3,7 @@
 {% block body %}
 <h2>Add custom domain</h2>
 <form action="{{ url_for('member.add_vhost') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <p>You can serve your SRCF website from a custom domain (or a subdomain) once it resolves to our server.  Don't include www here &ndash; the addition of e.g. <em>example.com</em> will be able to serve both that and <em>www.example.com</em>, as long as both resolve to us.</p>
     <p>Note that <strong>you must already own the domain</strong> (typically by buying it from a registrar) &ndash; the SRCF is not a registrar and cannot do this for you.  You'll also need to <a href="https://wiki.srcf.net/DomainsAndHTTPS" target="_blank">configure DNS records</a> so that your domain resolves to us.</p>
     <div class="form-group">

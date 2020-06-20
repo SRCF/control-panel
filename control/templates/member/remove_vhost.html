@@ -4,6 +4,7 @@
 <h2>Remove {{ domain }}</h2>
 <p>Are you sure you want to stop serving your site at <strong>{{ domain }}</strong>?</p>
 <form action="{{ url_for('member.remove_vhost', domain=domain) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="submit" class="btn btn-outline-primary" value="Remove">
     <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>

@@ -40,6 +40,7 @@
 <p class="text-muted">The change may take up to five minutes to take effect.</p>
 
 <form action="{{ url_for('member.update_email_handler') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="mail_handler" value="{{ mail_handler }}">
     <input type="submit" name="confirm" class="btn btn-outline-primary" value="Confirm changes">
     <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>

@@ -10,6 +10,7 @@
     <li>They will not be provided with existing society account passwords (for example, databases and lists).  You can reset these from the society management page if needed.</li>
 </ul>
 <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <input name="crsid" type="text" class="form-control{% if error %} is-invalid{% endif %}" value="{{ crsid }}" placeholder="Administrator's CRSid" autofocus required>
         {%- if error %}

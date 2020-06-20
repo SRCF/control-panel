@@ -7,6 +7,7 @@
 <p>This can be a committee role address, or a shared mailbox managed by the organisation related to the account.  This should be a long-lived address, that does not change as individual admins come and go &ndash; <strong>please do not use the address of a single person</strong>, which would be liable to become outdated.</p>
 <p>Note that this is not a replacement for timely handovers of the <code>{{ society.society }}</code> account; please ensure that the list of admins remains up-to-date, in order to avoid possible interruption of service.</p>
 <form action="{{ url_for('society.update_role_email', society=society.society) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <input name="email" type="email" class="form-control{% if error %} is-invalid{% endif %}" value="{{ email or "" }}" placeholder="Email address" autofocus>
         {%- if error %}

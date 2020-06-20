@@ -4,6 +4,7 @@
 <h2>Create {{ name }} database</h2>
 <p>A new personal database{% if not user %} and {{ name }} account{% endif %} will be created.</p>
 <form action="{{ url_for('member.create_database', type=type) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="submit" class="btn btn-outline-primary" value="Create">
     <a href="{{ url_for('member.home') }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>

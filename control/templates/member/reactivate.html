@@ -7,6 +7,7 @@
     <p>Please confirm your email address below.  If you have graduated and we have a now-expired @cam address, please use a different, external address (Cantab or personal).</p>
     <p>This will change the address subscribed to <code>soc-srcf</code> mailing lists, but does <strong>not</strong> affect the delivery of emails sent to {{ member.crsid }}@srcf.net &ndash; you will need to edit your <code>.forward</code> file for this.</p>
     <form action="{{ url_for('member.reactivate') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
         <div class="form-group{{ sif(error, ' error') }}">
             <label>New email address: <input name="email" type="email"{% if error %} class="error"{% endif %} value="{{ email or "" }}" required></label>
             {%- if error %}

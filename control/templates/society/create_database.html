@@ -4,6 +4,7 @@
 <h2>Create {{ name }} database</h2>
 <p>A new society database{% if not soc_user %} and {{ name }} account{% endif %} will be created.</p>
 <form action="{{ url_for('society.create_database', society=society.society, type=type) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="submit" class="btn btn-outline-primary" value="Create">
     <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>

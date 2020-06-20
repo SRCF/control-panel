@@ -4,6 +4,7 @@
 <h2>Create mailing list</h2>
 <p>If you want to create a new mailing list, enter the list name below.  Society list addresses are of the form <strong>{{ society.society }}-<em>name</em>@srcf.net</strong>.</p>
 <form action="{{ url_for('society.create_mailing_list', society=society.society) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <div class="input-group">
             <span class="input-group-prepend input-group-text">{{ society.society }}-</span>

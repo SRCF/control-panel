@@ -3,11 +3,15 @@ import logging
 from flask import Flask
 
 from . import utils, home, member, society, signup, jobs, admin
+from .flask_seasurf import SeaSurf
 
 
 app = Flask(__name__,
             template_folder="../templates",
             static_folder="../static")
+
+app.config['CSRF_CHECK_REFERER'] = False
+csrf = SeaSurf(app)
 
 logging.basicConfig(level=logging.DEBUG if app.debug else logging.INFO)
 

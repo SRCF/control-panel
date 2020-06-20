@@ -48,6 +48,7 @@
     {% endfor %}
 </div>
 <form action="{{ action }}" method="post" class="form-submit-only">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="domain" value="{{ domain }}">
     <input type="hidden" name="root" value="{{ root }}">
     <input type="hidden" name="confirm" value="on">
@@ -58,6 +59,7 @@
     {% endif %}
 </form>
 <form action="{{ action }}" method="post" class="form-submit-only">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="domain" value="{{ domain }}">
     <input type="hidden" name="root" value="{{ root }}">
     <input type="hidden" name="edit" value="on">
