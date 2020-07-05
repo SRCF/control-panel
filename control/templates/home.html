@@ -9,7 +9,7 @@
         <a href="{{ url_for('admin.home') }}" class="btn btn-outline-danger mb-1">Control panel admin</a>
         {%- if job_counts %}
             <br>
-            {% for key, count in job_counts %}<strong>{{ count }}</strong> {{ key }}{% if not loop.last %}, {% endif %}{% endfor %}
+            {% for key, count in job_counts %}<a href="{{ url_for('admin.view_jobs', state=key) }}"><strong>{{ count }}</strong> {{ key }}{% if not loop.last %}, {% endif %}</a>{% endfor %}
         {%- endif %}
     </p>
 {%- endif %}
