@@ -5,11 +5,11 @@
 <h2>Control panel</h2>
 <p>Hello, <b>{{ member.name }}</b>.  Here is the status of your SRCF services.</p>
 {%- if member is admin %}
-    <p class="text-danger">
+    <p>
         <a href="{{ url_for('admin.home') }}" class="btn btn-outline-danger mb-1">Control panel admin</a>
         {%- if job_counts %}
             <br>
-            {% for key, count in job_counts %}<a href="{{ url_for('admin.view_jobs', state=key) }}"><strong>{{ count }}</strong> {{ key }}{% if not loop.last %}, {% endif %}</a>{% endfor %}
+            {% for key, count in job_counts %}<a href="{{ url_for('admin.view_jobs', state=key) }}" class="text-danger"><strong>{{ count }}</strong> {{ key }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
         {%- endif %}
     </p>
 {%- endif %}
