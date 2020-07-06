@@ -75,15 +75,17 @@ def signup():
             lookup_user = utils.ldapsearch(crsid)
             surname = lookup_user["sn"][0]
             preferred_name = ""
+            email = crsid + "@cam.ac.uk"
         except KeyError:
             preferred_name = ""
             surname = ""
+            email = ""
 
         # defaults
         values = {
             "preferred_name": preferred_name,
             "surname": surname,
-            "email": crsid + "@cam.ac.uk",
+            "email": email,
             "mail_handler": "forward",
             "dpa": False,
             "tos": False,
