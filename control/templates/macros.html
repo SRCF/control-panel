@@ -1,5 +1,6 @@
-{% macro name_id(name, id) %}
-<strong>{{ name }}</strong> <small class="text-muted">{{ id }}</small>
+{% macro name_id(name, id, bold) %}
+{% if bold %}<strong>{% endif %}{{ name }}{% if bold %}</strong>{% endif %}
+<small class="text-muted">{{ id }}</small>
 {% endmacro %}
 
 {% macro vhost(domain, wild=false, https=true) %}
@@ -45,5 +46,5 @@
 {%- endif %}
 {% endmacro %}
 
-{% macro mem_name_crsid(m) %}{{ name_id(m.name, m.crsid) }}{% endmacro %}
-{% macro soc_desc_soc(s) %}{{ name_id(s.description, s.society) }}{% endmacro %}
+{% macro mem_name_crsid(mem, bold=true) %}{{ name_id(mem.name, mem.crsid, bold) }}{% endmacro %}
+{% macro soc_desc_soc(soc, bold=true) %}{{ name_id(soc.description, soc.society, bold) }}{% endmacro %}

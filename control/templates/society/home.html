@@ -15,7 +15,7 @@
             <ul class="list-unstyled">
                 {%- for admin in society.admins|sort(attribute='crsid') %}
                     <li>
-                        {{ mem_name_crsid(admin) }}
+                        {{ mem_name_crsid(admin, bold=false) }}
                         <a href="{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}" rel="modal" class="close" aria-label="Remove {{ admin.crsid }}" title="Remove {{ admin.crsid }}"><span aria-hidden="true">&times;</span></a>
                     </li>
                 {% endfor %}
@@ -52,11 +52,7 @@
             <h4 class="card-title">Website</h4>
             <ul class="list-unstyled">
                 <li>
-                    {%- if society.website.state in ("legacy", "legacyredirect") %}
-                        Primary address:
-                    {%- else %}
-                        Address:
-                    {%- endif %}
+                    Default address:
                     {%- if society.website.exists %}
                         {{ vhost(society.society + ".soc.srcf.net") }}
                     {%- else %}
@@ -74,12 +70,16 @@
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>Custom domain</th>
+                            <th>Domain</th>
                             <th>Document root</th>
-			    <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td>{{ vhost(society.society + ".soc.srcf.net") }}</td>
+                            <td><em>Same as web root</em></td>
+                        </tr>
                         {%- for domain in society.website.vhosts|sort(attribute="domain") %}
                             <tr>
                                 <td>

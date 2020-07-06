@@ -112,7 +112,7 @@ def lookup_all(obj, fast=False):
     elif isinstance(obj, srcf.database.Society):
         prefix = obj.society
     else:
-        raise TypeError
+        raise TypeError(obj)
 
     obj.mysqluser = lookup_mysqluser(prefix)
     obj.mysqldbs = lookup_mysqldbs(prefix)
