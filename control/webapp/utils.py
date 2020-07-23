@@ -198,7 +198,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
 
     if j.state == "unapproved":
         body = source_info + "\n\nYou can approve or reject the job here: {0}" \
-                .format(flask.url_for("admin.view_jobs", state="unapproved", _external=True))
+                .format(flask.url_for("admin.status", id=j.job_id, _external=True))
         if j.row.args:
             body = yaml.dump(j.row.args, default_flow_style=False) + "\n" + body
         if isinstance(j, SocietyJob) and j.society is not None and j.society.danger:
