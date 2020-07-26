@@ -33,13 +33,13 @@
             </p>
             <hr>
             <div class="text-muted">
-                <p>Each society account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code> and <code>/public/societies/{{ society.society }}</code>, databases, and managing this list of administrators.  They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
-                <p>Please ensure this list is kept up-to-date &ndash; account administrators are expected to maintain and manage operation of their society accounts, and respond to any issues or requests from the sysadmins.</p>
+                <p>Each group account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code> and <code>/public/societies/{{ society.society }}</code>, databases, and managing this list of administrators.  They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
+                <p>Please ensure this list is kept up-to-date &ndash; account administrators are expected to maintain and manage operation of their group accounts, and respond to any issues or requests from the sysadmins.</p>
             </div>
             <hr>
             <div class="text-muted">
                 <p>The <strong>admin email address</strong> above forwards to all named admins.  It is the first point of contact for the sysadmins to raise issues with the account, and to pass on or request your action on third-party requests.</p>
-                <p>{% if society.role_email %}The <strong>role address</strong>{% else %}A <strong>role address</strong>, if configured,{% endif %} will be notified in the event of the society account becoming orphaned (no remaining admins), and may also be called upon if the sysadmins are unable to reach the account admins when needed.</p>
+                <p>{% if society.role_email %}The <strong>role address</strong>{% else %}A <strong>role address</strong>, if configured,{% endif %} will be notified in the event of the group account becoming orphaned (no remaining admins), and may also be called upon if the sysadmins are unable to reach the account admins when needed.</p>
             </div>
         </div>
         <div class="card-footer">
@@ -144,7 +144,7 @@
                 <hr>
             {%- endif %}
             <div class="text-muted">
-                <p>We provide society Mailman mailing lists with addresses of the form <strong>{{ society.society }}-<em>name</em>@srcf.net</strong>.</p>
+                <p>We provide group account Mailman mailing lists with addresses of the form <strong>{{ society.society }}-<em>name</em>@srcf.net</strong>.</p>
                 <p>Mailman provides its own admin panel for each list, which can be found at <strong>https://lists.srcf.net/mailman/admin/<em>list</em></strong>.</p>
             </div>
         </div>
@@ -182,11 +182,11 @@ mysql&gt;</pre>
                     <p>
                         Here, <code>-u {{ society.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the corresponding password, and
                         {%- if society.mysqldbs|length == 1 %}
-                            <code>{{ society.mysqldbs[0] }}</code> at the end connects to the society database
+                            <code>{{ society.mysqldbs[0] }}</code> at the end connects to the group account database
                         {%- else %}
                             <code><em>database</em></code> at the end switches to the database of that name
                         {%- endif -%}
-                        .  On the shell, you can connect using your own account, whereas any scripts or software should use the society account.
+                        .  On the shell, you can connect using your own account, whereas any scripts or software should use the group account.
                     </p>
                 </div>
             {%- else %}
@@ -243,7 +243,7 @@ Type "help" for help.
                             If omitted, you are connected to the database that matches your logon username.
                             {%- endif %}
                         {%- endif %}
-                        Ident authentication is available, so passwords shouldn't be needed &ndash; on the shell, you can connect using your own account, whereas any scripts or software use the society account.</p>
+                        Ident authentication is available, so passwords shouldn't be needed &ndash; on the shell, you can connect using your own account, whereas any scripts or software use the group account.</p>
                     </p>
                 </div>
             {%- else %}

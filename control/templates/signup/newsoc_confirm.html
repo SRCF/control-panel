@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% from "macros.html" import mem_name_crsid, soc_desc_soc %}
 
-{% set page_title = "Confirm society account creation" %}
+{% set page_title = "Confirm group account creation" %}
 
 {% block body %}
-<p>Please check any suggestions below before continuing.  An SRCF sysadmin will need to approve your request, after which you can manage your new society account from the control panel.</p>
+<p>Please check any suggestions below before continuing.  An SRCF sysadmin will need to approve your request, after which you can manage your new group account from the control panel.</p>
 <div class="card">
     <div class="card-body">
         <h5 class="card-title">Short name: <strong>{{ society }}</strong></h5>
@@ -12,7 +12,7 @@
         <p>Your admin contact address will be <strong>{{ society }}-admins@srcf.net</strong>.</p>
         <p>You will be able to create other addresses or mailing lists of the form <strong>{{ society }}-<span class="var">something</span>@srcf.net</strong>.</p>
         {% if society.endswith("soc") %}
-        <p class="text-danger">You've ended your society short name with "soc", meaning your website address will be <strong>{{ society }}.soc.srcf.net</strong>.</p>
+        <p class="text-danger">You've ended your group account short name with "soc", meaning your website address will be <strong>{{ society }}.soc.srcf.net</strong>.</p>
         {% else %}
             <p>Your website address will be <strong>{{ society }}.soc.srcf.net</strong>.</p>
         {% endif %}
@@ -23,11 +23,11 @@
     <div class="card-body">
         <h5 class="card-title">Full name: <strong>{{ description }}</strong></h5>
         {% if similar|length == 1 %}
-            <p>Possible duplicate society: {{ soc_desc_soc(similar[0]) }}</p>
+            <p>Possible duplicate group account: {{ soc_desc_soc(similar[0]) }}</p>
             <p class="text-danger">If this represents you, <strong>don't submit this form!</strong></p>
-            <p>Please contact the owners of the account at <a href="mailto:{{ similar[0].society }}-admins@srcf.net"><strong>{{ similar[0].society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
+            <p>Please contact the owners of the group account at <a href="mailto:{{ similar[0].society }}-admins@srcf.net"><strong>{{ similar[0].society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
         {% elif similar %}
-            <p>Possible duplicate societies:</p>
+            <p>Possible duplicate group accounts:</p>
             <ul>
                 {% for soc in similar %}
                     <li>{{ soc_desc_soc(soc) }} (<a href="mailto:{{ soc.society }}-admins@srcf.net">contact</a>)</li>
@@ -38,9 +38,9 @@
         {% endif %}
         {% if similar %}
             <p>If you're unable to make contact, you may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins.</p>
-            <p>This check may not find all duplicates, check our <a href="{{ DOMAIN_WEB }}/socs/">list of all society accounts</a> for any other potential matches.</p>
+            <p>This check may not find all duplicates, check our <a href="{{ DOMAIN_WEB }}/socs/">list of all group accounts</a> for any other potential matches.</p>
         {% else %}
-            <p>No obvious duplicates found, but check our <a href="{{ DOMAIN_WEB }}/socs/">list of all society accounts</a> for any potential matches.</p>
+            <p>No obvious duplicates found, but check our <a href="{{ DOMAIN_WEB }}/socs/">list of all group accounts</a> for any potential matches.</p>
         {% endif %}
     </div>
 </div>
@@ -49,7 +49,7 @@
         {% if current_admins|length == 1 %}
         <h5 class="card-title">Administrator: {{ mem_name_crsid(current_admins[0]) }}</h5>
         <p class="text-danger">We'd <strong>strongly recommend</strong> nominating multiple account administrators before account creation.</p>
-        <p>If you leave the university or otherwise become unavailable as the sole admin of the account, it will become orphaned and liable to be taken down.</p>
+        <p>If you leave the university or otherwise become unavailable as the sole admin of the group account, it will become orphaned and liable to be taken down.</p>
         {% else %}
         <h5 class="card-title">Administrators: <strong>{{ current_admins|length }}</strong></h5>
         <ul>
@@ -57,9 +57,9 @@
                 <li>{{ mem_name_crsid(admin) }}</li>
             {% endfor %}
         </ul>
-        <p>If the last admin of the account leaves the university or otherwise becomes unavailable, the account will become orphaned and liable to be taken down.</p>
+        <p>If the last admin of the group account leaves the university or otherwise becomes unavailable, the account will become orphaned and liable to be taken down.</p>
         {% endif %}
-        <p>Ensure any successors have access to the account in good time for a smooth handover.</p>
+        <p>Ensure any successors have access to the group account in good time for a smooth handover.</p>
     </div>
 </div>
 <form action="{{ url_for('signup.newsoc') }}" method="post" class="form-submit-only">

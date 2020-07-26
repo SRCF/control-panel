@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% from "macros.html" import soc_desc_soc %}
 
-{% set page_title = "Create society account" %}
+{% set page_title = "Create group account" %}
 {% set page_parent = url_for('home.home') %}
 
 {% block body %}
-<p>To apply for a shared society account on the SRCF, please fill in the form below.  Once created, you'll be able to use the control panel to create any databases or mailing lists.</p>
-<p>Before applying, please ensure we don't already have an existing account for the same purpose.  You may wish to confirm with your predecessors (if representing an existing real-world group), or check our <a href="{{ DOMAIN_WEB }}/socs/">list of all society accounts</a>.  Multiple accounts for the same group are not permitted.</p>
-<p>Society accounts are identified by a <em>short name</em>, which will form part of your society website URL (<strong><span class="var">name</span>.soc.srcf.net</strong>) and mailing addresses (e.g. <strong><span class="var">name</span>-admins@srcf.net</strong>).</p>
-<p>Please note that all named users that wish to be administrators on the account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.</p>
+<p>To apply for a shared group account on the SRCF, please fill in the form below.  Once created, you'll be able to use the control panel to create any databases or mailing lists.</p>
+<p>Before applying, please ensure we don't already have an existing group account for the same purpose.  You may wish to confirm with your predecessors (if representing an existing real-world group), or check our <a href="{{ DOMAIN_WEB }}/socs/">list of all group accounts</a>.  Multiple accounts for the same group are not permitted.</p>
+<p>Group accounts are identified by a <em>short name</em>, which will form part of your group account website URL (<strong><span class="var">name</span>.soc.srcf.net</strong>) and mailing addresses (e.g. <strong><span class="var">name</span>-admins@srcf.net</strong>).</p>
+<p>Please note that all named users that wish to be administrators on the group account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.</p>
 {%- if errors.existing is defined %}
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">{{ soc_desc_soc(errors.existing) }}</h5>
-            <p>This society name is already in use.  <span class="text-danger">If this represents you, <strong>don't submit this form!</strong></span></p>
+            <p>This group name is already in use.  <span class="text-danger">If this represents you, <strong>don't submit this form!</strong></span></p>
             {%- if errors.existing.admins %}
-                <p>Please contact the owners of the account at <a href="mailto:{{ errors.existing.society }}-admins@srcf.net"><strong>{{ errors.existing.society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
+                <p>Please contact the owners of the group account at <a href="mailto:{{ errors.existing.society }}-admins@srcf.net"><strong>{{ errors.existing.society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
                 <p>If you're unable to make contact, you may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins.</p>
             {%- else %}
-                <p>This account is currently suspended as there are no remaining admins.  You may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins if you wish to claim this account.</p>
+                <p>This group account is currently suspended as there are no remaining admins.  You may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins if you wish to claim this account.</p>
             {%- endif %}
         </div>
     </div>
@@ -32,7 +32,7 @@
             {%- if errors.society is defined %}
                 <small class="invalid-feedback">{{ errors.society }}</small>
             {%- endif %}
-            <small class="form-text text-muted">This should be a suitable abbreviation or short name for the society, 16 or fewer lowercase letters only &ndash; e.g. "cugac" for the Cambridge University Gaelic Athletic Club.</small>
+            <small class="form-text text-muted">This should be a suitable abbreviation or short name for the group account, 16 or fewer lowercase letters only &ndash; e.g. "cugac" for the Cambridge University Gaelic Athletic Club.</small>
         </div>
     </div>
     <div class="form-group row">
@@ -42,7 +42,7 @@
             {%- if errors.description is defined %}
                 <small class="invalid-feedback">{{ errors.description }}</small>
             {%- endif %}
-            <small class="form-text text-muted">The longer name or description of the society &ndash; e.g. "CU Gaelic Athletic Club".  Abbreviation of "Cambridge University" to "CU" is encouraged.</small>
+            <small class="form-text text-muted">The longer name or description of the group &ndash; e.g. "CU Gaelic Athletic Club".  Abbreviation of "Cambridge University" to "CU" is encouraged.</small>
         </div>
     </div>
     <div class="form-group row">
@@ -52,7 +52,7 @@
             {%- if errors.admins is defined %}
                 <small class="invalid-feedback">{{ errors.admins }}</small>
             {%- endif %}
-            <small class="form-text text-muted">Please enter the CRSids of all users to be added as society admins, separated by commas.  You must include yourself in this list.</small>
+            <small class="form-text text-muted">Please enter the CRSids of all users to be added as group account admins, separated by commas.  You must include yourself in this list.</small>
         </div>
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Review &amp; confirm creation">
