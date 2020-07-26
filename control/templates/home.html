@@ -66,9 +66,9 @@
         <a href="{{ url_for('jobs.home') }}" class="btn btn-outline-secondary">Job history</a>
     </div>
 </div>
-<h3>Your society accounts</h3>
+<h3>Your group accounts</h3>
 {%- if member.societies %}
-    <p>You are currently listed as an administrator for {{ member.societies|length }} society account{{ "" if member.societies|length == 1 else "s" }}.</p>
+    <p>You are currently listed as an administrator for {{ member.societies|length }} group account{{ "" if member.societies|length == 1 else "s" }}.</p>
     <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-outline-primary">Create new</a></p>
     <div class="card-columns">
         {%- for soc in member.societies|sort(attribute='society') %}
@@ -135,7 +135,7 @@
         {%- endfor %}
     </div>
 {%- else %}
-    <p>You don't currently administrate any society accounts.</p>
+    <p>You don't currently administrate any group accounts.</p>
     <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-outline-primary">Create new</a></p>
 {%- endif %}
 {% endblock %}

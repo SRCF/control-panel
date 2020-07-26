@@ -3,11 +3,11 @@
 
 {% block body %}
 <h2>Add administrator</h2>
-<p>Society accounts are managed by users with personal SRCF accounts.  You can elect an additional administrator, who will be given shared access to the {{ soc_desc_soc(society) }} account.</p>
+<p>Group accounts are managed by users with personal SRCF accounts.  You can elect an additional administrator, who will be given shared access to the {{ soc_desc_soc(society) }} account.</p>
 <ul>
-    <li>They will be able to edit the files of the society website.</li>
-    <li>They will be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the society database.</li>
-    <li>They will not be provided with existing society account passwords (for example, databases and lists).  You can reset these from the society management page if needed.</li>
+    <li>They will be able to edit the files of the group account website.</li>
+    <li>They will be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the group account database.</li>
+    <li>They will not be provided with existing group account passwords (for example, databases and lists).  You can reset these from the group account management page if needed.</li>
 </ul>
 <form action="{{ url_for('society.add_admin', society=society.society) }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
