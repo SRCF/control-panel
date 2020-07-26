@@ -1,6 +1,6 @@
 """
-inspect_services: look up accounts, mailing lists, etc. that a Member or
-Society has on the SRCF
+inspect_services: look up accounts, mailing lists, etc. that a User or
+Group has on the SRCF
 """
 
 import os
