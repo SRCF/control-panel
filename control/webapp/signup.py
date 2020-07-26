@@ -141,15 +141,15 @@ def newsoc():
                                 .format(", ".join(sorted(x.crsid for x in member_admins if x not in current_admins))))
 
         if not values["society"]:
-            errors["society"] = "Please enter a society short name."
+            errors["society"] = "Please enter a group account short name."
         elif len(values["society"]) > 16:
-            errors["society"] = "Society short names must be no longer than 16 characters."
+            errors["society"] = "Group account short names must be no longer than 16 characters."
         elif not SOC_SOCIETY_RE.match(values["society"]):
-            errors["society"] = "Society short names may only contain lowercase letters."
+            errors["society"] = "Group account short names may only contain lowercase letters."
 
         keywords = make_keywords(values["description"])
         if not values["description"]:
-            errors["description"] = "Please enter the full name of the society."
+            errors["description"] = "Please enter the full name of the group."
         elif ILLEGAL_NAME_RE.search(values["description"]):
             errors["description"] = ILLEGAL_NAME_ERR
         elif not keywords:
@@ -161,13 +161,13 @@ def newsoc():
             pass
         else:
             errors["existing"] = soc
-            errors["society"] = "A society with this short name already exists."
+            errors["society"] = "A group account with this short name already exists."
 
         soc = sess.query(Society).filter(func.lower(Society.description) == values["description"].lower()).first()
         if soc:
             if "existing" not in errors:
                 errors["existing"] = soc
-            errors["description"] = "A society with this full name already exists."
+            errors["description"] = "A group account with this full name already exists."
 
         similar = []
         if "existing" not in errors:
@@ -175,7 +175,7 @@ def newsoc():
                 words = make_keywords(soc.description)
                 if keywords == words:
                     errors["existing"] = soc
-                    errors["description"] = "A society with a matching full name already exists."
+                    errors["description"] = "A group account with a matching full name already exists."
                     break
                 elif keywords <= words:
                     similar.append(soc)

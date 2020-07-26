@@ -202,7 +202,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         if j.row.args:
             body = yaml.dump(j.row.args, default_flow_style=False) + "\n" + body
         if isinstance(j, SocietyJob) and j.society is not None and j.society.danger:
-            body = "WARNING: The target society has its danger flag set.\n\n" + body
+            body = "WARNING: The target group account has its danger flag set.\n\n" + body
         if j.owner is not None and j.owner.danger:
             body = "WARNING: The job owner has their danger flag set.\n\n" + body
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
