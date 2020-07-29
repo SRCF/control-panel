@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm.exc import NoResultFound
 
-from srcf.database import Member, Society
+from srcf.database import Member, Society as Group
 from srcf.controllib import jobs
 
 from .utils import srcf_db_sess as sess
@@ -12,7 +12,7 @@ from .utils import create_job_maybe_email_and_redirect
 
 from . import utils
 
-SOC_SOCIETY_RE = re.compile(r'^[a-z]+$')
+GRP_GROUP_RE = re.compile(r'^[a-z]+$')
 ILLEGAL_NAME_RE = re.compile(r'[:,=\n]')
 ILLEGAL_NAME_ERR = "Please do not use any of the following characters: : , = ⏎ "
 
@@ -99,7 +99,7 @@ def make_keywords(desc):
     keywords = set()
     formatted = re.sub("[^a-z]", " ", desc.lower().replace("'", ""))
     for word in formatted.split():
-        if word in ("the", "cu", "cambridge", "university", "college", "soc", "society"):
+        if word in ("the", "cu", "cambridge", "university", "college", "soc", "society", "grp", "group"):
             continue
         while word.endswith("s"):
             word = word[:-1]
@@ -107,7 +107,8 @@ def make_keywords(desc):
     return keywords
 
 @bp.route("/signup/society", methods=["get", "post"])
-def newsoc():
+@bp.route("/signup/group", methods=["get", "post"])
+def newgrp():
     crsid = utils.auth.principal
 
     try:
@@ -119,7 +120,7 @@ def newsoc():
 
     if request.method == 'POST':
         values = {}
-        for key in ("society", "description"):
+        for key in ("group", "description"):
             values[key] = request.form.get(key, "").strip()
         values["admins"] = re.findall("\w+", request.form.get("admins", ""))
 
@@ -140,12 +141,12 @@ def newsoc():
                                 "reactivate their accounts by logging to the SRCF Control Panel: {0}"
                                 .format(", ".join(sorted(x.crsid for x in member_admins if x not in current_admins))))
 
-        if not values["society"]:
-            errors["society"] = "Please enter a group account short name."
-        elif len(values["society"]) > 16:
-            errors["society"] = "Group account short names must be no longer than 16 characters."
-        elif not SOC_SOCIETY_RE.match(values["society"]):
-            errors["society"] = "Group account short names may only contain lowercase letters."
+        if not values["group"]:
+            errors["group"] = "Please enter a group account short name."
+        elif len(values["group"]) > 16:
+            errors["group"] = "Group account short names must be no longer than 16 characters."
+        elif not GRP_GROUP_RE.match(values["group"]):
+            errors["group"] = "Group account short names may only contain lowercase letters."
 
         keywords = make_keywords(values["description"])
         if not values["description"]:
@@ -156,47 +157,47 @@ def newsoc():
             errors["description"] = "Please use a more descriptive full name."
 
         try:
-            soc = utils.get_society(values["society"])
+            grp = utils.get_group(values["group"])
         except KeyError:
             pass
         else:
-            errors["existing"] = soc
-            errors["society"] = "A group account with this short name already exists."
+            errors["existing"] = grp
+            errors["group"] = "A group account with this short name already exists."
 
-        soc = sess.query(Society).filter(func.lower(Society.description) == values["description"].lower()).first()
-        if soc:
+        grp = sess.query(Group).filter(func.lower(Group.description) == values["description"].lower()).first()
+        if grp:
             if "existing" not in errors:
-                errors["existing"] = soc
+                errors["existing"] = grp
             errors["description"] = "A group account with this full name already exists."
 
         similar = []
         if "existing" not in errors:
-            for soc in sess.query(Society):
-                words = make_keywords(soc.description)
+            for grp in sess.query(Group):
+                words = make_keywords(grp.description)
                 if keywords == words:
-                    errors["existing"] = soc
+                    errors["existing"] = grp
                     errors["description"] = "A group account with a matching full name already exists."
                     break
                 elif keywords <= words:
-                    similar.append(soc)
+                    similar.append(grp)
 
         if request.form.get("edit") or errors:
-            return render_template("signup/newsoc.html", errors=errors, **values)
+            return render_template("signup/newgrp.html", errors=errors, **values)
 
         elif not request.form.get("confirm"):
-            return render_template("signup/newsoc_confirm.html",
+            return render_template("signup/newgrp_confirm.html",
                     current_admins=current_admins, similar=similar, **values)
 
         else:
             return create_job_maybe_email_and_redirect(
-                        jobs.CreateSociety, member=mem, **values)
+                        jobs.CreateSociety, member=mem, **values) # TODO s/society/group/
 
     else:
         # defaults
         values = {
             "description": "",
-            "society": "",
+            "group": "",
             "admins": [crsid]
         }
 
-        return render_template("signup/newsoc.html", errors=errors, **values)
+        return render_template("signup/newgrp.html", errors=errors, **values)

@@ -200,7 +200,7 @@ def add_vhost():
                 errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
             elif domain.endswith("." + crsid + ".user.srcf.net"):
                 pass
-            elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"):
+            elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"): # TODO s/society/group/
                 errors["domain"] = "SRCF domains can't be registered here."
             elif sess.query(Domain).filter(Domain.domain == domain).count():
                 errors["domain"] = "This domain is already registered."

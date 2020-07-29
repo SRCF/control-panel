@@ -2,12 +2,12 @@
 
 {% block body %}
 <h2>Create mailing list</h2>
-<p>If you want to create a new mailing list, enter the list name below.  Group account list addresses are of the form <strong>{{ society.society }}-<em>name</em>@srcf.net</strong>.</p>
-<form action="{{ url_for('society.create_mailing_list', society=society.society) }}" method="post">
+<p>If you want to create a new mailing list, enter the list name below.  Group account list addresses are of the form <strong>{{ group.society }}-<em>name</em>@srcf.net</strong>.</p>
+<form action="{{ url_for('group.create_mailing_list', group=group.society) }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <div class="input-group">
-            <span class="input-group-prepend input-group-text">{{ society.society }}-</span>
+            <span class="input-group-prepend input-group-text">{{ group.society }}-</span>
             <input name="listname" type="text" class="form-control{% if error %} is-invalid{% endif %}" value="{{ listname }}" placeholder="List name" autofocus required>
             <span class="input-group-append input-group-text">@srcf.net</span>
             {%- if error %}
@@ -16,6 +16,6 @@
         </div>
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Create">
-    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+    <a href="{{ url_for('group.home', group=group.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>
 {% endblock %}

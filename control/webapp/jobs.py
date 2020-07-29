@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, url_for, redirect, flash
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from srcf.controllib.jobs import Job, Signup, SocietyJob
+from srcf.controllib.jobs import Job, Signup, SocietyJob as GroupJob
 from srcf.database import queries, JobLog
 
 import math
@@ -31,11 +31,11 @@ def home():
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs: job.resolve_references(sess)
-    return render_template("jobs/home.html", owner_in_context=utils.auth.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
+    return render_template("jobs/home.html", owner_in_context=utils.auth.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_group=False)
 
 @bp.route('/jobs/<name>')
-def society_home(name):
-    _, society = utils.find_mem_society(name)
+def group_home(name):
+    _, group = utils.find_mem_group(name)
 
     # Best-effort parsing of ?page= falling back to 1 in all error cases
     page = 1
@@ -44,11 +44,11 @@ def society_home(name):
     except (KeyError, ValueError):
         pass
 
-    jobs = Job.find_by_society(sess, name)
+    jobs = Job.find_by_society(sess, name) # TODO s/society/group/
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs: job.resolve_references(sess)
-    return render_template("jobs/home.html", owner_in_context=name, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=True)
+    return render_template("jobs/home.html", owner_in_context=name, jobs=jobs, pages=utils.Pagination(page, max_pages), for_group=True)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -62,13 +62,13 @@ def status(id):
     if not job.visible_to(utils.auth.principal):
         raise NotFound(id)
 
-    for_society = isinstance(job, SocietyJob) and job.society != None
+    for_group = isinstance(job, GroupJob) and job.society != None # TODO s/society/group/
     if job.owner is None:
         owner_in_context = None
         job_home_url = None
-    elif for_society:
-        owner_in_context = job.society
-        job_home_url = url_for('jobs.society_home', name=owner_in_context)
+    elif for_group:
+        owner_in_context = job.society # TODO s/society/group/
+        job_home_url = url_for('jobs.group_home', name=owner_in_context)
     else:
         owner_in_context = job.owner.crsid
         job_home_url = url_for('jobs.home')
@@ -83,7 +83,7 @@ def status(id):
         # to the template
         mem = None
 
-    return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)
+    return render_template("jobs/status.html", job=job, for_group=for_group, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)
 
 
 @bp.route('/jobs/<int:id>/withdraw')
@@ -109,8 +109,8 @@ def withdraw(id):
     sess.add(log)
     sess.add(job.row)
 
-    for_society = isinstance(job, SocietyJob) and job.society != None
-    if for_society:
-        return redirect(url_for("jobs.society_home", name=job.society.society))
+    for_group = isinstance(job, GroupJob) and job.society != None # TODO s/society/group/
+    if for_group:
+        return redirect(url_for("jobs.group_home", name=job.society.society)) # TODO s/society/group/
     else:
         return redirect(url_for("jobs.home"))

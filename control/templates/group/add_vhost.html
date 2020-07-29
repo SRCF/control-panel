@@ -2,7 +2,7 @@
 
 {% block body %}
 <h2>Add custom domain</h2>
-<form action="{{ url_for('society.add_vhost', society=society.society) }}" method="post">
+<form action="{{ url_for('group.add_vhost', group=group.society) }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <p>You can serve your SRCF website from a custom domain (or a subdomain) once it resolves to our server.  Don't include www here &ndash; the addition of e.g. <em>example.com</em> will be able to serve both that and <em>www.example.com</em>, as long as both resolve to us.</p>
     <p>Note that <strong>you must already own the domain</strong> (typically by buying it from a registrar) &ndash; the SRCF is not a registrar and cannot do this for you.  You'll also need to <a href="https://wiki.srcf.net/DomainsAndHTTPS" target="_blank">configure DNS records</a> so that your domain resolves to us.</p>
@@ -12,7 +12,7 @@
             <small class="invalid-feedback">{{ errors.domain }}</small>
         {%- endif %}
     </div>
-    <p>By default, a custom domain will serve the same site as your SRCF domain, <strong>{{ society.society }}.soc.srcf.net</strong>.  You may optionally specify a subdirectory of your <code>public_html</code> directory, where a different site should be served from.</p>
+    <p>By default, a custom domain will serve the same site as your SRCF domain, <strong>{{ group.society }}.soc.srcf.net</strong>.  You may optionally specify a subdirectory of your <code>public_html</code> directory, where a different site should be served from.</p>
     <div class="form-group">
         <div class="input-group">
             <span class="input-group-prepend input-group-text">public_html /</span>
@@ -23,6 +23,6 @@
         </div>
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Add">
-    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+    <a href="{{ url_for('group.home', group=group.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>
 {% endblock %}

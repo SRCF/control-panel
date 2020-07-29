@@ -18,8 +18,8 @@ def home():
         return redirect(url_for('member.reactivate'))
 
     inspect_services.lookup_all(mem, fast=True)
-    for soc in mem.societies:
-        inspect_services.lookup_all(soc, fast=True)
+    for grp in mem.societies: # TODO s/society/group/
+        inspect_services.lookup_all(grp, fast=True)
 
     job_counts = None
     if utils.is_admin(mem):

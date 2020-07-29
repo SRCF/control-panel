@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Create {{ name }} database</h2>
+<p>A new group account database{% if not grp_user %} and {{ name }} account{% endif %} will be created.</p>
+<form action="{{ url_for('group.create_database', group=group.society, type=type) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <input type="submit" class="btn btn-outline-primary" value="Create">
+    <a href="{{ url_for('group.home', group=group.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+</form>
+{% endblock %}
