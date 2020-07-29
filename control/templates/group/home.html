@@ -1,31 +1,31 @@
 {% extends "base.html" %}
 {% from "macros.html" import mem_name_crsid, vhost %}
 
-{% set page_title = society.description %}
-{% set page_subtitle = society.society %}
+{% set page_title = group.description %}
+{% set page_subtitle = group.society %}
 {% set page_parent = url_for('home.home') %}
 
 {% block body %}
-<p>Date created: <b>{{ society.joined.strftime('%B %G') }}</b></p>
-<p><a href="{{ url_for('jobs.society_home', name=society.society) }}" class="btn btn-outline-secondary">Job history</a></p>
+<p>Date created: <b>{{ group.joined.strftime('%B %G') }}</b></p>
+<p><a href="{{ url_for('jobs.group_home', name=group.society) }}" class="btn btn-outline-secondary">Job history</a></p>
 <div class="card-columns">
     <div class="card">
         <div class="card-body">
-            <h4 class="card-title">Administrators ({{ society.admins|length }})</h4>
+            <h4 class="card-title">Administrators ({{ group.admins|length }})</h4>
             <ul class="list-unstyled">
-                {%- for admin in society.admins|sort(attribute='crsid') %}
+                {%- for admin in group.admins|sort(attribute='crsid') %}
                     <li>
                         {{ mem_name_crsid(admin, bold=false) }}
-                        <a href="{{ url_for('society.remove_admin', society=society.society, target_crsid=admin.crsid) }}" rel="modal" class="close" aria-label="Remove {{ admin.crsid }}" title="Remove {{ admin.crsid }}"><span aria-hidden="true">&times;</span></a>
+                        <a href="{{ url_for('group.remove_admin', group=group.society, target_crsid=admin.crsid) }}" rel="modal" class="close" aria-label="Remove {{ admin.crsid }}" title="Remove {{ admin.crsid }}"><span aria-hidden="true">&times;</span></a>
                     </li>
                 {% endfor %}
             </ul>
             <p>
-                Admin email: <strong><a href="mailto:{{ society.email }}">{{ society.email }}</a></strong>
+                Admin email: <strong><a href="mailto:{{ group.email }}">{{ group.email }}</a></strong>
                 <br>
                 Role email: <strong>
-                    {%- if society.role_email -%}
-                    <a href="mailto:{{ society.role_email }}">{{ society.role_email }}</a>
+                    {%- if group.role_email -%}
+                    <a href="mailto:{{ group.role_email }}">{{ group.role_email }}</a>
                     {%- else -%}
                     not configured
                     {%- endif -%}
@@ -33,18 +33,18 @@
             </p>
             <hr>
             <div class="text-muted">
-                <p>Each group account administrator has full control of the account, including files in <code>/societies/{{ society.society }}</code> and <code>/public/societies/{{ society.society }}</code>, databases, and managing this list of administrators.  They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
+                <p>Each group account administrator has full control of the account, including files in <code>/groups/{{ group.society }}</code> and <code>/public/groups/{{ group.society }}</code>, databases, and managing this list of administrators.  They also each have access to this page, and can therefore reset passwords, create mailing lists and so on.</p>
                 <p>Please ensure this list is kept up-to-date &ndash; account administrators are expected to maintain and manage operation of their group accounts, and respond to any issues or requests from the sysadmins.</p>
             </div>
             <hr>
             <div class="text-muted">
                 <p>The <strong>admin email address</strong> above forwards to all named admins.  It is the first point of contact for the sysadmins to raise issues with the account, and to pass on or request your action on third-party requests.</p>
-                <p>{% if society.role_email %}The <strong>role address</strong>{% else %}A <strong>role address</strong>, if configured,{% endif %} will be notified in the event of the group account becoming orphaned (no remaining admins), and may also be called upon if the sysadmins are unable to reach the account admins when needed.</p>
+                <p>{% if group.role_email %}The <strong>role address</strong>{% else %}A <strong>role address</strong>, if configured,{% endif %} will be notified in the event of the group account becoming orphaned (no remaining admins), and may also be called upon if the sysadmins are unable to reach the account admins when needed.</p>
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ url_for('society.add_admin', society=society.society) }}" rel="modal" class="btn btn-outline-primary">Add new administrator</a>
-            <a href="{{ url_for('society.update_role_email', society=society.society) }}" rel="modal" class="btn btn-outline-primary">Update role email</a>
+            <a href="{{ url_for('group.add_admin', group=group.society) }}" rel="modal" class="btn btn-outline-primary">Add new administrator</a>
+            <a href="{{ url_for('group.update_role_email', group=group.society) }}" rel="modal" class="btn btn-outline-primary">Update role email</a>
         </div>
     </div>
     <div class="card">
@@ -53,20 +53,20 @@
             <ul class="list-unstyled">
                 <li>
                     Default address:
-                    {%- if society.website.exists %}
-                        {{ vhost(society.society + ".soc.srcf.net") }}
+                    {%- if group.website.exists %}
+                        {{ vhost(group.society + ".soc.srcf.net") }}
                     {%- else %}
-                        <strong>{{ society.society }}.soc.srcf.net</strong>
+                        <strong>{{ group.society }}.soc.srcf.net</strong>
                     {%- endif %}
                 </li>
-                {%- if society.website.state == "legacy" %}
-                    <li>Legacy URL: {{ vhost("www.srcf.ucam.org/" + society.society) }}</li>
-                {%- elif society.website.state == "legacyredirect" %}
-                    <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/{{ society.society }}/</span></li>
+                {%- if group.website.state == "legacy" %}
+                    <li>Legacy URL: {{ vhost("www.srcf.ucam.org/" + group.society) }}</li>
+                {%- elif group.website.state == "legacyredirect" %}
+                    <li>Legacy redirect: <span class="text-muted">www.srcf.ucam.org/{{ group.society }}/</span></li>
                 {%- endif %}
-                <li>Web root: <code>/public/societies/{{ society.society }}/public_html</code></li>
+                <li>Web root: <code>/public/groups/{{ group.society }}/public_html</code></li>
             </ul>
-            {%- if society.website.vhosts %}
+            {%- if group.website.vhosts %}
                 <table class="table table-sm">
                     <thead>
                         <tr>
@@ -77,13 +77,13 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{ vhost(society.society + ".soc.srcf.net") }}</td>
+                            <td>{{ vhost(group.society + ".soc.srcf.net") }}</td>
                             <td><em>Same as web root</em></td>
                         </tr>
-                        {%- for domain in society.website.vhosts|sort(attribute="domain") %}
+                        {%- for domain in group.website.vhosts|sort(attribute="domain") %}
                             <tr>
                                 <td>
-                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in society.website.certs)) }}
+                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in group.website.certs)) }}
                                     {% if domain.domain[:4] == "xn--" or ".xn--" in domain.domain %}
                                         <br>
                                         <em>{{ domain.domain.encode("ascii").decode("idna") }}</em>
@@ -91,8 +91,8 @@
                                 </td>
                                 <td>{% if domain.root %}<code>{{ domain.root }}</code>{% else %}<em>Same as web root</em>{% endif %}</td>
                                 <td>
-                                    <a href="{{ url_for('society.change_vhost_docroot', society=society.society, domain=domain.domain) }}" rel="modal" aria-label="Change document root for {{ domain.domain }}" title="Change document root for {{ domain.domain }}"><i class="fa fa-pencil"></i></a>
-                                    <a href="{{ url_for('society.remove_vhost', society=society.society, domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a>
+                                    <a href="{{ url_for('group.change_vhost_docroot', group=group.society, domain=domain.domain) }}" rel="modal" aria-label="Change document root for {{ domain.domain }}" title="Change document root for {{ domain.domain }}"><i class="fa fa-pencil"></i></a>
+                                    <a href="{{ url_for('group.remove_vhost', group=group.society, domain=domain.domain) }}" rel="modal" class="close" aria-label="Remove {{ domain.domain }}" title="Remove {{ domain.domain }}"><span aria-hidden="true">&times;</span></a>
                                 </td>
                             </tr>
                         {%- endfor %}
@@ -101,29 +101,29 @@
             {%- endif %}
             <hr>
             <div class="text-muted">
-                {%- if not society.website.exists %}
+                {%- if not group.website.exists %}
                     <p>You don't currently have a website set up.</p>
                 {%- endif %}
                 <p>Upload pages or files to your web root directory, and they'll be published on your website.  Note that newly-uploaded websites may take up to 20 minutes before they start serving.</p>
-                {%- if society.website.state == "legacy" %}
-                    <p>We are currently also serving your site from <a href="http://www.srcf.ucam.org/{{ society.society }}/"><strong>www.srcf.ucam.org/{{ society.society }}/</strong></a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new primary address as default (with a redirect from old to new).</p>
-                {%- elif society.website.state == "legacyredirect" %}
-                    <p>We are redirecting requests for <strong>www.srcf.ucam.org/{{ society.society }}/</strong> to your primary address.</p>
+                {%- if group.website.state == "legacy" %}
+                    <p>We are currently also serving your site from <a href="http://www.srcf.ucam.org/{{ group.society }}/"><strong>www.srcf.ucam.org/{{ group.society }}/</strong></a>, which has now been deprecated.  You can find out more information about this <a href="https://srcf-admin.soc.srcf.net/subdomains/">here</a>, including setting the new primary address as default (with a redirect from old to new).</p>
+                {%- elif group.website.state == "legacyredirect" %}
+                    <p>We are redirecting requests for <strong>www.srcf.ucam.org/{{ group.society }}/</strong> to your primary address.</p>
                 {%- endif %}
                 <p>If you have a custom domain, you can serve your SRCF website from the root domain or any subdomain.  It will need to resolve to our server, after which it can serve either your <code>public_html</code> directory, or a specific subdirectory inside.</p>
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ url_for('society.add_vhost', society=society.society) }}" rel="modal" class="btn btn-outline-primary">Add custom domain</a>
+            <a href="{{ url_for('group.add_vhost', group=group.society) }}" rel="modal" class="btn btn-outline-primary">Add custom domain</a>
         </div>
     </div>
     <div class="card">
         <div class="card-body">
             <h4 class="card-title">Mailing lists</h4>
-            {%- if society.mailinglists %}
+            {%- if group.mailinglists %}
                 <table class="table table-sm">
                     <tbody>
-                        {%- for list in society.mailinglists|sort %}
+                        {%- for list in group.mailinglists|sort %}
                             <tr>
                                 <td>
                                     <a href="mailto:{{ list }}@srcf.net">{{ list }}@srcf.net</a>
@@ -135,7 +135,7 @@
                                     </ul>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}" rel="modal" aria-label="Reset password for {{ list }}@srcf.net" title="Reset password for {{ list }}@srcf.net"><i class="fa fa-key"></i></a>
+                                    <a href="{{ url_for('group.reset_mailing_list_password', group=group.society, listname=list) }}" rel="modal" aria-label="Reset password for {{ list }}@srcf.net" title="Reset password for {{ list }}@srcf.net"><i class="fa fa-key"></i></a>
                                 </td>
                             </tr>
                         {%- endfor %}
@@ -144,24 +144,24 @@
                 <hr>
             {%- endif %}
             <div class="text-muted">
-                <p>We provide group account Mailman mailing lists with addresses of the form <strong>{{ society.society }}-<em>name</em>@srcf.net</strong>.</p>
+                <p>We provide group account Mailman mailing lists with addresses of the form <strong>{{ group.society }}-<em>name</em>@srcf.net</strong>.</p>
                 <p>Mailman provides its own admin panel for each list, which can be found at <strong>https://lists.srcf.net/mailman/admin/<em>list</em></strong>.</p>
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ url_for('society.create_mailing_list', society=society.society) }}" rel="modal" class="btn btn-outline-primary">New mailing list</a>
+            <a href="{{ url_for('group.create_mailing_list', group=group.society) }}" rel="modal" class="btn btn-outline-primary">New mailing list</a>
         </div>
     </div>
     <div class="card">
         <div class="card-body">
             <h4 class="card-title">MySQL databases</h4>
-            {%- if society.mysqluser %}
+            {%- if group.mysqluser %}
                 <ul class="list-unstyled">
-                    <li>Username: <code>{{ society.mysqluser }}</code></li>
-                    {%- if society.mysqldbs %}
+                    <li>Username: <code>{{ group.mysqluser }}</code></li>
+                    {%- if group.mysqldbs %}
                         <li>
-                            Database{% if society.mysqldbs|length > 1 %}s{% else %} name{% endif %}:
-                            {%- for db in society.mysqldbs %}
+                            Database{% if group.mysqldbs|length > 1 %}s{% else %} name{% endif %}:
+                            {%- for db in group.mysqldbs %}
                                 <code>{{ db }}</code>
                                 {%- if not loop.last %}, {% endif -%}
                             {%- endfor %}
@@ -171,7 +171,7 @@
                 <hr>
                 <div class="text-muted">
                     <p>You can use <a href="https://www.srcf.net/phpmyadmin">phpMyAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                    <pre class="shell"><b>{{ member.crsid }}@pip $ mysql -u {{ society.mysqluser }} -p {% if society.mysqldbs|length == 1 %}{{ society.mysqldbs[0] }}{% else %}<i>database</i>{% endif %}</b>
+                    <pre class="shell"><b>{{ member.crsid }}@pip $ mysql -u {{ group.mysqluser }} -p {% if group.mysqldbs|length == 1 %}{{ group.mysqldbs[0] }}{% else %}<i>database</i>{% endif %}</b>
 Enter password:
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 ...
@@ -180,9 +180,9 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 mysql&gt;</pre>
                     <p>
-                        Here, <code>-u {{ society.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the corresponding password, and
-                        {%- if society.mysqldbs|length == 1 %}
-                            <code>{{ society.mysqldbs[0] }}</code> at the end connects to the group account database
+                        Here, <code>-u {{ group.mysqluser }}</code> specifies the username, <code>-p</code> prompts for the corresponding password, and
+                        {%- if group.mysqldbs|length == 1 %}
+                            <code>{{ group.mysqldbs[0] }}</code> at the end connects to the group account database
                         {%- else %}
                             <code><em>database</em></code> at the end switches to the database of that name
                         {%- endif -%}
@@ -196,24 +196,24 @@ mysql&gt;</pre>
             {%- endif %}
         </div>
         <div class="card-footer">
-            {%- if society.mysqluser %}
-            <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- if group.mysqluser %}
+            <a href="{{ url_for('group.reset_database_password', group=group.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
             {%- endif %}
-            {%- if not society.mysqldbs %}
-            <a href="{{ url_for('society.create_database', society=society.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create society database{% if not society.mysqluser %} and user{% endif %}</a>
+            {%- if not group.mysqldbs %}
+            <a href="{{ url_for('group.create_database', group=group.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create group database{% if not group.mysqluser %} and user{% endif %}</a>
             {%- endif %}
         </div>
     </div>
     <div class="card">
         <div class="card-body">
             <h4 class="card-title">PostgreSQL databases</h4>
-            {%- if society.pguser %}
+            {%- if group.pguser %}
                 <ul class="list-unstyled">
-                    <li>Username: <code>{{ society.pguser }}</code></li>
-                    {%- if society.pgdbs %}
+                    <li>Username: <code>{{ group.pguser }}</code></li>
+                    {%- if group.pgdbs %}
                         <li>
-                            Database{% if society.pgdbs|length > 1 %}s{% else %} name{% endif %}:
-                            {%- for db in society.pgdbs %}
+                            Database{% if group.pgdbs|length > 1 %}s{% else %} name{% endif %}:
+                            {%- for db in group.pgdbs %}
                                 <code>{{ db }}</code>
                                 {%- if not loop.last %}, {% endif -%}
                             {%- endfor %}
@@ -223,23 +223,23 @@ mysql&gt;</pre>
                 <hr>
                 <div class="text-muted">
                     <p>You can use <a href="https://www.srcf.net/phppgadmin">phpPgAdmin</a> to manage your databases graphically.  Alternatively, connect from the SRCF shell:</p>
-                    <pre class="shell"><b>{{ member.crsid }}@pip $ psql -h postgres {% if society.pgdbs|length == 1 %}{{ society.pgdbs[0] }}{% else %}<i>database</i>{% endif %}</b>
+                    <pre class="shell"><b>{{ member.crsid }}@pip $ psql -h postgres {% if group.pgdbs|length == 1 %}{{ group.pgdbs[0] }}{% else %}<i>database</i>{% endif %}</b>
 psql (9.5.9)
 SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
 Type "help" for help.
 
-{% if society.pgdbs|length == 1 %}{{ society.pgdbs[0] }}{% else %}<i>database</i>{% endif %}=&gt;</pre>
+{% if group.pgdbs|length == 1 %}{{ group.pgdbs[0] }}{% else %}<i>database</i>{% endif %}=&gt;</pre>
                     <p>
                         Here, <code>-h postgres</code> connects to the PostgreSQL server, which is on a different machine to the shell server
-                        {%- if society.pgdbs|length == 1 -%}
-                            {%- if society.pgdbs[0] == member.crsid -%}
+                        {%- if group.pgdbs|length == 1 -%}
+                            {%- if group.pgdbs[0] == member.crsid -%}
                                 .  By default, you are connected to the database that matches your logon username.
                             {%- else -%}
-                                , and <code>{{ society.pgdbs[0] }}</code> switches to your database.
+                                , and <code>{{ group.pgdbs[0] }}</code> switches to your database.
                             {%- endif -%}
                         {%- else -%}
                             , and <code><em>database</em></code> switches to the database of that name.
-                            {%- if society.pgdbs and society.pgdbs[0] == member.crsid %}
+                            {%- if group.pgdbs and group.pgdbs[0] == member.crsid %}
                             If omitted, you are connected to the database that matches your logon username.
                             {%- endif %}
                         {%- endif %}
@@ -253,11 +253,11 @@ Type "help" for help.
             {%- endif %}
         </div>
         <div class="card-footer">
-            {%- if society.pguser %}
-                <a href="{{ url_for('society.reset_database_password', society=society.society, type='postgres') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- if group.pguser %}
+                <a href="{{ url_for('group.reset_database_password', group=group.society, type='postgres') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
             {%- endif %}
-            {%- if not society.pgdbs %}
-                <a href="{{ url_for('society.create_database', society=society.society, type='postgres') }}" rel="modal" class="btn btn-outline-primary">Create society database{% if not society.pguser %} and user{% endif %}</a>
+            {%- if not group.pgdbs %}
+                <a href="{{ url_for('group.create_database', group=group.society, type='postgres') }}" rel="modal" class="btn btn-outline-primary">Create group database{% if not group.pguser %} and user{% endif %}</a>
             {%- endif %}
         </div>
     </div>

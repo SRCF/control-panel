@@ -69,57 +69,57 @@
 <h3>Your group accounts</h3>
 {%- if member.societies %}
     <p>You are currently listed as an administrator for {{ member.societies|length }} group account{{ "" if member.societies|length == 1 else "s" }}.</p>
-    <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-outline-primary">Create new</a></p>
+    <p><a href="{{ url_for('signup.newgrp') }}" class="btn btn-outline-primary">Create new</a></p>
     <div class="card-columns">
-        {%- for soc in member.societies|sort(attribute='society') %}
+        {%- for grp in member.societies|sort(attribute='society') %}
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">{{ soc.description }} <small class="text-muted">{{ soc.society }}</small></h4>
+                    <h4 class="card-title">{{ grp.description }} <small class="text-muted">{{ grp.society }}</small></h4>
                     <ul class="fa-ul">
                         <li>
                             <i class="fa fa-li fa-users" title="Admins"></i>
-                            {%- for admin in soc.admins|sort(attribute='crsid') %}
+                            {%- for admin in grp.admins|sort(attribute='crsid') %}
                                 <abbr title="{{ admin.name }}">{{ admin.crsid }}</abbr>{% if not loop.last %},{% endif %}
                             {%- endfor %}
                         </li>
-                        {%- if soc.role_email %}
+                        {%- if grp.role_email %}
                             <li>
                                 <i class="fa fa-li fa-envelope" title="Role email address"></i>
-                                {{ soc.role_email }}
+                                {{ grp.role_email }}
                             </li>
                         {%- endif %}
-                        {%- if soc.website.exists %}
+                        {%- if grp.website.exists %}
                             <li>
                                 <i class="fa fa-li fa-globe" title="Website addresses"></i>
-                                {{ vhost(soc.society + ".soc.srcf.net") }}
+                                {{ vhost(grp.society + ".soc.srcf.net") }}
                             </li>
-                            {%- if soc.website.state == "legacy" %}
+                            {%- if grp.website.state == "legacy" %}
                                 <li>
-                                    {{ vhost("www.srcf.ucam.org/" + soc.society) }}
+                                    {{ vhost("www.srcf.ucam.org/" + grp.society) }}
                                 </li>
                             {%- endif %}
-                            {%- for domain in soc.website.vhosts|sort(attribute="domain") %}
+                            {%- for domain in grp.website.vhosts|sort(attribute="domain") %}
                                 <li>
-                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in soc.website.certs)) }}
+                                    {{ vhost(domain.domain, wild=domain.wild, https=(domain.domain in grp.website.certs)) }}
                                 </li>
                             {%- endfor %}
                         {%- endif %}
-                        {%- if soc.mysqldbs %}
+                        {%- if grp.mysqldbs %}
                             <li>
                                 <i class="fa fa-li fa-database" title="Databases"></i>
                                 MySQL:
-                                {%- for db in soc.mysqldbs|sort %}
+                                {%- for db in grp.mysqldbs|sort %}
                                     <code>{{ db }}</code>
                                     {%- if not loop.last %}, {% endif -%}
                                 {%- endfor %}</li>
                         {%- endif %}
-                        {%- if soc.pgdbs %}
+                        {%- if grp.pgdbs %}
                             <li>
-                                {%- if not soc.mysqldbs %}
+                                {%- if not grp.mysqldbs %}
                                     <i class="fa fa-li fa-database" title="Databases"></i>
                                 {%- endif %}
                                 PostgreSQL:
-                                {%- for db in soc.pgdbs|sort %}
+                                {%- for db in grp.pgdbs|sort %}
                                     <code>{{ db }}</code>
                                     {%- if not loop.last %}, {% endif -%}
                                 {%- endfor %}
@@ -128,14 +128,14 @@
                     </ul>
                 </div>
                 <div class="card-footer">
-                    <a href="{{ url_for('society.home', society=soc.society) }}" class="btn btn-outline-primary">Manage</a>
-                    <a href="{{ url_for('jobs.society_home', name=soc.society) }}" class="btn btn-outline-secondary">Job history</a>
+                    <a href="{{ url_for('group.home', group=grp.society) }}" class="btn btn-outline-primary">Manage</a>
+                    <a href="{{ url_for('jobs.group_home', name=grp.society) }}" class="btn btn-outline-secondary">Job history</a>
                 </div>
             </div>
         {%- endfor %}
     </div>
 {%- else %}
     <p>You don't currently administrate any group accounts.</p>
-    <p><a href="{{ url_for('signup.newsoc') }}" class="btn btn-outline-primary">Create new</a></p>
+    <p><a href="{{ url_for('signup.newgrp') }}" class="btn btn-outline-primary">Create new</a></p>
 {%- endif %}
 {% endblock %}

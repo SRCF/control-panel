@@ -1,20 +1,20 @@
 {% extends "base.html" %}
-{% from "macros.html" import mem_name_crsid, soc_desc_soc %}
+{% from "macros.html" import mem_name_crsid, grp_desc_grp %}
 
 {% block body %}
 {%- if target == member %}
     <h2>Remove yourself</h2>
-    <p>Are you sure you want to remove yourself from the {{ soc_desc_soc(society) }} account?</p>
+    <p>Are you sure you want to remove yourself from the {{ grp_desc_grp(group) }} account?</p>
     <ul>
         <li>You will no longer be able to edit the files of the group account website.</li>
         <li>You will no longer be able to use your <em>personal</em> MySQL or PostgreSQL users to log into the group account database.</li>
     </ul>
-    {%- if society.admins|length == 1 %}
-        <p class="text-danger"><b>Warning:</b> you are the last admin of this group account. If you remove yourself, {{ society.description }} will become an orphan society, and will be deleted if no new admin is appointed.</p>
+    {%- if group.admins|length == 1 %}
+        <p class="text-danger"><b>Warning:</b> you are the last admin of this group account. If you remove yourself, {{ group.description }} will become an orphan group, and will be deleted if no new admin is appointed.</p>
     {%- endif %}
 {%- else %}
     <h2>Remove administrator</h2>
-    <p>Are you sure you want to remove {{ mem_name_crsid(target) }} from the {{ soc_desc_soc(society) }} account?</p>
+    <p>Are you sure you want to remove {{ mem_name_crsid(target) }} from the {{ grp_desc_grp(group) }} account?</p>
     <ul>
         <li>They will no longer be able to edit the files of the group account website.</li>
         <li>They will no longer be able to use their <em>personal</em> MySQL or PostgreSQL users to log into the group account database.</li>
@@ -23,9 +23,9 @@
         <li>It is feasible for a malicious admin to leave back-doors; contact the sysadmins if you are concerned.</li>
     </ul>
 {%- endif %}
-<form action="{{ url_for('society.remove_admin', society=society.society, target_crsid=target.crsid) }}" method="post">
+<form action="{{ url_for('group.remove_admin', group=group.society, target_crsid=target.crsid) }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="submit" class="btn btn-outline-primary" value="Remove">
-    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+    <a href="{{ url_for('group.home', group=group.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>
 {% endblock %}

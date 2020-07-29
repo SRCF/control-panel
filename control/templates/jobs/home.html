@@ -3,7 +3,7 @@
 
 {% set page_title = "Job history" %}
 {% set page_subtitle = owner_in_context %}
-{% set page_parent = url_for('society.home', society=owner_in_context) if for_society else url_for('member.home') %}
+{% set page_parent = url_for('group.home', group=owner_in_context) if for_group else url_for('member.home') %}
 
 {% block body %}
 {{ paginate(pages) }}
@@ -12,7 +12,7 @@
         <thead>
             <tr>
                 <th>#</th>
-                {%- if for_society %}<th>Requester</th>{% endif -%}
+                {%- if for_group %}<th>Requester</th>{% endif -%}
                 <th>Time</th>
                 <th>Description</th>
                 <th>Status</th>
@@ -23,7 +23,7 @@
             {%- for job in jobs %}
                 <tr class="{{ job.state }}">
                     <td><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
-                    {%- if for_society %}<td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>{% endif -%}
+                    {%- if for_group %}<td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>{% endif -%}
                     <td class="nowrap">{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job }}</td>
                     <td>{{ job.state|capitalize }}</td>

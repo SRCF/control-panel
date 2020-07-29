@@ -25,9 +25,9 @@ git clone git@github.com:SRCF/control-panel.git ~srcf-admin/control-hackday-$USE
 ```
 export PORT=54321  # but choose something better
 ```
-4. Add a rewrite rule to `/public/societies/srcf-admin/public_html/.htaccess`:
+4. Add a rewrite rule to `/public/groups/srcf-admin/public_html/.htaccess`:
 ```
-cat >>/public/societies/srcf-admin/public_html/.htaccess_ <<EOF
+cat >>/public/groups/srcf-admin/public_html/.htaccess_ <<EOF
 RewriteRule "^control-$USER/(.*)$" "http://localhost:$PORT/\$1" [P,QSA]
 EOF
 ```

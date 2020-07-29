@@ -11,7 +11,7 @@ from datetime import datetime
 
 from .utils import srcf_db_sess as sess
 from . import utils
-from srcf.controllib.jobs import Job, SocietyJob
+from srcf.controllib.jobs import Job, SocietyJob as GroupJob # TODO s/society/group/
 from srcf.database import JobLog
 
 
@@ -79,11 +79,11 @@ def status(id):
     notes = [x for x in log if x.type == "note"]
 
     job_home_url = url_for('admin.view_jobs', state=job.state)
-    for_society = isinstance(job, SocietyJob) and job.owner.crsid != utils.auth.principal
-    owner_in_context = job.society_society if isinstance(job, SocietyJob) else job.owner_crsid
+    for_group = isinstance(job, GroupJob) and job.owner.crsid != utils.auth.principal
+    owner_in_context = job.society_society if isinstance(job, GroupJob) else job.owner_crsid  # TODO s/society/group/
 
     return render_template("admin/status.html", job=job, notes=notes, log=log, job_home_url=job_home_url,
-                           for_society=for_society, owner_in_context=owner_in_context,
+                           for_group=for_group, owner_in_context=owner_in_context,
                            unhexlify=unhexlify, principal=utils.raven.principal, has_create_log=has_create_log)
 
 

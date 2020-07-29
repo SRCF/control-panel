@@ -5,7 +5,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 from flask import Blueprint, render_template, request, redirect, url_for 
 
 from .utils import srcf_db_sess as sess
-from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_mem_society
+from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_mem_group
 from . import utils
 from srcf.controllib import jobs
 from srcf.controllib.jobs import Job
@@ -16,10 +16,10 @@ from . import utils, inspect_services
 
 import string
 
-bp = Blueprint("society", __name__)
+bp = Blueprint("group", __name__)
 
 
-def validate_soc_role_email(email):
+def validate_grp_role_email(email):
     if isinstance(email, str):
         email = email.lower()
 
@@ -39,25 +39,25 @@ def validate_soc_role_email(email):
     return None
 
 
-@bp.route('/societies/<society>')
-def home(society):
-    mem, soc = find_mem_society(society)
+@bp.route('/groups/<group>')
+def home(group):
+    mem, grp = find_mem_group(group)
 
     inspect_services.lookup_all(mem)
-    inspect_services.lookup_all(soc)
+    inspect_services.lookup_all(grp)
 
-    return render_template("society/home.html", member=mem, society=soc)
+    return render_template("group/home.html", member=mem, group=grp)
 
-@bp.route("/societies/<society>/roleemail", methods=["GET", "POST"])
-def update_role_email(society):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/roleemail", methods=["GET", "POST"])
+def update_role_email(group):
+    mem, grp = find_mem_group(group)
 
-    email = soc.role_email
+    email = grp.role_email
     error = None
     if request.method == "POST":
         email = request.form.get("email", "").strip() or None
-        if soc.role_email != email:
-            error = validate_soc_role_email(email)
+        if grp.role_email != email:
+            error = validate_grp_role_email(email)
         elif email:
             error = "That's the address we have already."
         else:
@@ -65,17 +65,17 @@ def update_role_email(society):
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
-            jobs.UpdateSocietyRoleEmail,
+            jobs.UpdateSocietyRoleEmail, # TODO s/society/group/
             requesting_member=mem,
-            society=soc,
+            group=grp,
             email=email
         )
     else:
-        return render_template("society/update_role_email.html", society=soc, email=email, error=error)
+        return render_template("group/update_role_email.html", group=grp, email=email, error=error)
 
-@bp.route("/societies/<society>/admins/add", methods=["GET", "POST"])
-def add_admin(society):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/admins/add", methods=["GET", "POST"])
+def add_admin(group):
+    mem, grp = find_mem_group(group)
 
     crsid = ""
     tgt = None
@@ -99,47 +99,47 @@ def add_admin(society):
                 raise ValueError("{0} doesn't have an active SRCF account; please ask them to reactivate their account by going to the SRCF Control Panel.".format(crsid))
             if tgt == mem:
                 raise ValueError("You are already an administrator.")
-            if tgt in soc.admins:
+            if tgt in grp.admins:
                 raise ValueError("{0} is already an administrator.".format(crsid))
         except ValueError as e:
             error = e.args[0]
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
-            jobs.ChangeSocietyAdmin,
+            jobs.ChangeSocietyAdmin, # TODO s/society/group/
             requesting_member=mem,
-            society=soc,
+            group=grp,
             target_member=tgt,
             action="add"
         )
     else:
-        return render_template("society/add_admin.html", society=soc, crsid=crsid, error=error)
+        return render_template("group/add_admin.html", group=grp, crsid=crsid, error=error)
 
-@bp.route("/societies/<society>/admins/<target_crsid>/remove", methods=["GET", "POST"])
-def remove_admin(society, target_crsid):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/admins/<target_crsid>/remove", methods=["GET", "POST"])
+def remove_admin(group, target_crsid):
+    mem, grp = find_mem_group(group)
 
     try:
         tgt = utils.get_member(target_crsid)
     except KeyError:
         raise NotFound
-    if tgt not in soc.admins:
+    if tgt not in grp.admins:
         raise NotFound
 
     if request.method == "POST":
         return create_job_maybe_email_and_redirect(
-            jobs.ChangeSocietyAdmin,
+            jobs.ChangeSocietyAdmin, # TODO s/society/group/
             requesting_member=mem,
-            society=soc,
+            group=grp,
             target_member=tgt,
             action="remove"
         )
     else:
-        return render_template("society/remove_admin.html", member=mem, society=soc, target=tgt)
+        return render_template("group/remove_admin.html", member=mem, group=grp, target=tgt)
 
-@bp.route("/societies/<society>/mailinglist", methods=["GET", "POST"])
-def create_mailing_list(society):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/mailinglist", methods=["GET", "POST"])
+def create_mailing_list(group):
+    mem, grp = find_mem_group(group)
 
     listname = ""
     error = None
@@ -150,72 +150,72 @@ def create_mailing_list(society):
         elif re.search(r"[^a-z0-9_-]", listname):
             error = "List names can only contain letters, numbers, hyphens and underscores."
         else:
-            lists = inspect_services.lookup_mailinglists(society)
-            if "{}-{}".format(society, listname) in lists:
+            lists = inspect_services.lookup_mailinglists(group)
+            if "{}-{}".format(group, listname) in lists:
                 error = "This mailing list already exists."
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
-            jobs.CreateSocietyMailingList,
-            member=mem, society=soc, listname=listname
+            jobs.CreateSocietyMailingList, # TODO s/society/group/
+            member=mem, group=grp, listname=listname
         )
     else:
-        return render_template("society/create_mailing_list.html", society=soc, listname=listname, error=error)
+        return render_template("group/create_mailing_list.html", group=grp, listname=listname, error=error)
 
-@bp.route("/societies/<society>/mailinglist/<listname>/password", methods=["GET", "POST"])
-def reset_mailing_list_password(society, listname):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/mailinglist/<listname>/password", methods=["GET", "POST"])
+def reset_mailing_list_password(group, listname):
+    mem, grp = find_mem_group(group)
 
-    lists = inspect_services.lookup_mailinglists(society)
+    lists = inspect_services.lookup_mailinglists(group)
     if listname not in lists:
         raise NotFound
 
     if request.method == "POST":
         return create_job_maybe_email_and_redirect(
-            jobs.ResetSocietyMailingListPassword,
-            member=mem, society=soc, listname=listname
+            jobs.ResetSocietyMailingListPassword, # TODO s/society/group/
+            member=mem, group=grp, listname=listname
         )
     else:
-        return render_template("society/reset_mailing_list_password.html", member=mem, society=soc, listname=listname)
+        return render_template("group/reset_mailing_list_password.html", member=mem, group=grp, listname=listname)
 
-@bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
-@bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
-def reset_database_password(society, type):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/groups/<group>/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
+def reset_database_password(group, type):
+    mem, grp = find_mem_group(group)
 
     if request.method == "POST":
-        cls = {"mysql": jobs.ResetMySQLSocietyPassword,
-               "postgres": jobs.ResetPostgresSocietyPassword}[type]
-        return create_job_maybe_email_and_redirect(cls, society=soc, member=mem)
+        cls = {"mysql": jobs.ResetMySQLSocietyPassword, # TODO s/society/group/
+               "postgres": jobs.ResetPostgresSocietyPassword}[type] # TODO s/society/group/
+        return create_job_maybe_email_and_redirect(cls, group=grp, member=mem)
     else:
         formatted_name = {"mysql": "MySQL",
                           "postgres": "PostgreSQL"}[type]
         web_interface = {"mysql": "phpMyAdmin",
                          "postgres": "phpPgAdmin"}[type]
 
-        return render_template("society/reset_database_password.html", society=soc, member=mem, type=type, name=formatted_name, web_interface=web_interface)
+        return render_template("group/reset_database_password.html", group=grp, member=mem, type=type, name=formatted_name, web_interface=web_interface)
 
-@bp.route("/societies/<society>/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
-@bp.route("/societies/<society>/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
-def create_database(society, type):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
+@bp.route("/groups/<group>/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
+def create_database(group, type):
+    mem, grp = find_mem_group(group)
 
     if request.method == "POST":
-        cls = {"mysql": jobs.CreateMySQLSocietyDatabase,
-               "postgres": jobs.CreatePostgresSocietyDatabase}[type]
-        return create_job_maybe_email_and_redirect(cls, member=mem, society=soc)
+        cls = {"mysql": jobs.CreateMySQLSocietyDatabase, # TODO s/society/group/
+               "postgres": jobs.CreatePostgresSocietyDatabase}[type] # TODO s/society/group/
+        return create_job_maybe_email_and_redirect(cls, member=mem, group=grp)
     else:
         formatted_name = {"mysql": "MySQL",
                           "postgres": "PostgreSQL"}[type]
         inspect = {"mysql": inspect_services.lookup_mysqluser,
                    "postgres": inspect_services.lookup_pguser}[type]
         has_mem_user = inspect(mem.crsid)
-        has_soc_user = inspect(soc.society)
-        return render_template("society/create_database.html", society=soc, member=mem, type=type, name=formatted_name, mem_user=has_mem_user, soc_user=has_soc_user)
+        has_grp_user = inspect(grp.society) # TODO s/society/group/
+        return render_template("group/create_database.html", group=grp, member=mem, type=type, name=formatted_name, mem_user=has_mem_user, grp_user=has_grp_user)
 
-@bp.route("/societies/<society>/domains/add", methods=["GET", "POST"])
-def add_vhost(society):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/domains/add", methods=["GET", "POST"])
+def add_vhost(group):
+    mem, grp = find_mem_group(group)
 
     domain = ""
     root = ""
@@ -230,9 +230,9 @@ def add_vhost(society):
             if domain != parsed:
                 domain = parsed
                 errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
-            elif domain.endswith("." + soc.society + ".soc.srcf.net"):
+            elif domain.endswith("." + grp.society + ".soc.srcf.net"): # TODO s/society/group/
                 pass
-            elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"):
+            elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"): # TODO s/society/group/
                 errors["domain"] = "SRCF domains can't be registered here."
             elif sess.query(Domain).filter(Domain.domain == domain).count():
                 errors["domain"] = "This domain is already registered."
@@ -240,7 +240,7 @@ def add_vhost(society):
             errors["domain"] = "Please enter a domain or subdomain."
 
         if request.form.get("edit") or errors:
-            return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+            return render_template("group/add_vhost.html", group=grp, member=mem, domain=domain, root=root, errors=errors)
 
         confirm = True
         if request.form.get("confirm"):
@@ -254,23 +254,23 @@ def add_vhost(society):
                 confirm = False
 
         if confirm:
-            return render_template("society/add_vhost_test.html", society=soc, member=mem, domain=domain, root=root, valid=valid)
+            return render_template("group/add_vhost_test.html", group=grp, member=mem, domain=domain, root=root, valid=valid)
         else:
             return create_job_maybe_email_and_redirect(
-                        jobs.AddSocietyVhost, member=mem, society=soc,
+                        jobs.AddSocietyVhost, member=mem, group=grp, # TODO s/society/group/
                         domain=domain, root=root)
 
     else:
-        return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+        return render_template("group/add_vhost.html", group=grp, member=mem, domain=domain, root=root, errors=errors)
 
-@bp.route("/societies/<society>/domains/<domain>/changedocroot", methods=["GET", "POST"])
-def change_vhost_docroot(society, domain):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/domains/<domain>/changedocroot", methods=["GET", "POST"])
+def change_vhost_docroot(group, domain):
+    mem, grp = find_mem_group(group)
 
     errors = {}
 
     try:
-        record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == soc.society)[0]
+        record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == grp.society)[0] # TODO s/society/group/
     except IndexError:
         raise NotFound
 
@@ -287,25 +287,25 @@ def change_vhost_docroot(society, domain):
 
     if request.method == "POST" and not errors:
         return create_job_maybe_email_and_redirect(
-                    jobs.ChangeSocietyVhostDocroot, member=mem, society=soc,
+                    jobs.ChangeSocietyVhostDocroot, member=mem, group=grp, # TODO s/society/group/
                     domain=domain, root=root)
     else:
-        return render_template("society/change_vhost_docroot.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+        return render_template("group/change_vhost_docroot.html", group=grp, member=mem, domain=domain, root=root, errors=errors)
 
-@bp.route("/societies/<society>/domains/<domain>/remove", methods=["GET", "POST"])
-def remove_vhost(society, domain):
-    mem, soc = find_mem_society(society)
+@bp.route("/groups/<group>/domains/<domain>/remove", methods=["GET", "POST"])
+def remove_vhost(group, domain):
+    mem, grp = find_mem_group(group)
 
     try:
         record = sess.query(Domain).filter(Domain.domain == domain)[0]
     except IndexError:
         raise NotFound
-    if not record.owner == soc.society:
+    if not record.owner == grp.society: # TODO s/society/group/
         raise Forbidden
 
     if request.method == "POST":
         return create_job_maybe_email_and_redirect(
-                    jobs.RemoveSocietyVhost, member=mem, society=soc,
+                    jobs.RemoveSocietyVhost, member=mem, group=grp, # TODO s/society/group/
                     domain=domain)
     else:
-        return render_template("society/remove_vhost.html", society=soc, member=mem, domain=domain)
+        return render_template("group/remove_vhost.html", group=grp, member=mem, domain=domain)

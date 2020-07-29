@@ -14,7 +14,7 @@ from . import utils
 
 
 def lookup_pgdbs(prefix):
-    """Return a list of PostgreSQL databases owned by `prefix` (a user or soc)"""
+    """Return a list of PostgreSQL databases owned by `prefix` (a user or grp)"""
     params = {'prefix': prefix, 'prefixfilter': '%s-%%' % prefix}
     # we can borrow the postgres connection we already have
     q = sess.execute('SELECT datname FROM pg_database ' \
@@ -24,7 +24,7 @@ def lookup_pgdbs(prefix):
     return [row[0] for row in q.fetchall()]
 
 def lookup_mysqldbs(prefix):
-    """Return a list of MySQL databases owned by `prefix` (a user or soc)"""
+    """Return a list of MySQL databases owned by `prefix` (a user or grp)"""
     try:
         cur = utils.temp_mysql_conn().cursor()
         prefix = prefix.replace("-", "_")
@@ -70,7 +70,7 @@ def lookup_mailinglists(prefix):
 
 def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
-    path = os.path.join("/public", "home" if is_member else "societies", prefix, "public_html")
+    path = os.path.join("/public", "home" if is_member else "groups", prefix, "public_html")
     web = {"vhosts": list(sess.query(srcf.database.Domain).filter(srcf.database.Domain.owner == prefix)), "state": None}
     domains = [domain.domain for domain in web["vhosts"]]
     if domains:
@@ -84,7 +84,7 @@ def lookup_website(prefix, is_member):
         # May exist, but we can't read it -- assume active as users may have hidden the contents.
         web["exists"] = True
     if web["exists"]:
-        with open("/societies/srcf-admin/{0}webstatus".format("member" if is_member else "soc")) as f:
+        with open("/groups/srcf-admin/{0}webstatus".format("member" if is_member else "soc")) as f: # TODO s/society/group/
             for line in f:
                 username, state = line.strip().split(":")
                 if username == prefix:
@@ -109,8 +109,8 @@ def lookup_all(obj, fast=False):
     """
     if isinstance(obj, srcf.database.Member):
         prefix = obj.crsid
-    elif isinstance(obj, srcf.database.Society):
-        prefix = obj.society
+    elif isinstance(obj, srcf.database.Society): # TODO s/society/group/
+        prefix = obj.society # TODO s/society/group/
     else:
         raise TypeError(obj)
 

@@ -3,9 +3,9 @@
 {% block body %}
 <h2>Remove {{ domain }}</h2>
 <p>Are you sure you want to stop serving your site at <strong>{{ domain }}</strong>?</p>
-<form action="{{ url_for('society.remove_vhost', society=society.society, domain=domain) }}" method="post">
+<form action="{{ url_for('group.remove_vhost', group=group.society, domain=domain) }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="submit" class="btn btn-outline-primary" value="Remove">
-    <a href="{{ url_for('society.home', society=society.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
+    <a href="{{ url_for('group.home', group=group.society) }}" data-dismiss="modal" class="btn btn-outline-secondary">Cancel</a>
 </form>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import soc_desc_soc %}
+{% from "macros.html" import grp_desc_grp %}
 
 {% set page_title = "Create group account" %}
 {% set page_parent = url_for('home.home') %}
@@ -12,10 +12,10 @@
 {%- if errors.existing is defined %}
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">{{ soc_desc_soc(errors.existing) }}</h5>
+            <h5 class="card-title">{{ grp_desc_grp(errors.existing) }}</h5>
             <p>This group name is already in use.  <span class="text-danger">If this represents you, <strong>don't submit this form!</strong></span></p>
             {%- if errors.existing.admins %}
-                <p>Please contact the owners of the group account at <a href="mailto:{{ errors.existing.society }}-admins@srcf.net"><strong>{{ errors.existing.society }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
+                <p>Please contact the owners of the group account at <a href="mailto:{{ errors.existing.group }}-admins@srcf.net"><strong>{{ errors.existing.group }}-admins@srcf.net</strong></a> to request your addition as an admin.</p>
                 <p>If you're unable to make contact, you may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins.</p>
             {%- else %}
                 <p>This group account is currently suspended as there are no remaining admins.  You may <a href="{{ DOMAIN_WEB }}/contact">request assistance</a> from the sysadmins if you wish to claim this account.</p>
@@ -23,14 +23,14 @@
         </div>
     </div>
 {%- endif %}
-<form action="{{ url_for('signup.newsoc') }}" method="post">
+<form action="{{ url_for('signup.newgrp') }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group row">
-        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="society">Short name</label>
+        <label class="col-lg-2 col-md-3 col-sm-4 col-form-label" for="group">Short name</label>
         <div class="col-lg-10 col-md-9 col-sm-8">
-            <input type="text" id="society" name="society" class="form-control{% if errors.society is defined %} is-invalid{% endif %}" value="{{ society }}" required>
-            {%- if errors.society is defined %}
-                <small class="invalid-feedback">{{ errors.society }}</small>
+            <input type="text" id="group" name="group" class="form-control{% if errors.group is defined %} is-invalid{% endif %}" value="{{ group }}" required>
+            {%- if errors.group is defined %}
+                <small class="invalid-feedback">{{ errors.group }}</small>
             {%- endif %}
             <small class="form-text text-muted">This should be a suitable abbreviation or short name for the group account, 16 or fewer lowercase letters only &ndash; e.g. "cugac" for the Cambridge University Gaelic Athletic Club.</small>
         </div>

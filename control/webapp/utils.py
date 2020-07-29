@@ -20,11 +20,11 @@ import yaml
 import srcf.database
 import srcf.database.queries
 import srcf.mail
-from srcf.controllib.jobs import SocietyJob
+from srcf.controllib.jobs import SocietyJob as GroupJob
 from srcf.controllib.utils import *
 
 
-__all__ = ["email_re", "auth", "raven", "srcf_db_sess", "get_member", "get_society",
+__all__ = ["email_re", "auth", "raven", "srcf_db_sess", "get_member", "get_group",
            "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin", "DOMAIN_WEB"]
 
 
@@ -66,7 +66,7 @@ class InactiveUser(NotFound): pass
 
 # Use the request session in srcf.database.queries
 get_member = partial(srcf.database.queries.get_member, session=srcf_db_sess)
-get_society = partial(srcf.database.queries.get_society, session=srcf_db_sess)
+get_group = partial(srcf.database.queries.get_society, session=srcf_db_sess) # TODO s/society/group/
 
 # We occasionally need a temporary MySQL connection
 def temp_mysql_conn():
@@ -201,7 +201,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
                 .format(flask.url_for("admin.status", id=j.job_id, _external=True))
         if j.row.args:
             body = yaml.dump(j.row.args, default_flow_style=False) + "\n" + body
-        if isinstance(j, SocietyJob) and j.society is not None and j.society.danger:
+        if isinstance(j, GroupJob) and j.society is not None and j.society.danger: # TODO s/society/group/
             body = "WARNING: The target group account has its danger flag set.\n\n" + body
         if j.owner is not None and j.owner.danger:
             body = "WARNING: The job owner has their danger flag set.\n\n" + body
@@ -222,21 +222,21 @@ def find_member(allow_inactive=False):
 
     return crsid, mem
 
-def find_mem_society(society):
+def find_mem_group(group):
     crsid = auth.principal
 
     try:
         mem = get_member(crsid)
-        soc = get_society(society)
+        grp = get_group(group)
     except KeyError:
         raise NotFound
     if not mem.user:
         raise InactiveUser
 
-    if mem not in soc.admins:
+    if mem not in grp.admins:
         raise Forbidden
 
-    return mem, soc
+    return mem, grp
 
 def auth_admin():
     # I think the order before_request fns are run in is undefined.
