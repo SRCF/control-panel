@@ -198,6 +198,8 @@ mysql&gt;</pre>
         <div class="card-footer">
             {%- if society.mysqluser %}
             <a href="{{ url_for('society.reset_database_password', society=society.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
+            {%- elif society.mysqldbs %}
+            <p>You have a MySQL database but no MySQL account. Please contact the sysadmins to use MySQL.</p>
             {%- endif %}
             {%- if not society.mysqldbs %}
             <a href="{{ url_for('society.create_database', society=society.society, type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create society database{% if not society.mysqluser %} and user{% endif %}</a>
