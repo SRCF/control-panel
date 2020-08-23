@@ -69,3 +69,17 @@ On pip:
 sudo update-usr-local
 sudo systemctl restart control-panel-job-runner.service
 ```
+
+# Docker
+
+There is a basic `Dockerfile` to ensure dependencies are tracked and to assist (some forms) of testing and local development.
+
+To build:
+
+    $ docker build --tag srcf/control .
+
+Actually running the service locally via Docker is currently experimental at best, and looks something like the following:
+
+1. Modify `run.py` to pass `debug=False` to the `app.run` call
+2. docker run --tty --interactive --env FLASK_TRUSTED_HOSTS=localhost --env FLASK_SECRET_KEY=not-a-secret --env DOMAIN_WEB=localhost --env FLASK_ENV=development -p 5000:5000 srcf/control
+3. Point your browser at http://localhost:5000/
