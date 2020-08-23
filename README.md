@@ -72,7 +72,7 @@ sudo systemctl restart control-panel-job-runner.service
 
 # Docker
 
-There is a basic `Dockerfile` to ensure dependencies are tracked and to assist (some forms) of testing and local development.
+There is a basic `Dockerfile` to ensure dependencies are tracked and to assist (some forms of) testing and local development.
 
 To build:
 
