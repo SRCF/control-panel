@@ -209,20 +209,13 @@ def add_vhost():
 
         if request.form.get("edit") or errors:
             return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
-
-        confirm = True
-        if request.form.get("confirm"):
-            confirm = False
-        else:
+        elif not request.form.get("confirm"):
             valid = {}
             prefixed = "www.{}".format(domain)
             for d in (domain, prefixed):
                 valid[d] = domains.verify(d)
-            if all(v == (True, True) for v in valid.values()):
-                confirm = False
-
-        if confirm:
-            return render_template("member/add_vhost_test.html", member=mem, domain=domain, root=root, valid=valid)
+            good = all(v == (True, True) for v in valid.values())
+            return render_template("member/add_vhost_test.html", member=mem, domain=domain, root=root, valid=valid, good=good)
         else:
             return create_job_maybe_email_and_redirect(
                         jobs.AddUserVhost, member=mem,

@@ -38,8 +38,8 @@
 
 {% block body %}
 <h2>Test custom domain</h2>
-<p>We will serve your website from both the base (sub)domain and the www-prefixed subdomain, though currently your DNS records don't cover all cases.</p>
-<p>You should ensure you have correct records for both IPv4 and IPv6, in order to correctly support all visitors.  If you only intend to use one of the two domain variants, you can ignore the warnings for the other.</p>
+<p>We will serve your website from both the base (sub)domain and the www-prefixed subdomain{% if good %} &mdash; your DNS records are all ready to go{% else %}, though currently your DNS records don't cover all cases{% endif %}.</p>
+{% if not good %}<p>You should ensure you have correct records for both IPv4 and IPv6, in order to correctly support all visitors.  If you only intend to use one of the two domain variants, you can ignore the warnings for the other.</p>{% endif %}
 <div class="row">
     {% for d in (domain, prefixed) %}
         <div class="col-md-6 d-flex align-items-stretch">
