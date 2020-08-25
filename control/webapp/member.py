@@ -198,6 +198,8 @@ def add_vhost():
             if domain != parsed:
                 domain = parsed
                 errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
+            elif "." not in domain:
+                errors["domain"] = "Please enter a fully-qualified domain name."
             elif domain.endswith("." + crsid + ".user.srcf.net"):
                 pass
             elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"):
