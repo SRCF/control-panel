@@ -12,6 +12,19 @@
 {% block body %}
 <p>Date joined: <b>{{ member.joined.strftime('%B %G') }}</b></p>
 <p><a href="{{ url_for('jobs.home') }}" class="btn btn-outline-secondary">Job history</a></p>
+{%- if pending %}
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Jobs pending approval</h4>
+            <p>The following jobs have been received, but are awaiting approval from a system administrator.  You may need to check your emails for any follow-up questions or actions before they can be approved.</p>
+            <ul>
+                {%- for job in pending %}
+                <li><a href="{{ url_for('jobs.status', id=job.job_id) }}">{{ job }}</a></li>
+                {%- endfor %}
+            </ul>
+        </div>
+    </div>
+{%- endif %}
 <div class="card-columns">
     <div class="card">
         <div class="card-body">
