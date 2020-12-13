@@ -25,7 +25,8 @@ def home():
 
     inspect_services.lookup_all(mem)
 
-    return render_template("member/home.html", member=mem)
+    pending = [job for job in jobs.Job.find_by_user(sess, utils.auth.principal) if job.state == "unapproved"]
+    return render_template("member/home.html", member=mem, pending=pending)
 
 @bp.route("/reactivate", methods=["GET", "POST"])
 def reactivate():

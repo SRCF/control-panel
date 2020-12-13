@@ -8,7 +8,6 @@ from .utils import srcf_db_sess as sess
 from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_mem_society
 from . import utils
 from srcf.controllib import jobs
-from srcf.controllib.jobs import Job
 from srcf.database import Domain
 from srcf import domains
 
@@ -46,7 +45,8 @@ def home(society):
     inspect_services.lookup_all(mem)
     inspect_services.lookup_all(soc)
 
-    return render_template("society/home.html", member=mem, society=soc)
+    pending = [job for job in jobs.Job.find_by_society(sess, soc.society) if job.state == "unapproved"]
+    return render_template("society/home.html", member=mem, society=soc, pending=pending)
 
 @bp.route("/societies/<society>/description", methods=["GET", "POST"])
 def update_description(society):
