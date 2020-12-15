@@ -5,13 +5,13 @@
 
 {% macro vhost(domain, wild=false, https=true) %}
 <a href="http{% if https %}s{% endif %}://{{ domain }}">
-    {%- if wild %}
-        <i class="fa fa-indent" aria-label="Wildcard subdomains for {{ domain }}" title="Wildcard subdomains"></i>
-    {%- endif %}
-    {%- if https %}
-        <i class="fa fa-lock" aria-label="HTTPS activated for {{ domain }}" title="HTTPS activated"></i>
-    {%- endif %}
-    {{ domain }}
+    {%- if wild -%}
+        <i class="fa fa-indent" aria-label="Wildcard subdomains for {{ domain }}" title="Wildcard subdomains"></i>&nbsp;
+    {%- endif -%}
+    {%- if https -%}
+        <i class="fa fa-lock" aria-label="HTTPS activated for {{ domain }}" title="HTTPS activated"></i>&nbsp;
+    {%- endif -%}
+    {{- domain }}
 </a>
 {% endmacro %}
 

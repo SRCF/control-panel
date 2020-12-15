@@ -84,11 +84,7 @@ The NIS password has been changed on pip.srcf.net.</pre>
             <h4 class="card-title">Website</h4>
             <ul class="list-unstyled">
                 <li>
-                    {%- if member.website.state in ("legacy", "legacyredirect") %}
-                        Primary address:
-                    {%- else %}
-                        Address:
-                    {%- endif %}
+                    Default address:
                     {%- if member.website.exists %}
                         {{ vhost(member.crsid + ".user.srcf.net") }}
                     {%- else %}
@@ -106,12 +102,16 @@ The NIS password has been changed on pip.srcf.net.</pre>
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>Custom domain</th>
+                            <th>Domain</th>
                             <th>Document root</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td>{{ vhost(member.crsid + ".user.srcf.net") }}</td>
+                            <td><em>Same as web root</em></td>
+                        </tr>
                         {%- for domain in member.website.vhosts|sort(attribute="domain") %}
                             <tr>
                                 <td>
