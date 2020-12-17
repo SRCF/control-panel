@@ -113,7 +113,7 @@ def withdraw(id):
     log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
                  message=log_message)
 
-    job.set_state("failed", log_message)
+    job.set_state("withdrawn", log_message)
 
     sess.add(log)
     sess.add(job.row)
