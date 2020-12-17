@@ -43,6 +43,7 @@ per_page = 25
 @bp.route('/admin/jobs/running',    defaults={"state": "running"})
 @bp.route('/admin/jobs/done',       defaults={"state": "done"})
 @bp.route('/admin/jobs/failed',     defaults={"state": "failed"})
+@bp.route('/admin/jobs/withdrawn',  defaults={"state": "withdrawn"})
 def view_jobs(state):
 
     # Best-effort parsing of ?page= falling back to 1 in all error cases
@@ -87,7 +88,7 @@ def status(id):
 
 
 _actions = {
-    "reject": ("rejected", "unapproved", "failed"),
+    "reject": ("rejected", "unapproved", "withdrawn"),
     "approve": ("approved", "unapproved", "queued"),
     "cancel": ("cancelled", "queued", "failed"),
     "abort": ("aborted", "running", "failed"),
