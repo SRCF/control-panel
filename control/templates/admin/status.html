@@ -98,7 +98,7 @@
                 <td>
                     {{ entry.message|default("&mdash;"|safe, true) }}
                     {% if entry.raw %}
-                        <pre class="job-raw">{{ unhexlify(entry.raw[2:]).decode("utf-8") if entry.raw.startswith("\\x") else entry.raw }}</pre>
+                        <pre class="job-raw">{{ entry.raw_safe }}</pre>
                     {% endif %}
                 </td>
             </tr>

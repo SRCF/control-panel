@@ -6,7 +6,6 @@ from sqlalchemy import func as sql_func
 import srcf.database
 
 import math
-from binascii import unhexlify
 from datetime import datetime
 
 from .utils import srcf_db_sess as sess
@@ -84,7 +83,7 @@ def status(id):
 
     return render_template("admin/status.html", job=job, notes=notes, log=log, job_home_url=job_home_url,
                            for_society=for_society, owner_in_context=owner_in_context,
-                           unhexlify=unhexlify, principal=utils.raven.principal, has_create_log=has_create_log)
+                           principal=utils.raven.principal, has_create_log=has_create_log)
 
 
 _actions = {
