@@ -6,7 +6,7 @@
 
 {% block body %}
 <p>To apply for a shared group account on the SRCF, please fill in the form below.  Once created, you'll be able to use the control panel to create any databases or mailing lists.</p>
-<p>Before applying, please ensure we don't already have an existing group account for the same purpose.  You may wish to confirm with your predecessors (if representing an existing real-world group), or check our <a href="{{ DOMAIN_WEB }}/socs/">list of all group accounts</a>.  Multiple accounts for the same group are not permitted.</p>
+<p>Before applying, please ensure we don't already have an existing group account for the same purpose.  You may wish to confirm with your predecessors (if representing an existing real-world group), or check our <a href="{{ DOMAIN_WEB }}/groups">list of all group accounts</a>.  Multiple accounts for the same group are not permitted.</p>
 <p>Group accounts are identified by a <em>short name</em>, which will form part of your group account website URL (<strong><span class="var">name</span>.soc.srcf.net</strong>) and mailing addresses (e.g. <strong><span class="var">name</span>-admins@srcf.net</strong>).</p>
 <p>Please note that all named users that wish to be administrators on the group account must have their own personal SRCF accounts &ndash; if this is not the case, direct them to the <a href="{{ url_for('signup.signup') }}">signup form</a> to apply.</p>
 {%- if errors.existing is defined %}
