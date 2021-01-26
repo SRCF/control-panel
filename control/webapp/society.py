@@ -58,7 +58,7 @@ def update_description(society):
         description = request.form.get("description", "").strip() or None
         if not description:
             error = "You can't set an empty description."
-        elif description != soc.description:
+        elif description == soc.description:
             error = "That's the description we have already."
 
         if not error:
@@ -68,8 +68,8 @@ def update_description(society):
                 society=soc,
                 description=description
             )
-    else:
-        return render_template("society/update_description.html", society=soc, description=description, error=error)
+
+    return render_template("society/update_description.html", society=soc, description=description, error=error)
 
 @bp.route("/societies/<society>/roleemail", methods=["GET", "POST"])
 def update_role_email(society):

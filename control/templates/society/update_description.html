@@ -4,6 +4,7 @@
 <h2>Update description</h2>
 <p>You can update the description (or "long name") for the <code>{{ society.society }}</code> account.  This will also update the name on its Unix user record (in the <a href="https://en.wikipedia.org/wiki/Gecos_field" target="_blank">GECOS field</a>).</p>
 <form action="{{ url_for('society.update_description', society=society.society) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <input name="description" type="description" class="form-control{% if error %} is-invalid{% endif %}" value="{{ description }}" placeholder="Description" required>
         {%- if error %}
