@@ -9,9 +9,22 @@
 
 {% block body %}
 {{ super() }}
+{%- if danger %}
+    <p class="text-danger">
+        <i class="fa fa-exclamation-triangle"></i>
+        {%- if danger | length > 1 %}
+            Both {{ " and " | join(danger) }} have their danger flags set.
+        {%- else %}
+            {{ danger[0] }}'s danger flag is set.
+        {%- endif %}
+    </p>
+{%- endif %}
+{%- if notes %}
+    <p class="text-info"><i class="fa fa-info-circle"></i> Check notes before approving.</p>
+{%- endif %}
 {%- if job.state == "unapproved" %}
     <p>
-        <a class="btn btn-outline-primary" href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a>
+        <a class="btn btn-outline-{% if danger %}danger{% elif notes %}info{% else %}primary{% endif %}" href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a>
         <a class="btn btn-outline-secondary" href="{{ url_for('admin.set_state', id=job.job_id, action='reject') }}">Reject</a>
     </p>
 {%- elif job.state == "queued" %}
@@ -39,15 +52,17 @@
 <h3>Notes</h3>
 <ul>
     {%- for entry in notes %}
-    <li><a href="#log-{{ entry.log_id }}">{{ entry.time }}</a>: {{ entry.message }}</li>
+    <li>
+        {{ entry.raw }}<br>
+        &mdash; {{ entry.message }}, <a href="#log-{{ entry.log_id }}">{{ entry.time.strftime("%Y-%m-%d %H:%M:%S") }}</a>
+    </li>
     {%- endfor %}
 </ul>
 {% endif %}
-<h3>Add note</h3>
 <form action="{{ url_for('admin.add_note', job_id=job.job_id) }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <p>
-        <textarea name="text" class="form-control job-note-entry" placeholder="Enter text here." rows="5"></textarea>
+        <textarea name="text" class="form-control job-note-entry" placeholder="Add a note..." rows="5"></textarea>
     </p>
     <p>
         <input type="submit" class="btn btn-outline-primary" value="Add">
@@ -87,14 +102,14 @@
         {% if not has_create_log %}
             <tr class="job-log-entry">
                 <td>created</td>
-                <td>{{ job.created_at or "&mdash;" }}</td>
+                <td>{{ job.created_at.strftime("%Y-%m-%d %H:%M:%S") if job.created_at else "&mdash;" }}</td>
                 <td>&mdash;</td>
             </tr>
         {% endif %}
         {% for entry in log %}
             <tr class="job-log-entry" id="log-{{ entry.log_id }}">
                 <td>{{ entry.type }}</td>
-                <td>{{ entry.time }}</td>
+                <td>{{ entry.time.strftime("%Y-%m-%d %H:%M:%S") if entry.time else "&mdash;" }}</td>
                 <td>
                     {{ entry.message|default("&mdash;"|safe, true) }}
                     {% if entry.raw %}
