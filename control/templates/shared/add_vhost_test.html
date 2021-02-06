@@ -5,13 +5,13 @@
 {% macro info(v, record="") %}
     {% if v is none %}
         <p>We couldn't connect to this domain.</p>
-        <p>This may mean there are no <a href="https://wiki.srcf.net/DomainsAndHTTPS" target="_blank">{{ record }} DNS records</a> present, or the domain currently resolves to another server that isn't responding.</p>
+        <p>This may mean there are no <a href="https://docs.srcf.net/web-hosting/domains.html" target="_blank">{{ record }} DNS records</a> present, or the domain currently resolves to another server that isn't responding.</p>
     {% elif v %}
         <p>This domain resolves correctly to the SRCF webserver, and is ready to serve your site.</p>
     {% else %}
         <p>This domain currently resolves to a different server.</p>
         <p>If you are using your domain to host an existing website, you can continue to register your domain here, and switch over when ready.</p>
-        <p>Otherwise, this may be a holding page provided by your domain registrar.  You should check that your <a href="https://wiki.srcf.net/DomainsAndHTTPS" target="_blank">{{ record }} DNS records</a> are configured correctly.  Remember that DNS changes may take time to propagate.</p>
+        <p>Otherwise, this may be a holding page provided by your domain registrar.  You should check that your <a href="https://docs.srcf.net/web-hosting/domains.html" target="_blank">{{ record }} DNS records</a> are configured correctly.  Remember that DNS changes may take time to propagate.</p>
     {% endif %}
 {% endmacro %}
 
