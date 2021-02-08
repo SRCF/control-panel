@@ -20,11 +20,12 @@ $(document).ready(function() {
     $(".alert[data-job-status]").each(function(i, flash) {
         const job_url = flash.dataset.jobStatus;
         const job_text = $(".job-text", flash).text();
-        let retry = 1;
+        let retry = 2;
         function poll() {
             const req = $.ajax(job_url);
             req.done(function(job) {
-                retry = 1;
+                retry = 2;
+                let delay = 2;
                 if (job.state === "done") {
                     $(flash).removeClass("alert-primary").addClass("alert-success");
                     $(".message", flash).text("has completed.  Reload to see any changes.");
@@ -33,18 +34,19 @@ $(document).ready(function() {
                     $(flash).removeClass("alert-primary").addClass("alert-danger");
                     $(".message", flash).text("has failed to complete.  The sysadmins have been notified.");
                     return;
-                } else if (job.state === "pending") {
+                } else if (job.state === "unapproved") {
                     $(flash).removeClass("alert-primary").addClass("alert-warning");
                     $(".message", flash).text("is awaiting approval from the sysadmins.");
+                    delay = 30;
                 } else if (job.state === "running") {
                     $(flash).removeClass("alert-warning").addClass("alert-primary");
                     $(".message", flash).text("is currently runnning, and will be completed shortly.");
                 }
-                setTimeout(poll, 2000);
+                setTimeout(poll, 1000 * delay);
             });
             req.fail(function() {
-                retry *= 2;
-                setTimeout(poll, 2000 * retry);
+                setTimeout(poll, 1000 * retry);
+                retry = Math.min(retry * 2, 30);
             });
         }
         poll();
