@@ -9,13 +9,15 @@
 
 {% block body %}
 {{ super() }}
-{%- if danger %}
+{%- if job.has_danger %}
     <p class="text-danger">
         <i class="fa fa-exclamation-triangle"></i>
-        {%- if danger | length > 1 %}
-            Both {{ " and " | join(danger) }} have their danger flags set.
-        {%- else %}
-            {{ danger[0] }}'s danger flag is set.
+        {%- if for_society and job.owner_has_danger and job.society_has_danger %}
+            Both {{ job.owner_crsid }} and {{ job.society_society }} have their danger flags set.
+        {%- elif job.owner_has_danger %}
+            Job owner {{ job.owner_crsid }}'s danger flag is set.
+        {%- elif for_society and job.society_has_danger %}
+            The group {{ job.society_society }}'s danger flag is set.
         {%- endif %}
     </p>
 {%- endif %}
