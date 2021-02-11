@@ -26,7 +26,7 @@
 {%- endif %}
 {%- if job.state == "unapproved" %}
     <p>
-        <a class="btn btn-outline-{% if danger %}danger{% elif notes %}info{% else %}primary{% endif %}" href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a>
+        <a class="btn btn-outline-{% if job.has_danger %}danger{% elif notes %}info{% else %}primary{% endif %}" href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a>
         <a class="btn btn-outline-secondary" href="{{ url_for('admin.set_state', id=job.job_id, action='reject') }}">Reject</a>
     </p>
 {%- elif job.state == "queued" %}
