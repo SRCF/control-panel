@@ -46,5 +46,8 @@
     {%- if job.state_message %}
         <p>Error reported: {{ job.state_message }}</p>
     {%- endif %}
+{%- elif job.state == "withdrawn" %}
+    <h3>Withdrawn</h3>
+    <p>This job has been withdrawn, and will not be run.</p>
 {%- endif %}
 {% endblock %}
