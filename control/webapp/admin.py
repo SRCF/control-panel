@@ -118,7 +118,7 @@ def set_state(id, action):
                  message="Admin state change: job {} by {}".format(display, admin))
 
     message = None
-    if new == "failed":
+    if new in ("failed", "withdrawn"):
         message = "Job {} by sysadmins".format(display)
     job.set_state(new, message or job.state_message)
 
