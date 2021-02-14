@@ -20,7 +20,7 @@ import yaml
 import srcf.database
 import srcf.database.queries
 import srcf.mail
-from srcf.controllib.jobs import SocietyJob
+from srcf.controllib.jobs import SocietyJob, Signup, CreateSociety
 from srcf.controllib.utils import *
 
 
@@ -208,11 +208,21 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
         srcf.mail.mail_sysadmins(subject, body)
 
-    flask.flash((j.job_id, str(j)), "job-created")
-    if isinstance(j, SocietyJob):
+    notify = True
+    if isinstance(j, CreateSociety):
+        # Society doesn't exist yet -- take the user back to where they pressed "Create society".
+        url = flask.url_for("home.home")
+    elif isinstance(j, SocietyJob):
         url = flask.url_for("society.home", society=j.society_society)
+    elif isinstance(j, Signup):
+        # User doesn't exist yet, no access to control -- just take them straight to the job page.
+        url = flask.url_for("jobs.status", id=j.job_id)
+        notify = False
     else:
         url = flask.url_for("member.home")
+    if notify:
+        flask.flash((j.job_id, str(j)), "job-created")
+
     return flask.redirect(url)
 
 def find_member(allow_inactive=False):
