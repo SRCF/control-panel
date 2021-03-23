@@ -14,23 +14,31 @@
                 <th>Owner</th>
                 <th>Type</th>
                 <th>Message</th>
+                <th></th> {# Icons #}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {%- for job in jobs %}
-                <tr class="{{ job.state }}">
-                    <td><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a>
-                      {%- if note_count[job.job_id] %}&nbsp;<abbr title="{{ note_count[job.job_id] }} note{{ 's' if note_count[job.job_id] > 1 else '' }}"><i class="fa fa-pencil-square-o"></i></abbr>{% endif %}</td>
+          <tr class="{{ job.state }}{% if job.has_danger %} table-warning{% elif note_count[job.job_id] %} table-secondary{% endif %}">
+                    <td class="nowrap"><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
                     <td>{{ job.row.environment }}</td>
                     <td class="nowrap">{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
                     <td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>
-                    <td>{{ job }}</td>
+                    <td>{{ job }}
                     <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
+                    <td class="nowrap text-right">
+                      {% if job.has_danger %}<abbr title="Danger flag(s) set"><i class="fa fa-exclamation-triangle text-danger"></i></abbr>{%- endif %}
+                        {% if note_count[job.job_id] %}<i class="fa fa-comments text-info"></i>&nbsp;<span class="badge badge-info">{{ note_count[job.job_id] }}</span>{% endif %}
+                    </td>
                     <td class="nowrap">
                         {%- if state == "unapproved" %}
+                            {%- if job.has_danger %}
+                            <a href="{{ url_for('admin.status', id=job.job_id) }}">View detail</a>
+                            {%- else %}
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a> &bullet;
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='reject') }}">Reject</a>
+                            {%- endif %}
                         {%- elif state == "queued" %}
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='cancel') }}">Cancel</a>
                         {%- elif state == "running" %}
