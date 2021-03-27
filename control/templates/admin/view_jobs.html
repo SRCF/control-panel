@@ -12,33 +12,43 @@
                 <th>Env.</th>
                 <th>Time</th>
                 <th>Owner</th>
+                <th>Group</th>
                 <th>Type</th>
                 <th>Message</th>
-                <th></th> {# Icons #}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {%- for job in jobs %}
-          <tr class="{{ job.state }}{% if job.has_danger %} table-warning{% elif note_count[job.job_id] %} table-secondary{% endif %}">
+                <tr class="{{ job.state }}{% if job.has_danger %} table-warning{% elif note_count[job.job_id] %} table-secondary{% endif %}">
                     <td class="nowrap"><a href="{{ url_for('admin.status', id=job.job_id) }}">{{ job.job_id }}</a></td>
                     <td>{{ job.row.environment }}</td>
                     <td class="nowrap">{% if job.created_at %}{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}&mdash;{% endif %}</td>
-                    <td>{{ job.owner_crsid or ("&mdash;"|safe) }}</td>
-                    <td>{{ job }}
-                    <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
-                    <td class="nowrap text-right">
-                      {% if job.has_danger %}<abbr title="Danger flag(s) set"><i class="fa fa-exclamation-triangle text-danger"></i></abbr>{%- endif %}
-                        {% if note_count[job.job_id] %}<i class="fa fa-comments text-info"></i>&nbsp;<span class="badge badge-info">{{ note_count[job.job_id] }}</span>{% endif %}
+                    <td class="nowrap">
+                        {% if job.owner_crsid %}
+                            {{ job.owner_crsid }}{% if job.owner_has_danger %} <abbr title="User danger flag set"><i class="fa fa-exclamation-triangle text-danger"></i></abbr>{% endif %}</td>
+                        {% else %}
+                            &mdash;
+                        {% endif %}
                     </td>
                     <td class="nowrap">
-                        {%- if state == "unapproved" %}
-                            {%- if job.has_danger %}
-                            <a href="{{ url_for('admin.status', id=job.job_id) }}">View detail</a>
-                            {%- else %}
+                        {% if job.society_society is defined and job.society_society %}
+                            {{ job.society_society }}{% if job.society_has_danger %} <abbr title="Society danger flag set"><i class="fa fa-exclamation-triangle text-danger"></i></abbr>{% endif %}
+                        {% else %}
+                            &mdash;
+                        {% endif %}
+                    </td>
+                    <td>{{ job }}</td>
+                    <td>{{ job.state_message or ("&mdash;"|safe) }}</td>
+                    <td class="nowrap">
+                        {%- if job.has_danger or note_count[job.job_id] %}
+                            <a href="{{ url_for('admin.status', id=job.job_id) }}">Review</a>
+                            {% if note_count[job.job_id] %}
+                                <abbr title="Notes from admins"><span class="badge badge-info">{{ note_count[job.job_id] }}</span></abbr>
+                            {% endif %}
+                        {%- elif state == "unapproved" %}
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='approve') }}">Approve</a> &bullet;
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='reject') }}">Reject</a>
-                            {%- endif %}
                         {%- elif state == "queued" %}
                             <a href="{{ url_for('admin.set_state', id=job.job_id, action='cancel') }}">Cancel</a>
                         {%- elif state == "running" %}
