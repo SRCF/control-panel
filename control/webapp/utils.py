@@ -13,8 +13,9 @@ import ucam_webauth.rsa
 import ucam_webauth.flask_glue
 import ucam_webauth.raven.flask_glue
 import ucam_webauth.raven.demoserver as raven_demoserver
+import werkzeug.exceptions
 from werkzeug.exceptions import NotFound, Forbidden, HTTPException
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
 import srcf.database
@@ -132,11 +133,16 @@ def generic_error_handler(error):
         return flask.render_template("error_tb.html", error=error, tb=tb), 500
 
 
+def _get_supported_http_codes():
+    codes = set()
+    for exc in vars(werkzeug.exceptions).values():
+        if isinstance(exc, type) and issubclass(exc, HTTPException) and exc.code:
+            codes.add(exc.code)
+    return codes
+
+
 def setup_app(app):
-    app.errorhandler(400)(generic_error_handler)
-    for error in range(402, 432):
-        app.errorhandler(error)(generic_error_handler)
-    for error in range(500, 504):
+    for error in _get_supported_http_codes():
         app.errorhandler(error)(generic_error_handler)
 
     @app.before_request
@@ -180,7 +186,7 @@ def setup_app(app):
         app.request_class.trusted_hosts = os.environ['FLASK_TRUSTED_HOSTS'].split(",")
 
     # Make request.remote_addr work etc. (only safe if we are behind a proxy, which we always should be)
-    app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1)
 
 
 def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
