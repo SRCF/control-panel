@@ -1,29 +1,27 @@
+from datetime import datetime
+from functools import partial
 import os
 import sys
 import traceback
-from functools import partial
 from urllib.parse import urlparse
-from datetime import datetime
 
 import flask
 import jinja2
 import sqlalchemy.orm
-import ucam_webauth
-import ucam_webauth.rsa
-import ucam_webauth.flask_glue
-import ucam_webauth.raven.flask_glue
-import ucam_webauth.raven.demoserver as raven_demoserver
 import werkzeug.exceptions
-from werkzeug.exceptions import NotFound, Forbidden, HTTPException
+from werkzeug.exceptions import Forbidden, HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
-import srcf.database
-import srcf.database.queries
-import srcf.mail
-from srcf.controllib.jobs import SocietyJob, Signup, CreateSociety
-from srcf.controllib.utils import *
-
+from srcf.controllib.jobs import CreateSociety, Signup, SocietyJob
+from srcf.controllib.utils import email_re, is_admin, ldapsearch, mysql_conn
+from srcf.database import JobLog, queries, Session
+from srcf.mail import mail_sysadmins
+import ucam_webauth
+import ucam_webauth.flask_glue
+import ucam_webauth.raven.demoserver as raven_demoserver
+import ucam_webauth.raven.flask_glue
+import ucam_webauth.rsa
 
 __all__ = ["email_re", "auth", "raven", "srcf_db_sess", "get_member", "get_society",
            "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin", "DOMAIN_WEB"]
@@ -50,6 +48,7 @@ class WLSAuthDecorator(ucam_webauth.flask_glue.AuthDecorator):
     response_class = WLSResponse
     logout_url = "https://auth.srcf.net/logout"
 
+
 auth = WLSAuthDecorator(desc="Control Panel", require_ptags=None)
 raven = ucam_webauth.raven.flask_glue.AuthDecorator(desc="SRCF control panel",
                                                     require_ptags=None)
@@ -57,17 +56,20 @@ raven = ucam_webauth.raven.flask_glue.AuthDecorator(desc="SRCF control panel",
 
 # A session to use with the main srcf admin database (PostGres)
 srcf_db_sess = sqlalchemy.orm.scoped_session(
-    srcf.database.Session,
+    Session,
     scopefunc=flask._request_ctx_stack.__ident_func__
 )
-srcf.database.queries.disable_automatic_session(and_use_this_one_instead=srcf_db_sess)
+queries.disable_automatic_session(and_use_this_one_instead=srcf_db_sess)
 
 
-class InactiveUser(NotFound): pass
+class InactiveUser(NotFound):
+    pass
+
 
 # Use the request session in srcf.database.queries
-get_member = partial(srcf.database.queries.get_member, session=srcf_db_sess)
-get_society = partial(srcf.database.queries.get_society, session=srcf_db_sess)
+get_member = partial(queries.get_member, session=srcf_db_sess)
+get_society = partial(queries.get_society, session=srcf_db_sess)
+
 
 # We occasionally need a temporary MySQL connection
 def temp_mysql_conn():
@@ -94,7 +96,7 @@ def sif(variable, val):
     """"string if": `val` if `variable` is defined and truthy, else ''"""
     if not jinja2.is_undefined(variable) and variable:
         return val
-    else:    
+    else:
         return ""
 
 
@@ -151,13 +153,12 @@ def setup_app(app):
             auth.request_class = raven_demoserver.Request
             auth.response_class = raven_demoserver.Response
 
+    @app.before_request
     def auth_mux():
         if flask.request.url_rule and flask.request.url_rule.rule == '/signup':
             return raven.before_request()
         else:
             return auth.before_request()
-
-    app.before_request(auth_mux)
 
     @app.after_request
     def after_request(res):
@@ -167,12 +168,9 @@ def setup_app(app):
     @app.teardown_request
     def teardown_request(res):
         srcf_db_sess.remove()
-        return res
-
-    @app.teardown_request
-    def teardown_request(res):
         if hasattr(flask.g, "mysql"):
             flask.g.mysql.close()
+        return res
 
     app.jinja_env.globals["sif"] = sif
     app.jinja_env.globals["DOMAIN_WEB"] = DOMAIN_WEB
@@ -192,14 +190,14 @@ def setup_app(app):
 def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     j = cls.new(*args, **kwargs)
     srcf_db_sess.add(j.row)
-    srcf_db_sess.flush() # so that job_id is filled out
+    srcf_db_sess.flush()  # so that job_id is filled out
     j.resolve_references(srcf_db_sess)
     if j.owner is not None:
         source_info = "Job submitted by " + repr(j.owner)
     else:
         source_info = "Job submitted"
     source_info += " from {0.remote_addr} via {0.host}{0.script_root}.".format(flask.request)
-    srcf_db_sess.add(srcf.database.JobLog(job_id=j.job_id, type="created", time=datetime.now(), message=source_info))
+    srcf_db_sess.add(JobLog(job_id=j.job_id, type="created", time=datetime.now(), message=source_info))
     srcf_db_sess.flush()
 
     if j.state == "unapproved":
@@ -212,7 +210,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         if j.owner is not None and j.owner.danger:
             body = "WARNING: The job owner has their danger flag set.\n\n" + body
         subject = "[Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
-        srcf.mail.mail_sysadmins(subject, body)
+        mail_sysadmins(subject, body)
 
     notify = True
     if isinstance(j, CreateSociety):
@@ -231,6 +229,7 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
 
     return flask.redirect(url)
 
+
 def find_member(allow_inactive=False):
     """ Gets a CRSID and member object from the Raven authentication data """
     crsid = auth.principal
@@ -242,6 +241,7 @@ def find_member(allow_inactive=False):
         raise InactiveUser
 
     return crsid, mem
+
 
 def find_mem_society(society):
     crsid = auth.principal
@@ -259,6 +259,7 @@ def find_mem_society(society):
 
     return mem, soc
 
+
 def auth_admin():
     # I think the order before_request fns are run in is undefined.
     assert auth.principal
@@ -266,6 +267,7 @@ def auth_admin():
     mem = get_member(auth.principal)
     if not is_admin(mem):
         raise Forbidden
+
 
 def validate_member_email(crsid, email):
     """

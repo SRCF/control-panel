@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, redirect, render_template, url_for
 
-from . import admin, utils, inspect_services
+from . import admin, inspect_services, utils
 
 
 bp = Blueprint("home", __name__)
@@ -27,6 +27,7 @@ def home():
                       if key in ("unapproved", "queued", "running") and count > 0]
 
     return render_template("home.html", member=mem, job_counts=job_counts)
+
 
 @bp.route('/logout')
 def logout():

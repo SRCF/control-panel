@@ -1,16 +1,14 @@
 import re
 
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy.sql.expression import func
-from sqlalchemy.orm.exc import NoResultFound
 
-from srcf.database import Member, Society
 from srcf.controllib import jobs
-
-from .utils import srcf_db_sess as sess
-from .utils import create_job_maybe_email_and_redirect
+from srcf.database import Member, Society
 
 from . import utils
+from .utils import create_job_maybe_email_and_redirect, srcf_db_sess as sess
+
 
 SOC_SOCIETY_RE = re.compile(r'^[a-z]+$')
 ILLEGAL_NAME_RE = re.compile(r'[:,=\n]')
@@ -25,7 +23,7 @@ def signup():
     force_signup_form = ("force-signup-form" in request.args or "force-signup-form" in request.form)
 
     try:
-        mem = utils.get_member(crsid)
+        utils.get_member(crsid)
     except KeyError:
         pass
     else:
@@ -106,6 +104,7 @@ def make_keywords(desc):
         keywords.add(word)
     return keywords
 
+
 @bp.route("/signup/society", methods=["get", "post"])
 def newsoc():
     crsid = utils.auth.principal
@@ -121,7 +120,7 @@ def newsoc():
         values = {}
         for key in ("society", "description"):
             values[key] = request.form.get(key, "").strip()
-        values["admins"] = re.findall("\w+", request.form.get("admins", ""))
+        values["admins"] = re.findall(r"\w+", request.form.get("admins", ""))
 
         if crsid not in values["admins"]:
             errors["admins"] = "You need to add yourself as an admin."
@@ -184,8 +183,7 @@ def newsoc():
             return render_template("signup/newsoc.html", errors=errors, **values)
 
         elif not request.form.get("confirm"):
-            return render_template("signup/newsoc_confirm.html",
-                    current_admins=current_admins, similar=similar, **values)
+            return render_template("signup/newsoc_confirm.html", current_admins=current_admins, similar=similar, **values)
 
         else:
             return create_job_maybe_email_and_redirect(

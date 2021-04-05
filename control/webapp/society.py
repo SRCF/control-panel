@@ -1,19 +1,16 @@
 import re
-from urllib.parse import urlparse
+import string
 
-from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template, request, redirect, url_for 
+from flask import Blueprint, render_template, request
+from werkzeug.exceptions import Forbidden, NotFound
 
-from .utils import srcf_db_sess as sess
-from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_mem_society
-from . import utils
+from srcf import domains
 from srcf.controllib import jobs
 from srcf.database import Domain
-from srcf import domains
 
-from . import utils, inspect_services
+from . import inspect_services, utils
+from .utils import create_job_maybe_email_and_redirect, find_mem_society, parse_domain_name, srcf_db_sess as sess
 
-import string
 
 bp = Blueprint("society", __name__)
 
@@ -48,6 +45,7 @@ def home(society):
     pending = [job for job in jobs.Job.find_by_society(sess, soc.society) if job.state == "unapproved"]
     return render_template("society/home.html", member=mem, society=soc, pending=pending)
 
+
 @bp.route("/societies/<society>/description", methods=["GET", "POST"])
 def update_description(society):
     mem, soc = find_mem_society(society)
@@ -70,6 +68,7 @@ def update_description(society):
             )
 
     return render_template("society/update_description.html", society=soc, description=description, error=error)
+
 
 @bp.route("/societies/<society>/roleemail", methods=["GET", "POST"])
 def update_role_email(society):
@@ -95,6 +94,7 @@ def update_role_email(society):
         )
     else:
         return render_template("society/update_role_email.html", society=soc, email=email, error=error)
+
 
 @bp.route("/societies/<society>/admins/add", methods=["GET", "POST"])
 def add_admin(society):
@@ -138,6 +138,7 @@ def add_admin(society):
     else:
         return render_template("society/add_admin.html", society=soc, crsid=crsid, error=error)
 
+
 @bp.route("/societies/<society>/admins/<target_crsid>/remove", methods=["GET", "POST"])
 def remove_admin(society, target_crsid):
     mem, soc = find_mem_society(society)
@@ -159,6 +160,7 @@ def remove_admin(society, target_crsid):
         )
     else:
         return render_template("society/remove_admin.html", member=mem, society=soc, target=tgt)
+
 
 @bp.route("/societies/<society>/mailinglist", methods=["GET", "POST"])
 def create_mailing_list(society):
@@ -185,6 +187,7 @@ def create_mailing_list(society):
     else:
         return render_template("society/create_mailing_list.html", society=soc, listname=listname, error=error)
 
+
 @bp.route("/societies/<society>/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(society, listname):
     mem, soc = find_mem_society(society)
@@ -200,6 +203,7 @@ def reset_mailing_list_password(society, listname):
         )
     else:
         return render_template("society/reset_mailing_list_password.html", member=mem, society=soc, listname=listname)
+
 
 @bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
@@ -218,6 +222,7 @@ def reset_database_password(society, type):
 
         return render_template("society/reset_database_password.html", society=soc, member=mem, type=type, name=formatted_name, web_interface=web_interface)
 
+
 @bp.route("/societies/<society>/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/societies/<society>/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(society, type):
@@ -235,6 +240,7 @@ def create_database(society, type):
         has_mem_user = inspect(mem.crsid)
         has_soc_user = inspect(soc.society)
         return render_template("society/create_database.html", society=soc, member=mem, type=type, name=formatted_name, mem_user=has_mem_user, soc_user=has_soc_user)
+
 
 @bp.route("/societies/<society>/domains/add", methods=["GET", "POST"])
 def add_vhost(society):
@@ -281,6 +287,7 @@ def add_vhost(society):
     else:
         return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
 
+
 @bp.route("/societies/<society>/domains/<domain>/changedocroot", methods=["GET", "POST"])
 def change_vhost_docroot(society, domain):
     mem, soc = find_mem_society(society)
@@ -309,6 +316,7 @@ def change_vhost_docroot(society, domain):
                     domain=domain, root=root)
     else:
         return render_template("society/change_vhost_docroot.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
+
 
 @bp.route("/societies/<society>/domains/<domain>/remove", methods=["GET", "POST"])
 def remove_vhost(society, domain):

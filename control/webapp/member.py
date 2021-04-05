@@ -1,18 +1,16 @@
-from urllib.parse import urlparse
+import re
+import string
 
-from flask import Blueprint, render_template, request, redirect, url_for
-from werkzeug.exceptions import NotFound, Forbidden
+from flask import Blueprint, redirect, render_template, request, url_for
+from werkzeug.exceptions import Forbidden, NotFound
 
-from .utils import srcf_db_sess as sess
-from .utils import parse_domain_name, create_job_maybe_email_and_redirect, find_member
-from . import utils, inspect_services
+from srcf import domains
 from srcf.controllib import jobs
 from srcf.database import Domain
-from srcf import domains
 
-import re
+from . import inspect_services, utils
+from .utils import create_job_maybe_email_and_redirect, find_member, parse_domain_name, srcf_db_sess as sess
 
-import string
 
 bp = Blueprint("member", __name__)
 
@@ -27,6 +25,7 @@ def home():
 
     pending = [job for job in jobs.Job.find_by_user(sess, utils.auth.principal) if job.state == "unapproved"]
     return render_template("member/home.html", member=mem, pending=pending)
+
 
 @bp.route("/reactivate", methods=["GET", "POST"])
 def reactivate():
@@ -45,6 +44,7 @@ def reactivate():
                     jobs.Reactivate, member=mem, email=email)
     else:
         return render_template("member/reactivate.html", member=mem, email=email, error=error)
+
 
 @bp.route("/member/name", methods=["GET", "POST"])
 def update_name():
@@ -74,6 +74,7 @@ def update_name():
     return render_template("member/update_name.html", member=mem, errors=errors,
                            preferred_name=preferred_name, surname=surname)
 
+
 @bp.route("/member/email", methods=["GET", "POST"])
 def update_email_address():
     crsid, mem = find_member()
@@ -93,6 +94,7 @@ def update_email_address():
     else:
         return render_template("member/update_email_address.html", member=mem, email=email, error=error)
 
+
 @bp.route("/member/srcf-email", methods=["GET", "POST"])
 def update_email_handler():
     crsid, mem = find_member()
@@ -106,13 +108,15 @@ def update_email_handler():
 
     if request.method == "POST":
         if not request.form.get("confirm", ""):
-            return render_template("member/update_email_handler_confirm.html", member=mem,
-                        old_mail_handler=mem.mail_handler, mail_handler=mail_handler)
+            return render_template(
+                "member/update_email_handler_confirm.html", member=mem,
+                old_mail_handler=mem.mail_handler, mail_handler=mail_handler)
         else:
             return create_job_maybe_email_and_redirect(
                         jobs.UpdateMailHandler, member=mem, mail_handler=mail_handler)
     else:
         return render_template("member/update_email_handler.html", member=mem, mail_handler=mail_handler)
+
 
 @bp.route("/member/mailinglist", methods=["GET", "POST"])
 def create_mailing_list():
@@ -138,6 +142,7 @@ def create_mailing_list():
     else:
         return render_template("member/create_mailing_list.html", member=mem, listname=listname, error=error)
 
+
 @bp.route("/member/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(listname):
     crsid, mem = find_member()
@@ -151,6 +156,7 @@ def reset_mailing_list_password(listname):
                     jobs.ResetUserMailingListPassword, member=mem, listname=listname)
     else:
         return render_template("member/reset_mailing_list_password.html", member=mem, listname=listname)
+
 
 @bp.route("/member/srcf/password", methods=["GET", "POST"], defaults={"type": "srcf"})
 @bp.route("/member/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
@@ -178,6 +184,7 @@ def reset_password(type):
 
         return render_template("member/reset_password.html", member=mem, type=type, name=formatted_name, affects=affects)
 
+
 @bp.route("/member/mysql/createuser", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/createuser", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database_account(type):
@@ -192,6 +199,7 @@ def create_database_account(type):
                           "postgres": "PostgreSQL"}[type]
 
         return render_template("member/create_database_account.html", member=mem, type=type, name=formatted_name)
+
 
 @bp.route("/member/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
@@ -209,6 +217,7 @@ def create_database(type):
                    "postgres": inspect_services.lookup_pguser}[type]
         has_user = inspect(mem.crsid)
         return render_template("member/create_database.html", member=mem, type=type, name=formatted_name, user=has_user)
+
 
 @bp.route("/member/domains/add", methods=["GET", "POST"])
 def add_vhost():
@@ -255,6 +264,7 @@ def add_vhost():
     else:
         return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
 
+
 @bp.route("/member/domains/<domain>/changedocroot", methods=["GET", "POST"])
 def change_vhost_docroot(domain):
     crsid, mem = find_member()
@@ -283,6 +293,7 @@ def change_vhost_docroot(domain):
                     domain=domain, root=root)
     else:
         return render_template("member/change_vhost_docroot.html", member=mem, domain=domain, root=root, errors=errors)
+
 
 @bp.route("/member/domains/<domain>/remove", methods=["GET", "POST"])
 def remove_vhost(domain):

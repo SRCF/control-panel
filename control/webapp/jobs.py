@@ -1,25 +1,23 @@
-from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, jsonify, render_template, request, url_for, redirect, flash
-
-from .utils import srcf_db_sess as sess
-from . import utils
-from srcf.controllib.jobs import Job, Signup, SocietyJob
-from srcf.database import queries, JobLog
-
-import math
 from datetime import datetime
+import math
 
-import sys
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from werkzeug.exceptions import NotFound
+
+from srcf.controllib.jobs import Job, Signup, SocietyJob
+from srcf.database import JobLog
+
+from . import utils
+from .utils import srcf_db_sess as sess
 
 
 bp = Blueprint("jobs", __name__)
 
-
 per_page = 25
+
 
 @bp.route('/jobs')
 def home():
-
     # Best-effort parsing of ?page= falling back to 1 in all error cases
     page = 1
     try:
@@ -30,12 +28,14 @@ def home():
     jobs = Job.find_by_user(sess, utils.auth.principal)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
-    for job in jobs: job.resolve_references(sess)
+    for job in jobs:
+        job.resolve_references(sess)
     return render_template("jobs/home.html", owner_in_context=utils.auth.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
+
 
 @bp.route('/jobs/<name>')
 def society_home(name):
-    _, society = utils.find_mem_society(name)
+    utils.find_mem_society(name)
 
     # Best-effort parsing of ?page= falling back to 1 in all error cases
     page = 1
@@ -47,11 +47,10 @@ def society_home(name):
     jobs = Job.find_by_society(sess, name)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
-    for job in jobs: job.resolve_references(sess)
+    for job in jobs:
+        job.resolve_references(sess)
     return render_template("jobs/home.html", owner_in_context=name, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=True)
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
 
 @bp.route('/jobs/<int:id>')
 def status(id):
@@ -62,7 +61,7 @@ def status(id):
     if not job.visible_to(utils.auth.principal):
         raise NotFound(id)
 
-    for_society = isinstance(job, SocietyJob) and job.society != None
+    for_society = isinstance(job, SocietyJob) and job.society is not None
     if job.owner is None:
         owner_in_context = None
         job_home_url = None
@@ -84,6 +83,7 @@ def status(id):
         mem = None
 
     return render_template("jobs/status.html", job=job, for_society=for_society, owner_in_context=owner_in_context, job_home_url=job_home_url, member=mem)
+
 
 @bp.route('/jobs/<int:id>.json')
 def status_json(id):
@@ -118,8 +118,7 @@ def withdraw(id):
     sess.add(log)
     sess.add(job.row)
 
-    for_society = isinstance(job, SocietyJob) and job.society != None
-    if for_society:
-        return redirect(url_for("jobs.society_home", name=job.society.society))
+    if isinstance(job, SocietyJob) and job.society_society is not None:
+        return redirect(url_for("jobs.society_home", name=job.society_society))
     else:
         return redirect(url_for("jobs.home"))

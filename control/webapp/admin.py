@@ -1,34 +1,35 @@
-from werkzeug.exceptions import NotFound, Forbidden
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-
-from sqlalchemy import func as sql_func
-
-import srcf.database
-
-import math
 from datetime import datetime
+import math
 
-from .utils import srcf_db_sess as sess
-from . import utils
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from sqlalchemy import func as sql_func
+from werkzeug.exceptions import Forbidden, NotFound
+
 from srcf.controllib.jobs import Job, SocietyJob
+import srcf.database
 from srcf.database import JobLog
+
+from . import utils
+from .utils import srcf_db_sess as sess
 
 
 bp = Blueprint("admin", __name__)
+
+per_page = 25
+
 
 @bp.before_request
 def before_request():
     utils.auth_admin()
 
+
 def job_counts():
     job_row = srcf.database.Job
-    q = sess.query(
-            job_row.state,
-            sql_func.count(job_row.job_id)
-        ) \
-        .group_by(job_row.state) \
-        .order_by(job_row.state)
-        # this is the order the enum was defined in, and is what we want.
+    q = (
+        sess.query(job_row.state, sql_func.count(job_row.job_id))
+        .group_by(job_row.state)
+        .order_by(job_row.state)  # this is the order the enum was defined in, and is what we want.
+    )
     return q.all()
 
 
@@ -36,7 +37,6 @@ def job_counts():
 def home():
     return render_template("admin/home.html", job_counts=job_counts())
 
-per_page = 25
 
 @bp.route('/admin/jobs/unapproved', defaults={"state": "unapproved"})
 @bp.route('/admin/jobs/queued',     defaults={"state": "queued"})
@@ -54,19 +54,24 @@ def view_jobs(state):
         pass
 
     job_row = srcf.database.Job
-    jobs = sess.query(job_row) \
-                    .filter(job_row.state == state) \
-                    .order_by(job_row.job_id.desc())
+    jobs = (
+        sess.query(job_row)
+        .filter(job_row.state == state)
+        .order_by(job_row.job_id.desc())
+    )
     jobs = [Job.of_row(r) for r in jobs]
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     note_count = dict()
     for j in jobs:
         j.resolve_references(sess)
-        note_count[j.job_id] = sess.query(JobLog)\
-                                        .filter(JobLog.job_id == j.job_id)\
-                                        .filter(JobLog.type == 'note').count()
+        note_count[j.job_id] = (
+            sess.query(JobLog)
+            .filter(JobLog.job_id == j.job_id)
+            .filter(JobLog.type == 'note').count()
+        )
     return render_template("admin/view_jobs.html", job_counts=job_counts(), state=state, jobs=jobs, note_count=note_count, pages=utils.Pagination(page, max_pages))
+
 
 @bp.route('/admin/jobs/<int:id>')
 def status(id):
@@ -99,6 +104,7 @@ _actions = {
     "retry": ("retried", "failed", "queued"),
 }
 
+
 @bp.route('/admin/jobs/<int:id>/<action>')
 def set_state(id, action):
     # Move this race control logic to controllib
@@ -127,12 +133,12 @@ def set_state(id, action):
 
     return redirect(url_for("admin.view_jobs", state=new))
 
+
 @bp.route('/admin/jobs/<int:job_id>/notes', methods=["POST"])
 def add_note(job_id):
-    if request.method == "POST":
-        text = request.form.get("text", "").strip()
-        if text:
-            sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
-                            message="Note added by {}".format(utils.auth.principal), raw=text))
-            flash("Note successfully added.", "raw")
-        return redirect(url_for('admin.status', id=job_id))
+    text = request.form.get("text", "").strip()
+    if text:
+        sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
+                        message="Note added by {}".format(utils.auth.principal), raw=text))
+        flash("Note successfully added.", "raw")
+    return redirect(url_for('admin.status', id=job_id))

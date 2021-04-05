@@ -9,24 +9,25 @@ import requests
 
 import srcf.database
 
-from .utils import srcf_db_sess as sess
 from . import utils
+from .utils import srcf_db_sess as sess
 
 
 def lookup_pgdbs(prefix):
     """Return a list of PostgreSQL databases owned by `prefix` (a user or soc)"""
     params = {'prefix': prefix, 'prefixfilter': '%s-%%' % prefix}
     # we can borrow the postgres connection we already have
-    q = sess.execute('SELECT datname FROM pg_database ' \
-                     'JOIN pg_roles ON datdba=pg_roles.oid ' \
+    q = sess.execute('SELECT datname FROM pg_database '
+                     'JOIN pg_roles ON datdba=pg_roles.oid '
                      'WHERE rolname=:prefix OR rolname LIKE :prefixfilter',
-                      params)
+                     params)
     return [row[0] for row in q.fetchall()]
+
 
 def lookup_mysqldbs(prefix):
     """Return a list of MySQL databases owned by `prefix` (a user or soc)"""
+    cur = utils.temp_mysql_conn().cursor()
     try:
-        cur = utils.temp_mysql_conn().cursor()
         prefix = prefix.replace("-", "_")
         q = "SELECT SCHEMA_NAME FROM information_schema.schemata WHERE " \
             "SCHEMA_NAME = %s OR SCHEMA_NAME LIKE %s"
@@ -34,6 +35,7 @@ def lookup_mysqldbs(prefix):
         return [row[0] for row in cur]
     finally:
         cur.close()
+
 
 def lookup_pguser(prefix):
     """Does this PostgreSQL user exist?"""
@@ -45,6 +47,7 @@ def lookup_pguser(prefix):
         return prefix
     else:
         return None
+
 
 def lookup_mysqluser(prefix):
     """Does this MySQL user exist?"""
@@ -61,12 +64,14 @@ def lookup_mysqluser(prefix):
     finally:
         cur.close()
 
+
 def lookup_mailinglists(prefix):
     """Find all mailing lists owned by `prefix`"""
     req = requests.get("https://lists.srcf.net/getlists.cgi", params={'prefix': prefix})
     req.raise_for_status()
     assert req.headers['content-type'].split(';')[0] == 'text/plain'
     return [listname for listname in req.text.split("\n") if listname]
+
 
 def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
@@ -91,6 +96,7 @@ def lookup_website(prefix, is_member):
                     web["state"] = state
                     break
     return web
+
 
 def lookup_all(obj, fast=False):
     """
@@ -122,4 +128,3 @@ def lookup_all(obj, fast=False):
 
     if not fast:
         obj.mailinglists = lookup_mailinglists(prefix)
-
