@@ -15,12 +15,10 @@ from .utils import srcf_db_sess as sess
 
 def lookup_pgdbs(prefix):
     """Return a list of PostgreSQL databases owned by `prefix` (a user or soc)"""
-    params = {'prefix': prefix, 'prefixfilter': '%s-%%' % prefix}
     # we can borrow the postgres connection we already have
     q = sess.execute('SELECT datname FROM pg_database '
-                     'JOIN pg_roles ON datdba=pg_roles.oid '
-                     'WHERE rolname=:prefix OR rolname LIKE :prefixfilter',
-                     params)
+                     'JOIN pg_user ON datdba = pg_user.usesysid '
+                     'WHERE usename = :prefix', {'prefix': prefix})
     return [row[0] for row in q.fetchall()]
 
 
