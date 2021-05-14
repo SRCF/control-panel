@@ -7,8 +7,8 @@
 <p>
     <a class="btn btn-outline-primary" href="{{ url_for('jobs.withdraw', id=job.job_id) }}">Withdraw request</a>
 </p>
+{%- endif %}
 {%- if member is admin %}
 <a class="btn btn-outline-danger" href="{{ url_for('admin.status', id=job.job_id) }}">Jump to admin view</a>
-{%- endif %}
 {%- endif %}
 {% endblock %}
