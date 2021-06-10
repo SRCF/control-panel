@@ -25,12 +25,13 @@ def home():
     except (KeyError, ValueError):
         pass
 
-    jobs = Job.find_by_user(sess, utils.auth.principal)
+    crsid = utils.effective_crsid()
+    jobs = Job.find_by_user(sess, crsid)
     max_pages = int(math.ceil(len(jobs) / float(per_page)))
     jobs = jobs[min(len(jobs), per_page * (page - 1)):min(len(jobs), per_page * page)]
     for job in jobs:
         job.resolve_references(sess)
-    return render_template("jobs/home.html", owner_in_context=utils.auth.principal, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
+    return render_template("jobs/home.html", owner_in_context=crsid, jobs=jobs, pages=utils.Pagination(page, max_pages), for_society=False)
 
 
 @bp.route('/jobs/<name>')
@@ -58,7 +59,8 @@ def status(id):
     if not job:
         raise NotFound(id)
 
-    if not job.visible_to(utils.auth.principal):
+    crsid = utils.effective_crsid()
+    if not job.visible_to(crsid):
         raise NotFound(id)
 
     for_society = isinstance(job, SocietyJob) and job.society is not None
@@ -73,7 +75,7 @@ def status(id):
         job_home_url = url_for('jobs.home')
 
     if not isinstance(job, Signup):
-        mem = utils.get_member(utils.auth.principal)
+        mem = utils.get_member(crsid)
     else:
         # Signup jobs might be viewed by the new member, who doesn't yet have a
         # DB entry, so get_member(crsid) could fail.  The purpose of this
@@ -90,7 +92,7 @@ def status_json(id):
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
-    if not job.visible_to(utils.raven.principal):
+    if not job.visible_to(utils.effective_crsid()):
         raise NotFound(id)
     return jsonify({"state": job.state})
 
@@ -101,14 +103,15 @@ def withdraw(id):
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
-    if not job.visible_to(utils.raven.principal):
+    crsid = utils.effective_crsid()
+    if not job.visible_to(crsid):
         raise NotFound(id)
 
     if job.state not in ("unapproved", "queued"):
         flash("Sorry, this job cannot be withdrawn now.", "raw")
         return redirect(url_for("jobs.status", id=id))
 
-    log_message = "Job withdrawn by {}".format(utils.raven.principal)
+    log_message = "Job withdrawn by {}".format(crsid)
 
     log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
                  message=log_message)

@@ -9,7 +9,7 @@ import flask
 import jinja2
 import sqlalchemy.orm
 import werkzeug.exceptions
-from werkzeug.exceptions import Forbidden, HTTPException, NotFound
+from werkzeug.exceptions import BadRequest, Forbidden, HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
@@ -174,6 +174,8 @@ def setup_app(app):
 
     app.jinja_env.globals["sif"] = sif
     app.jinja_env.globals["DOMAIN_WEB"] = DOMAIN_WEB
+    app.jinja_env.globals["auth"] = auth
+    app.jinja_env.globals["effective_crsid"] = effective_crsid
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
 
@@ -230,24 +232,68 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
     return flask.redirect(url)
 
 
-def find_member(allow_inactive=False):
-    """ Gets a CRSID and member object from the Raven authentication data """
+def effective_crsid():
+    """
+    Return the CRSid of the authenticated user from their Raven or Goose authentication data.
+
+    If the `SRCF-Principal-Override` header is set, admins may override the authentication data in
+    order to impersonate another user.
+    """
+    assert auth.principal
     crsid = auth.principal
     try:
         mem = get_member(crsid)
     except KeyError:
-        raise NotFound
+        return crsid
+    if not is_admin(mem):
+        return crsid
+    override = flask.request.headers.get("SRCF-Principal-Override")
+    return override or crsid
+
+
+def effective_member(allow_inactive=False, allow_unregistered=False):
+    """
+    Lookup a Member record from the user's Raven or Goose authentication data, if one exists.
+
+    Raises `NotFound` if the CRSid is not registered yet, unless `allow_unregistered` is set.
+
+    Raises `InactiveUser` if the corresponding member is not a user, unless `allow_inactive` is set.
+
+    If the `SRCF-Principal-Override` header is set, admins may override the authentication data in
+    order to impersonate another user.
+    """
+    assert auth.principal
+    crsid = auth.principal
+    try:
+        mem = get_member(crsid)
+    except KeyError:
+        if allow_unregistered:
+            return None
+        else:
+            raise NotFound
     if not mem.user and not allow_inactive:
         raise InactiveUser
-
-    return crsid, mem
+    if not is_admin(mem):
+        return mem
+    override = flask.request.headers.get("SRCF-Principal-Override")
+    if not override:
+        return mem
+    try:
+        alt = get_member(override)
+    except KeyError:
+        if allow_unregistered:
+            return None
+        else:
+            raise BadRequest
+    if not mem.user and not allow_inactive:
+        raise InactiveUser
+    else:
+        return alt
 
 
 def find_mem_society(society):
-    crsid = auth.principal
-
     try:
-        mem = get_member(crsid)
+        mem = effective_member()
         soc = get_society(society)
     except KeyError:
         raise NotFound
@@ -261,10 +307,7 @@ def find_mem_society(society):
 
 
 def auth_admin():
-    # I think the order before_request fns are run in is undefined.
-    assert auth.principal
-
-    mem = get_member(auth.principal)
+    mem = effective_member()
     if not is_admin(mem):
         raise Forbidden
 

@@ -9,7 +9,7 @@ from srcf.controllib import jobs
 from srcf.database import Domain
 
 from . import inspect_services, utils
-from .utils import create_job_maybe_email_and_redirect, find_member, parse_domain_name, srcf_db_sess as sess
+from .utils import create_job_maybe_email_and_redirect, effective_member, parse_domain_name, srcf_db_sess as sess
 
 
 bp = Blueprint("member", __name__)
@@ -17,19 +17,19 @@ bp = Blueprint("member", __name__)
 
 @bp.route('/member')
 def home():
-    crsid, mem = find_member(allow_inactive=True)
+    mem = effective_member(allow_inactive=True)
     if not mem.user:
         return redirect(url_for('member.reactivate'))
 
     inspect_services.lookup_all(mem)
 
-    pending = [job for job in jobs.Job.find_by_user(sess, utils.auth.principal) if job.state == "unapproved"]
+    pending = [job for job in jobs.Job.find_by_user(sess, mem.crsid) if job.state == "unapproved"]
     return render_template("member/home.html", member=mem, pending=pending)
 
 
 @bp.route("/reactivate", methods=["GET", "POST"])
 def reactivate():
-    crsid, mem = find_member(allow_inactive=True)
+    mem = effective_member(allow_inactive=True)
     if mem.user:
         raise NotFound
 
@@ -37,7 +37,7 @@ def reactivate():
     error = None
     if request.method == "POST":
         email = request.form.get("email", "").strip()
-        error = utils.validate_member_email(crsid, email)
+        error = utils.validate_member_email(mem.crsid, email)
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
@@ -48,7 +48,7 @@ def reactivate():
 
 @bp.route("/member/name", methods=["GET", "POST"])
 def update_name():
-    crsid, mem = find_member()
+    mem = effective_member()
 
     preferred_name = mem.preferred_name
     surname = mem.surname
@@ -77,7 +77,7 @@ def update_name():
 
 @bp.route("/member/email", methods=["GET", "POST"])
 def update_email_address():
-    crsid, mem = find_member()
+    mem = effective_member()
 
     email = mem.email
     error = None
@@ -86,7 +86,7 @@ def update_email_address():
         if mem.email == email:
             error = "That's the address we have already."
         else:
-            error = utils.validate_member_email(crsid, email)
+            error = utils.validate_member_email(mem.crsid, email)
 
     if request.method == "POST" and not error:
         return create_job_maybe_email_and_redirect(
@@ -97,7 +97,7 @@ def update_email_address():
 
 @bp.route("/member/srcf-email", methods=["GET", "POST"])
 def update_email_handler():
-    crsid, mem = find_member()
+    mem = effective_member()
 
     mail_handler = mem.mail_handler
     if request.method == "POST":
@@ -120,7 +120,7 @@ def update_email_handler():
 
 @bp.route("/member/mailinglist", methods=["GET", "POST"])
 def create_mailing_list():
-    crsid, mem = find_member()
+    mem = effective_member()
 
     listname = ""
     error = None
@@ -132,7 +132,7 @@ def create_mailing_list():
             error = "List names can only contain letters, numbers, hyphens and underscores."
         else:
             lists = inspect_services.lookup_mailinglists(crsid)
-            if "{}-{}".format(crsid, listname) in lists:
+            if "{}-{}".format(mem.crsid, listname) in lists:
                 error = "This mailing list already exists."
 
     if request.method == "POST" and not error:
@@ -145,9 +145,9 @@ def create_mailing_list():
 
 @bp.route("/member/mailinglist/<listname>/password", methods=["GET", "POST"])
 def reset_mailing_list_password(listname):
-    crsid, mem = find_member()
+    mem = effective_member()
 
-    lists = inspect_services.lookup_mailinglists(crsid)
+    lists = inspect_services.lookup_mailinglists(mem.crsid)
     if listname not in lists:
         raise NotFound
 
@@ -162,7 +162,7 @@ def reset_mailing_list_password(listname):
 @bp.route("/member/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
 def reset_password(type):
-    crsid, mem = find_member()
+    mem = effective_member()
 
     if request.method == "POST":
         cls = {"mysql": jobs.ResetMySQLUserPassword,
@@ -188,7 +188,7 @@ def reset_password(type):
 @bp.route("/member/mysql/createuser", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/createuser", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database_account(type):
-    crsid, mem = find_member()
+    mem = effective_member()
 
     if request.method == "POST":
         cls = {"mysql": jobs.ResetMySQLUserPassword,
@@ -204,7 +204,7 @@ def create_database_account(type):
 @bp.route("/member/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(type):
-    crsid, mem = find_member()
+    mem = effective_member()
 
     if request.method == "POST":
         cls = {"mysql": jobs.CreateMySQLUserDatabase,
@@ -221,7 +221,7 @@ def create_database(type):
 
 @bp.route("/member/domains/add", methods=["GET", "POST"])
 def add_vhost():
-    crsid, mem = find_member()
+    mem = effective_member()
 
     domain = ""
     root = ""
@@ -238,7 +238,7 @@ def add_vhost():
                 errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
             elif "." not in domain:
                 errors["domain"] = "Please enter a fully-qualified domain name."
-            elif domain.endswith("." + crsid + ".user.srcf.net"):
+            elif domain.endswith("." + mem.crsid + ".user.srcf.net"):
                 pass
             elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"):
                 errors["domain"] = "SRCF domains can't be registered here."
@@ -267,12 +267,12 @@ def add_vhost():
 
 @bp.route("/member/domains/<domain>/changedocroot", methods=["GET", "POST"])
 def change_vhost_docroot(domain):
-    crsid, mem = find_member()
+    mem = effective_member()
 
     errors = {}
 
     try:
-        record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == crsid)[0]
+        record = sess.query(Domain).filter(Domain.domain == domain, Domain.owner == mem.crsid)[0]
     except IndexError:
         raise NotFound
 
@@ -297,13 +297,13 @@ def change_vhost_docroot(domain):
 
 @bp.route("/member/domains/<domain>/remove", methods=["GET", "POST"])
 def remove_vhost(domain):
-    crsid, mem = find_member()
+    mem = effective_member()
 
     try:
         record = sess.query(Domain).filter(Domain.domain == domain)[0]
     except IndexError:
         raise NotFound
-    if not record.owner == crsid:
+    if not record.owner == mem.crsid:
         raise Forbidden
 
     if request.method == "POST":

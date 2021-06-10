@@ -92,7 +92,7 @@ def status(id):
 
     return render_template("admin/status.html", job=job, notes=notes, log=log, job_home_url=job_home_url,
                            for_society=for_society, owner_in_context=owner_in_context,
-                           principal=utils.raven.principal, has_create_log=has_create_log)
+                           principal=utils.effective_crsid(), has_create_log=has_create_log)
 
 
 _actions = {
@@ -119,16 +119,13 @@ def set_state(id, action):
     elif job.state != old:
         raise Forbidden(id)
 
-    admin, _ = utils.find_member()
-    log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
-                 message="Admin state change: job {} by {}".format(display, admin))
+    sess.add(JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
+                    message="Admin state change: job {} by {}".format(display, utils.effective_crsid())))
 
     message = None
     if new in ("failed", "withdrawn"):
         message = "Job {} by sysadmins".format(display)
     job.set_state(new, message or job.state_message)
-
-    sess.add(log)
     sess.add(job.row)
 
     return redirect(url_for("admin.view_jobs", state=new))
@@ -139,6 +136,6 @@ def add_note(job_id):
     text = request.form.get("text", "").strip()
     if text:
         sess.add(JobLog(job_id=job_id, type="note", level="info", time=datetime.now(),
-                        message="Note added by {}".format(utils.auth.principal), raw=text))
+                        message="Note added by {}".format(utils.effective_crsid()), raw=text))
         flash("Note successfully added.", "raw")
     return redirect(url_for('admin.status', id=job_id))

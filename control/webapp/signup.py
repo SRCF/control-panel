@@ -19,18 +19,10 @@ bp = Blueprint("signup", __name__)
 
 @bp.route("/signup", methods=["get", "post"])
 def signup():
-    crsid = utils.raven.principal
-    force_signup_form = ("force-signup-form" in request.args or "force-signup-form" in request.form)
+    if utils.effective_member(allow_unregistered=True):
+        return redirect(url_for('home.home'))
 
-    try:
-        utils.get_member(crsid)
-    except KeyError:
-        pass
-    else:
-        if force_signup_form:
-            pass
-        else:
-            return redirect(url_for('home.home'))
+    crsid = utils.effective_crsid()
 
     if request.method == 'POST':
         values = {}
@@ -90,7 +82,7 @@ def signup():
             "social": True
         }
 
-        return render_template("signup/signup.html", crsid=crsid, errors={}, force_signup_form=force_signup_form, **values)
+        return render_template("signup/signup.html", crsid=crsid, errors={}, **values)
 
 
 def make_keywords(desc):
@@ -107,12 +99,12 @@ def make_keywords(desc):
 
 @bp.route("/signup/society", methods=["get", "post"])
 def newsoc():
-    crsid = utils.auth.principal
+    mem = utils.effective_member(allow_inactive=True, allow_unregistered=True)
 
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
+    if not mem:
         return redirect(url_for('signup.signup'))
+    elif not mem.user:
+        return redirect(url_for('member.reactivate'))
 
     errors = {}
 
@@ -122,7 +114,7 @@ def newsoc():
             values[key] = request.form.get(key, "").strip()
         values["admins"] = re.findall(r"\w+", request.form.get("admins", ""))
 
-        if crsid not in values["admins"]:
+        if mem.crsid not in values["admins"]:
             errors["admins"] = "You need to add yourself as an admin."
 
         member_admins = (sess.query(Member)
@@ -194,7 +186,7 @@ def newsoc():
         values = {
             "description": "",
             "society": "",
-            "admins": [crsid]
+            "admins": [mem.crsid]
         }
 
         return render_template("signup/newsoc.html", errors=errors, **values)

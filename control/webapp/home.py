@@ -8,13 +8,11 @@ bp = Blueprint("home", __name__)
 
 @bp.route('/')
 def home():
-    crsid = utils.auth.principal
+    mem = utils.effective_member(allow_inactive=True, allow_unregistered=True)
 
-    try:
-        mem = utils.get_member(crsid)
-    except KeyError:
+    if not mem:
         return redirect(url_for('signup.signup'))
-    if not mem.user:
+    elif not mem.user:
         return redirect(url_for('member.reactivate'))
 
     inspect_services.lookup_all(mem, fast=True)
