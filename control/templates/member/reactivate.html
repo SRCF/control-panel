@@ -1,22 +1,19 @@
 {% extends "base.html" %}
 
+{% set page_title = "Reactivate Account" %}
+
 {% block body %}
-<div class="main">
-    <h1>Control Panel &rarr; Reactivate Account</h1>
-    <p>Your account is currently deactivated.  Most likely this is because we were unable to contact you about your account, using the email address we had on record.</p>
-    <p>Please confirm your email address below.  If you have graduated and we have a now-expired @cam address, please use a different, external address (Cantab or personal).</p>
-    <p>This will change the address subscribed to <code>soc-srcf</code> mailing lists, but does <strong>not</strong> affect the delivery of emails sent to {{ member.crsid }}@srcf.net &ndash; you will need to edit your <code>.forward</code> file for this.</p>
-    <form action="{{ url_for('member.reactivate') }}" method="post">
+<p>Your account is currently deactivated.  Most likely this is because we were unable to contact you about your account, using the email address we had on record.</p>
+<p>Please confirm your email address below.  If you have graduated and we have only have your now-expired @cam address on record, please enter a working external address (for example, that of a Cantab alumni mailbox, or a personal inbox).  User accounts whose owners we are unable to contact may be suspended again without further warning.</p>
+<p>This will change the address subscribed to <code>soc-srcf</code> mailing lists, but does <strong>not</strong> affect the delivery of emails sent to {{ member.crsid }}@srcf.net &ndash; you will need to edit your <code>.forward</code> file for this.</p>
+<form action="{{ url_for('member.reactivate') }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-        <div class="form-group{{ sif(error, ' error') }}">
-            <label>New email address: <input name="email" type="email"{% if error %} class="error"{% endif %} value="{{ email or "" }}" required></label>
-            {%- if error %}
-            <p class="error-help-block">{{ error }}</p>
-            {%- endif %}
-        </div>
-        <div class="form-group">
-            <input type="submit" value="Confirm">
-        </div>
-    </form>
-</div>
+    <div class="form-group">
+        <input type="text" id="email" name="email" class="form-control{% if error %} is-invalid{% endif %}" value="{{ email or "" }}" placeholder="{{ member.crsid }}@cam.ac.uk" required autofocus>
+        {%- if error %}
+            <small class="invalid-feedback">{{ errors }}</small>
+        {%- endif %}
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Confirm">
+</form>
 {% endblock %}
