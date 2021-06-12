@@ -266,6 +266,8 @@ def effective_member(allow_inactive=False, allow_unregistered=False):
     crsid = auth.principal
     try:
         mem = get_member(crsid)
+        if not mem.member:
+            raise KeyError(crsid)
     except KeyError:
         if allow_unregistered:
             return None
@@ -280,6 +282,8 @@ def effective_member(allow_inactive=False, allow_unregistered=False):
         return mem
     try:
         alt = get_member(override)
+        if not alt.member:
+            raise KeyError(crsid)
     except KeyError:
         if allow_unregistered:
             return None
