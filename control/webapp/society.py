@@ -2,7 +2,7 @@ import re
 import string
 
 from flask import Blueprint, render_template, request
-from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 
 from srcf import domains
 from srcf.controllib import jobs
@@ -151,6 +151,8 @@ def remove_admin(society, target_crsid):
         raise NotFound
     if tgt not in soc.admins:
         raise NotFound
+    if soc.admins == {tgt}:
+        raise BadRequest
 
     if request.method == "POST":
         return create_job_maybe_email_and_redirect(
