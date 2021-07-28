@@ -43,6 +43,8 @@ def home(society):
     inspect_services.lookup_all(soc)
 
     pending = [job for job in jobs.Job.find_by_society(sess, soc.society) if job.state == "unapproved"]
+    for job in pending:
+        job.resolve_references(sess)
     return render_template("society/home.html", member=mem, society=soc, pending=pending)
 
 

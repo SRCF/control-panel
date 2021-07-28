@@ -24,6 +24,8 @@ def home():
     inspect_services.lookup_all(mem)
 
     pending = [job for job in jobs.Job.find_by_user(sess, mem.crsid) if job.state == "unapproved"]
+    for job in pending:
+        job.resolve_references(sess)
     return render_template("member/home.html", member=mem, pending=pending)
 
 
