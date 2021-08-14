@@ -75,10 +75,18 @@ def lookup_website(prefix, is_member):
     """Detect if a website exists for the given user."""
     path = os.path.join("/public", "home" if is_member else "societies", prefix, "public_html")
     web = {"vhosts": list(sess.query(srcf.database.Domain).filter(srcf.database.Domain.owner == prefix)), "state": None}
-    domains = [domain.domain for domain in web["vhosts"]]
-    if domains:
-        certs = sess.query(srcf.database.HTTPSCert.domain).filter(srcf.database.HTTPSCert.domain.in_(domains))
-        web["certs"] = [cert[0] for cert in certs]
+    if web["vhosts"]:
+        domains = []
+        for domain in web["vhosts"]:
+            domains += [domain.domain, "www.{}".format(domain.domain)]
+        cert_records = sess.query(srcf.database.HTTPSCert.domain).filter(srcf.database.HTTPSCert.domain.in_(domains))
+        certs = set()
+        for record in cert_records:
+            name = record[0]
+            while name.startswith("www."):
+                name = name[4:]
+            certs.add(name)
+        web["certs"] = list(certs)
     else:
         web["certs"] = []
     try:
