@@ -289,7 +289,7 @@ def effective_member(allow_inactive=False, allow_unregistered=False):
             return None
         else:
             raise BadRequest
-    if not mem.user and not allow_inactive:
+    if not alt.user and not allow_inactive:
         raise InactiveUser
     else:
         return alt
