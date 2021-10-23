@@ -133,7 +133,7 @@ def create_mailing_list():
         elif re.search(r"[^a-z0-9_-]", listname):
             error = "List names can only contain letters, numbers, hyphens and underscores."
         else:
-            lists = inspect_services.lookup_mailinglists(crsid)
+            lists = inspect_services.lookup_mailinglists(mem.crsid)
             if "{}-{}".format(mem.crsid, listname) in lists:
                 error = "This mailing list already exists."
 
