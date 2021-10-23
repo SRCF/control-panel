@@ -4,12 +4,12 @@
 
 {% block body %}
 <p>Your account is currently deactivated.  Most likely this is because we were unable to contact you about your account, using the email address we had on record.</p>
-<p>Please confirm your email address below.  If you have graduated and we have only have your now-expired @cam address on record, please enter a working external address (for example, that of a Cantab alumni mailbox, or a personal inbox).  User accounts whose owners we are unable to contact may be suspended again without further warning.</p>
+<p>Please enter your new membership address below.  If you have graduated and we have only have your now-expired @cam address on record, please enter a working external address (for example, that of a Cantab alumni mailbox, or a personal inbox).  User accounts whose owners we are unable to contact may be suspended again without further warning.</p>
 <p>This will change the address subscribed to <code>soc-srcf</code> mailing lists, but does <strong>not</strong> affect the delivery of emails sent to {{ member.crsid }}@srcf.net &ndash; you will need to edit your <code>.forward</code> file for this.</p>
 <form action="{{ url_for('member.reactivate') }}" method="post">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
-        <input type="text" id="email" name="email" class="form-control{% if error %} is-invalid{% endif %}" value="{{ email or "" }}" placeholder="{{ member.crsid }}@cam.ac.uk" required autofocus>
+        <input type="text" id="email" name="email" class="form-control{% if error %} is-invalid{% endif %}" value="{{ email or "" }}" placeholder="Email address" required autofocus>
         {%- if error %}
             <small class="invalid-feedback">{{ errors }}</small>
         {%- endif %}
