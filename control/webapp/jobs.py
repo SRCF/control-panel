@@ -4,7 +4,7 @@ import math
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from werkzeug.exceptions import NotFound
 
-from srcf.controllib.jobs import Job, Signup, SocietyJob
+from srcf.controllib.jobs import Job, JobAction, JobActionInvalid, Signup, SocietyJob
 from srcf.database import JobLog
 
 from . import utils
@@ -99,27 +99,22 @@ def status_json(id):
 
 @bp.route('/jobs/<int:id>/withdraw')
 def withdraw(id):
-    # TODO: Move race control logic to controllib
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
+
     crsid = utils.effective_crsid()
     if not job.visible_to(crsid):
         raise NotFound(id)
 
-    if job.state not in ("unapproved", "queued"):
+    try:
+        job.transition(JobAction.reject, "Job withdrawn by {}".format(crsid))
+    except JobActionInvalid:
         flash("Sorry, this job cannot be withdrawn now.", "raw")
         return redirect(url_for("jobs.status", id=id))
 
-    log_message = "Job withdrawn by {}".format(crsid)
-
-    log = JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
-                 message=log_message)
-
-    job.set_state("withdrawn", log_message)
-
-    sess.add(log)
-    sess.add(job.row)
+    sess.add(JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
+                    message="User state change: job withdrawn by {}".format(crsid)))
 
     if isinstance(job, SocietyJob) and job.society_society is not None:
         return redirect(url_for("jobs.society_home", name=job.society_society))

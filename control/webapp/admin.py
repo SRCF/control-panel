@@ -3,9 +3,9 @@ import math
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from sqlalchemy import func as sql_func
-from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.exceptions import NotFound
 
-from srcf.controllib.jobs import Job, SocietyJob
+from srcf.controllib.jobs import Job, JobAction, JobActionInvalid, SocietyJob
 import srcf.database
 from srcf.database import JobLog
 
@@ -95,40 +95,28 @@ def status(id):
                            principal=utils.effective_crsid(), has_create_log=has_create_log)
 
 
-_actions = {
-    "reject": ("rejected", "unapproved", "withdrawn"),
-    "approve": ("approved", "unapproved", "queued"),
-    "cancel": ("cancelled", "queued", "failed"),
-    "abort": ("aborted", "running", "failed"),
-    "repeat": ("repeated", "done", "queued"),
-    "retry": ("retried", "failed", "queued"),
-}
-
-
 @bp.route('/admin/jobs/<int:id>/<action>')
 def set_state(id, action):
-    # Move this race control logic to controllib
     try:
-        display, old, new = _actions[action]
+        action = JobAction[action]
     except KeyError:
         raise NotFound(action)
 
     job = Job.find(sess, id)
     if not job:
         raise NotFound(id)
-    elif job.state != old:
-        raise Forbidden(id)
+
+    try:
+        job.transition(action)
+    except JobActionInvalid:
+        flash("Sorry, this job cannot be transitioned now.", "raw")
+        return redirect(url_for("admin.status", id=id))
 
     sess.add(JobLog(job_id=id, type="progress", level="info", time=datetime.now(),
-                    message="Admin state change: job {} by {}".format(display, utils.effective_crsid())))
+                    message="Admin state change: job {} by {} via web"
+                            .format(action.past_label, utils.effective_crsid())))
 
-    message = None
-    if new in ("failed", "withdrawn"):
-        message = "Job {} by sysadmins".format(display)
-    job.set_state(new, message or job.state_message)
-    sess.add(job.row)
-
-    return redirect(url_for("admin.view_jobs", state=new))
+    return redirect(url_for("admin.view_jobs", state=action.new_state))
 
 
 @bp.route('/admin/jobs/<int:job_id>/notes', methods=["POST"])
