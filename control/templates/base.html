@@ -45,11 +45,11 @@
         </div>
     </nav>
     <main role="main" class="container flex-shrink-0 my-4">
-        {%- set crsid = effective_crsid() %}
-        {%- if auth.principal != crsid %}
+        {%- set ecrsid = effective_crsid() %}
+        {%- if auth.principal != ecrsid %}
             <div class="alert alert-danger">
                 <i class="fa fa-user-secret"></i>
-                Hello <strong>{{ auth.principal }}</strong>.  You are currently impersonating <strong>{{ crsid }}</strong>.
+                Hello <strong>{{ auth.principal }}</strong>.  You are currently impersonating <strong>{{ ecrsid }}</strong>.
             </div>
         {%- endif %}
         {%- if page_title is defined %}
