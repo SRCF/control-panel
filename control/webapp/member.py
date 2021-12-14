@@ -240,6 +240,8 @@ def add_vhost():
                 errors["domain"] = "We've corrected your input to just the domain name, submit again once you've checked it's correct."
             elif "." not in domain:
                 errors["domain"] = "Please enter a fully-qualified domain name."
+            elif "*" in domain:
+                errors["domain"] = "Wildcards can't be used here; please enter a specific domain or subdomain."
             elif domain.endswith("." + mem.crsid + ".user.srcf.net"):
                 pass
             elif domain.endswith(".user.srcf.net") or domain.endswith(".soc.srcf.net"):
