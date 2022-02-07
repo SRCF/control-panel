@@ -1,7 +1,7 @@
 import re
 import string
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, redirect, render_template, request, url_for
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 
 from srcf import domains
@@ -209,10 +209,31 @@ def reset_mailing_list_password(society, listname):
         return render_template("society/reset_mailing_list_password.html", member=mem, society=soc, listname=listname)
 
 
+def _user_lookup(type, soc):
+    if type == "mysql":
+        return inspect_services.lookup_mysqluser(soc.society)
+    elif type == "postgres":
+        return inspect_services.lookup_pguser(soc.society)
+    else:
+        raise ValueError(type)
+
+
+def _db_lookup(type, soc):
+    if type == "mysql":
+        return inspect_services.lookup_mysqldbs(soc.society)
+    elif type == "postgres":
+        return inspect_services.lookup_pgdbs(soc.society)
+    else:
+        raise ValueError(type)
+
+
 @bp.route("/societies/<society>/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/societies/<society>/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
 def reset_database_password(society, type):
     mem, soc = find_mem_society(society)
+
+    if not _user_lookup(type, soc):
+        return redirect(url_for("society.create_database", type=type))
 
     if request.method == "POST":
         cls = {"mysql": jobs.ResetMySQLSocietyPassword,
@@ -231,6 +252,9 @@ def reset_database_password(society, type):
 @bp.route("/societies/<society>/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(society, type):
     mem, soc = find_mem_society(society)
+
+    if _user_lookup(type, soc) and _db_lookup(type, soc):
+        raise NotFound
 
     if request.method == "POST":
         cls = {"mysql": jobs.CreateMySQLSocietyDatabase,

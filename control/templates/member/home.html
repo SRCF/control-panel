@@ -243,10 +243,8 @@ mysql&gt;</pre>
         <div class="card-footer">
             {%- if member.mysqluser %}
                 <a href="{{ url_for('member.reset_password', type='mysql') }}" rel="modal" class="btn btn-outline-primary">Reset password</a>
-            {%- elif member.mysqldbs %}
-                <a href="{{ url_for('member.create_database_account', type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create personal account</a>
             {%- endif %}
-            {%- if not member.mysqldbs %}
+            {%- if not (member.mysqluser and member.mysqldbs) %}
                 <a href="{{ url_for('member.create_database', type='mysql') }}" rel="modal" class="btn btn-outline-primary">Create personal database{% if not member.mysqluser %} and user{% endif %}</a>
             {%- endif %}
         </div>

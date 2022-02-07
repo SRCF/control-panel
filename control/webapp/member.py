@@ -160,11 +160,32 @@ def reset_mailing_list_password(listname):
         return render_template("member/reset_mailing_list_password.html", member=mem, listname=listname)
 
 
+def _user_lookup(type, mem):
+    if type == "mysql":
+        return inspect_services.lookup_mysqluser(mem.crsid)
+    elif type == "postgres":
+        return inspect_services.lookup_pguser(mem.crsid)
+    else:
+        raise ValueError(type)
+
+
+def _db_lookup(type, mem):
+    if type == "mysql":
+        return inspect_services.lookup_mysqldbs(mem.crsid)
+    elif type == "postgres":
+        return inspect_services.lookup_pgdbs(mem.crsid)
+    else:
+        raise ValueError(type)
+
+
 @bp.route("/member/srcf/password", methods=["GET", "POST"], defaults={"type": "srcf"})
 @bp.route("/member/mysql/password", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/password", methods=["GET", "POST"], defaults={"type": "postgres"})
 def reset_password(type):
     mem = effective_member()
+
+    if type in ("mysql", "postgres") and not _user_lookup(type, mem):
+        return redirect(url_for("member.create_database", type=type))
 
     if request.method == "POST":
         cls = {"mysql": jobs.ResetMySQLUserPassword,
@@ -190,23 +211,17 @@ def reset_password(type):
 @bp.route("/member/mysql/createuser", methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/createuser", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database_account(type):
-    mem = effective_member()
-
-    if request.method == "POST":
-        cls = {"mysql": jobs.ResetMySQLUserPassword,
-               "postgres": jobs.ResetPostgresUserPassword}[type]
-        return create_job_maybe_email_and_redirect(cls, member=mem)
-    else:
-        formatted_name = {"mysql": "MySQL",
-                          "postgres": "PostgreSQL"}[type]
-
-        return render_template("member/create_database_account.html", member=mem, type=type, name=formatted_name)
+    # The regular create-database jobs now handle this case.
+    return redirect(url_for("member.create_database", type=type))
 
 
 @bp.route("/member/mysql/create",    methods=["GET", "POST"], defaults={"type": "mysql"})
 @bp.route("/member/postgres/create", methods=["GET", "POST"], defaults={"type": "postgres"})
 def create_database(type):
     mem = effective_member()
+
+    if _user_lookup(type, mem) and _db_lookup(type, mem):
+        raise NotFound
 
     if request.method == "POST":
         cls = {"mysql": jobs.CreateMySQLUserDatabase,
