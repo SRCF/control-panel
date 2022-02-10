@@ -116,7 +116,8 @@ def set_state(id, action):
                     message="Admin state change: job {} by {} via web"
                             .format(action.past_label, utils.effective_crsid())))
 
-    return redirect(url_for("admin.view_jobs", state=action.new_state))
+    target = request.referrer or url_for("admin.status", id=id)
+    return redirect(target)
 
 
 @bp.route('/admin/jobs/<int:job_id>/notes', methods=["POST"])
