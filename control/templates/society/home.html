@@ -157,10 +157,8 @@
                                         <li class="list-inline-item"><a href="https://lists.srcf.net/mailman/admin/{{ list }}">List admin</a></li>
                                         <li class="list-inline-item"><a href="https://lists.srcf.net/mailman/admindb/{{ list }}">Mod queue</a></li>
                                         <li class="list-inline-item"><a href="https://lists.srcf.net/mailman/roster/{{ list }}">Subscribers</a></li>
+                                        <li class="list-inline-item"><a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}" rel="modal">Reset password</a></li>
                                     </ul>
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('society.reset_mailing_list_password', society=society.society, listname=list) }}" rel="modal" aria-label="Reset password for {{ list }}@srcf.net" title="Reset password for {{ list }}@srcf.net"><i class="fa fa-key"></i></a>
                                 </td>
                             </tr>
                         {%- endfor %}
