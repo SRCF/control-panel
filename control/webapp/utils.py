@@ -212,7 +212,13 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         if j.owner is not None and j.owner.danger:
             body = "WARNING: The job owner has their danger flag set.\n\n" + body
         subject = "[SRCF Control Panel] Job #{0.job_id} {0.state} -- {0}".format(j)
-        mail_sysadmins(subject, body)
+        if isinstance(j, SocietyJob) and j.society is not None:
+            reply_to = ("{} Admins".format(j.society.description), j.society.email)
+        elif j.owner is not None:
+            reply_to = (j.owner.name, j.owner.email)
+        else:
+            reply_to = None
+        mail_sysadmins(subject, body, reply_to=reply_to)
 
     notify = True
     if isinstance(j, CreateSociety):
