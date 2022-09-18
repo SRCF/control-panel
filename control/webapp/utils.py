@@ -13,7 +13,7 @@ from werkzeug.exceptions import BadRequest, Forbidden, HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
-from srcf.controllib.jobs import CreateSociety, Signup, SocietyJob
+from srcf.controllib.jobs import CreateSociety, Reactivate, Signup, SocietyJob
 from srcf.controllib.utils import email_re, is_admin, ldapsearch, mysql_conn
 from srcf.database import JobLog, queries, Session
 from srcf.mail import mail_sysadmins
@@ -220,8 +220,8 @@ def create_job_maybe_email_and_redirect(cls, *args, **kwargs):
         url = flask.url_for("home.home")
     elif isinstance(j, SocietyJob):
         url = flask.url_for("society.home", society=j.society_society)
-    elif isinstance(j, Signup):
-        # User doesn't exist yet, no access to control -- just take them straight to the job page.
+    elif isinstance(j, (Reactivate, Signup)):
+        # User doesn't exist or has no access to control -- just take them straight to the job page.
         url = flask.url_for("jobs.status", id=j.job_id)
         notify = False
     else:
