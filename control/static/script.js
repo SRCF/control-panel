@@ -34,6 +34,10 @@ $(document).ready(function() {
                     $(flash).removeClass("alert-primary").addClass("alert-danger");
                     $(".message", flash).text("has failed to complete.  The sysadmins have been notified.");
                     return;
+                } else if (job.state === "withdrawn") {
+                    $(flash).removeClass("alert-primary").addClass("alert-info");
+                    $(".message", flash).text("has been withdrawn.  No changes have been made.");
+                    return;
                 } else if (job.state === "unapproved") {
                     $(flash).removeClass("alert-primary").addClass("alert-warning");
                     $(".message", flash).text("is awaiting approval from the sysadmins.");
