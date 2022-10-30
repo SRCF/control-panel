@@ -8,6 +8,7 @@ import os
 import requests
 
 import srcf.database
+from srcf.database import queries
 
 from . import utils
 from .utils import srcf_db_sess as sess
@@ -95,12 +96,8 @@ def lookup_website(prefix, is_member):
         # May exist, but we can't read it -- assume active as users may have hidden the contents.
         web["exists"] = True
     if web["exists"]:
-        with open("/societies/srcf-admin/{0}webstatus".format("member" if is_member else "soc")) as f:
-            for line in f:
-                username, state = line.strip().split(":")
-                if username == prefix:
-                    web["state"] = state
-                    break
+        owner = queries.get_member_or_society(prefix)
+        web["state"] = "legacyredirect" if owner.ucam_redirect else "subdomain"
     return web
 
 
