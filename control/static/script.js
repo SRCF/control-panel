@@ -40,7 +40,7 @@ $(document).ready(function() {
                     return;
                 } else if (job.state === "unapproved") {
                     $(flash).removeClass("alert-primary").addClass("alert-warning");
-                    $(".message", flash).text("is awaiting approval from the sysadmins.");
+                    $(".message", flash).text("is awaiting approval from the sysadmins.  This may not be immediate; watch your email inbox for updates.");
                     delay = 30;
                 } else if (job.state === "running") {
                     $(flash).removeClass("alert-warning").addClass("alert-primary");
