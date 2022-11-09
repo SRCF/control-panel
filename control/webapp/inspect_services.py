@@ -80,7 +80,11 @@ def lookup_website(prefix, is_member):
         domains = []
         for domain in web["vhosts"]:
             domains += [domain.domain, "www.{}".format(domain.domain)]
-        cert_records = sess.query(srcf.database.HTTPSCert.domain).filter(srcf.database.HTTPSCert.domain.in_(domains))
+        cert_records = (
+            sess.query(srcf.database.HTTPSCert.domain)
+            .filter(srcf.database.HTTPSCert.domain.in_(domains))
+            .filter(srcf.database.HTTPSCert.provisioned)
+        )
         certs = set()
         for record in cert_records:
             name = record[0]
