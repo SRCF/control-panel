@@ -20,13 +20,12 @@
 
 <div class="alert alert-info pb-0">
 {% if mail_handler == "hades" %}
-    <p>You will have to use <strong><a href="https://webmail.hades.srcf.net/">webmail.hades.srcf.net</a></strong> to read your SRCF email, or <a href="{{ DOMAIN_WEB }}/faq/email-hades">configure your email application</a> to connect to the SRCF Hades email service.</p>
+    <p>You will have to use <strong><a href="https://webmail.hades.srcf.net/">webmail.hades.srcf.net</a></strong> to read your SRCF email, or <a href="https://docs.srcf.net/reference/email/hades-email-service/">configure your email application</a> to connect to the SRCF Hades email service.</p>
 {% elif mail_handler == "pip" %}
     <p>You will have to <strong>either</strong>:</p>
     <ul>
         <li>ensure that you have a <strong>.forward</strong> file on <strong>shell.srcf.net / files.srcf.net</strong> to process your email as needed, <strong>or</strong></li>
-        <li><strong><a href="{{ DOMAIN_WEB }}/faq/email-pip">configure your email application</a></strong> to connect to the legacy SRCF email service, <strong>or</strong></li>
-        <li>use <strong><a href="https://webmail.srcf.net/">webmail.srcf.net</a></strong>, the legacy SRCF webmail service, to read your SRCF email.</li>
+        <li><strong><a href="https://docs.srcf.net/reference/email/legacy-mail-on-pip/">configure your email application</a></strong> to connect to the legacy SRCF email service.</li>
     </ul>
 {% elif mail_handler == "forward" %}
     <p>Email to <strong>{{ member.crsid }}@srcf.net</strong> will start to be forwarded to <strong>{{ member.email }}</strong>.</p>
