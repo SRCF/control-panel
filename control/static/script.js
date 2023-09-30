@@ -1,6 +1,6 @@
 $(document).ready(function() {
     $("#action-modal").on("shown.bs.modal", function(e) {
-        $("#action-modal-content input[autofocus]").focus();
+        $("#action-modal-content [autofocus]").focus();
     });
     $("a[rel='modal']").click(function(ev) {
         $("#action-modal-content").empty()
