@@ -6,6 +6,7 @@ from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 
 from srcf import domains
 from srcf.controllib import jobs
+from srcf.controllib.utils import validate_list_name
 from srcf.database import Domain
 
 from . import inspect_services, utils
@@ -176,9 +177,12 @@ def create_mailing_list(society):
         listname = request.form.get("listname", "").strip()
         if not listname:
             error = "Please enter a list name."
-        elif re.search(r"[^a-z0-9_-]", listname):
-            error = "List names can only contain letters, numbers, hyphens and underscores."
         else:
+            try:
+                validate_list_name(listname)
+            except ValueError as ex:
+                error = ex.args[0]
+        if not error:
             lists = inspect_services.lookup_mailinglists(society)
             if "{}-{}".format(society, listname) in lists:
                 error = "This mailing list already exists."
