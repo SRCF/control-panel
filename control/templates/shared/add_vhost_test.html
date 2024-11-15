@@ -54,7 +54,7 @@
     <input type="hidden" name="confirm" value="on">
     {% if valid[domain] == (true, true) or valid[prefixed] == (true, true) %}
         <input type="submit" class="btn btn-outline-primary" value="Looks good, add domain">
-    {% else %}
+    {% elif valid[domain] != (none, none) or valid[domain] != (none, none) %}
         <input type="submit" class="btn btn-outline-danger" value="Add domain anyway">
     {% endif %}
 </form>
