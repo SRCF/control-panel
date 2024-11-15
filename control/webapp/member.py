@@ -1,6 +1,3 @@
-import re
-import string
-
 from flask import Blueprint, redirect, render_template, request, url_for
 from werkzeug.exceptions import Forbidden, NotFound
 
@@ -10,7 +7,10 @@ from srcf.controllib.utils import validate_list_name
 from srcf.database import Domain
 
 from . import inspect_services, utils
-from .utils import create_job_maybe_email_and_redirect, effective_member, parse_domain_name, srcf_db_sess as sess
+from .utils import (
+    create_job_maybe_email_and_redirect, effective_member, parse_domain_name,
+    validate_domain_docroot, srcf_db_sess as sess,
+)
 
 
 bp = Blueprint("member", __name__)
@@ -252,6 +252,7 @@ def add_vhost():
 
         domain = request.form.get("domain", "").strip()
         root = request.form.get("root", "").strip()
+
         if domain:
             parsed = parse_domain_name(domain)
             if domain != parsed:
@@ -269,6 +270,11 @@ def add_vhost():
                 errors["domain"] = "This domain is already registered."
         else:
             errors["domain"] = "Please enter a domain or subdomain."
+
+        if root:
+            root, msg = validate_domain_docroot(mem, root)
+            if msg:
+                errors["root"] = msg
 
         if request.form.get("edit") or errors:
             return render_template("member/add_vhost.html", member=mem, domain=domain, root=root, errors=errors)
@@ -303,12 +309,10 @@ def change_vhost_docroot(domain):
 
     if request.method == "POST":
         root = request.form.get("root", "").strip()
-        if any([ch in root for ch in string.whitespace + "\\" + "\"" + "\'"]) or ".." in root:
-            errors["root"] = "This document root is invalid."
-        try:
-            domain = parse_domain_name(domain)
-        except ValueError as e:
-            errors["domain"] = e.args[0]
+        if root:
+            root, msg = validate_domain_docroot(mem, root)
+            if msg:
+                errors["root"] = msg
 
     if request.method == "POST" and not errors:
         return create_job_maybe_email_and_redirect(

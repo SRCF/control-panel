@@ -1,6 +1,7 @@
 from datetime import datetime
 from functools import partial
 import os
+import string
 import sys
 import traceback
 from urllib.parse import urlparse
@@ -15,7 +16,7 @@ import yaml
 
 from srcf.controllib.jobs import CreateSociety, Reactivate, Signup, SocietyJob
 from srcf.controllib.utils import email_re, is_admin, ldapsearch, mysql_conn
-from srcf.database import JobLog, queries, Session
+from srcf.database import Member, JobLog, queries, Session
 from srcf.mail import mail_sysadmins
 import ucam_webauth
 import ucam_webauth.flask_glue
@@ -89,6 +90,33 @@ def parse_domain_name(domain):
     else:
         # convert to punycode
         return domain.encode("idna").decode("ascii")
+
+
+def validate_domain_docroot(owner, path):
+    if not path:
+        return path, None
+    if any(ch in path for ch in string.whitespace + "\\" + '"' + "'"):
+        return path, "Document roots cannot contain spaces or quotes."
+    if path.startswith("public_html/"):
+        path = path.replace("public_html/", "", 1)
+    if isinstance(owner, Member):
+        username = owner.crsid
+        top = "home"
+    else:
+        username = owner.society
+        top = "societies"
+    base = os.path.join("/public", top, username, "public_html")
+    target = os.path.abspath(os.path.join(base, path))
+    if not target.startswith(base):
+        return path, "Document roots must be inside your public_html directory."
+    elif base == target:
+        return "", "We've cleared your document root as it appears to be your public_html directory."
+    elif not os.path.exists(target):
+        return path, "This document root doesn't exist, or isn't accessible to the webserver.  Create the directory first, then try again."
+    clean = target[len(base) + 1:]
+    if clean != path:
+        return clean, "We've fixed your document root to its canonical version; submit again to confirm."
+    return path, None
 
 
 # Template helpers

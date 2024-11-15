@@ -1,5 +1,4 @@
 import re
-import string
 
 from flask import Blueprint, redirect, render_template, request, url_for
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
@@ -10,7 +9,10 @@ from srcf.controllib.utils import validate_list_name
 from srcf.database import Domain
 
 from . import inspect_services, utils
-from .utils import create_job_maybe_email_and_redirect, find_mem_society, parse_domain_name, srcf_db_sess as sess
+from .utils import (
+    create_job_maybe_email_and_redirect, find_mem_society, parse_domain_name,
+    validate_domain_docroot, srcf_db_sess as sess,
+)
 
 
 bp = Blueprint("society", __name__)
@@ -286,6 +288,7 @@ def add_vhost(society):
 
         domain = request.form.get("domain", "").strip()
         root = request.form.get("root", "").strip()
+
         if domain:
             parsed = parse_domain_name(domain)
             if domain != parsed:
@@ -303,6 +306,11 @@ def add_vhost(society):
                 errors["domain"] = "This domain is already registered."
         else:
             errors["domain"] = "Please enter a domain or subdomain."
+
+        if root:
+            root, msg = validate_domain_docroot(soc, root)
+            if msg:
+                errors["root"] = msg
 
         if request.form.get("edit") or errors:
             return render_template("society/add_vhost.html", society=soc, member=mem, domain=domain, root=root, errors=errors)
@@ -337,12 +345,10 @@ def change_vhost_docroot(society, domain):
 
     if request.method == "POST":
         root = request.form.get("root", "").strip()
-        if any([ch in root for ch in string.whitespace + "\\" + "\"" + "\'"]) or ".." in root:
-            errors["root"] = "This document root is invalid."
-        try:
-            domain = parse_domain_name(domain)
-        except ValueError as e:
-            errors["domain"] = e.args[0]
+        if root:
+            root, msg = validate_domain_docroot(soc, root)
+            if msg:
+                errors["root"] = msg
 
     if request.method == "POST" and not errors:
         return create_job_maybe_email_and_redirect(
