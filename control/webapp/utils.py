@@ -107,7 +107,7 @@ def validate_domain_docroot(owner, path):
         top = "societies"
     base = os.path.join("/public", top, username, "public_html")
     target = os.path.abspath(os.path.join(base, path))
-    if not target.startswith(base):
+    if os.path.commonpath((base, target)) != base:
         return path, "Document roots must be inside your public_html directory."
     elif base == target:
         return "", "We've cleared your document root as it appears to be your public_html directory."
