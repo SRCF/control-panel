@@ -96,7 +96,7 @@ def validate_domain_docroot(owner, path):
     if not path:
         return path, None
     if any(ch in path for ch in string.whitespace + "\\" + '"' + "'"):
-        return path, "Document roots cannot contain spaces or quotes."
+        return path, "Document roots cannot contain spaces, backslashes or quotes."
     if path.startswith("public_html/"):
         path = path.replace("public_html/", "", 1)
     if isinstance(owner, Member):
