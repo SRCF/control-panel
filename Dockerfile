@@ -36,6 +36,7 @@ RUN apt-get update && \
 
 COPY pubkey2 /etc/apache2/ucam_webauth_keys/pubkey2
 COPY pubkey500 /etc/apache2/ucam_webauth_keys/pubkey500
+COPY pubkey501 /etc/apache2/ucam_webauth_keys/pubkey501
 
 WORKDIR /opt/srcf/control
 
