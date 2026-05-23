@@ -29,5 +29,6 @@ def home():
 
 @bp.route('/logout')
 def logout():
-    utils.auth.logout()
+    utils.goose_auth.logout()
+    utils.nevar_auth.logout()
     return redirect(utils.DOMAIN_WEB, code=303)

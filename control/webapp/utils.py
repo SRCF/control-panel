@@ -24,35 +24,44 @@ import ucam_webauth.raven.demoserver as raven_demoserver
 import ucam_webauth.raven.flask_glue
 import ucam_webauth.rsa
 
-__all__ = ["email_re", "auth", "raven", "srcf_db_sess", "get_member", "get_society",
+__all__ = ["email_re", "goose_auth", "nevar_auth", "srcf_db_sess", "get_member", "get_society",
            "temp_mysql_conn", "setup_app", "ldapsearch", "auth_admin", "DOMAIN_WEB"]
 
 
 DOMAIN_WEB = os.getenv("DOMAIN_WEB", "https://www.srcf.net")
 
 
-class WLSRequest(ucam_webauth.Request):
+class GooseWLSRequest(ucam_webauth.Request):
     def __str__(self):
         query_string = ucam_webauth.Request.__str__(self)
         return "https://auth.srcf.net/wls/authenticate?" + query_string
 
+class NevarWLSRequest(ucam_webauth.Request):
+    def __str__(self):
+        query_string = ucam_webauth.Request.__str__(self)
+        return "https://nevar.srcf.net/wls/authenticate?" + query_string
+
 
 class WLSResponse(ucam_webauth.Response):
     keys = dict()
-    for kid in (2, 500, 501):
+    for kid in (2, 500, 501):  # Raven, Goose, Nevar
         with open('/etc/apache2/ucam_webauth_keys/pubkey{}'.format(kid), 'rb') as f:
             keys[str(kid)] = ucam_webauth.rsa.load_key(f.read())
 
 
-class WLSAuthDecorator(ucam_webauth.flask_glue.AuthDecorator):
-    request_class = WLSRequest
+class GooseWLSAuthDecorator(ucam_webauth.flask_glue.AuthDecorator):
+    request_class = GooseWLSRequest
     response_class = WLSResponse
     logout_url = "https://auth.srcf.net/logout"
 
+class NevarWLSAuthDecorator(ucam_webauth.flask_glue.AuthDecorator):
+    request_class = NevarWLSRequest
+    response_class = WLSResponse
+    logout_url = "https://nevar.srcf.net/oidc/logout"
 
-auth = WLSAuthDecorator(desc="Control Panel", require_ptags=None)
-raven = ucam_webauth.raven.flask_glue.AuthDecorator(desc="SRCF control panel",
-                                                    require_ptags=None)
+
+goose_auth = GooseWLSAuthDecorator(desc="Control Panel", require_ptags=None)
+nevar_auth = NevarWLSAuthDecorator(desc="Control Panel", require_ptags=None)
 
 
 # A session to use with the main srcf admin database (PostGres)
@@ -176,17 +185,11 @@ def setup_app(app):
         app.errorhandler(error)(generic_error_handler)
 
     @app.before_request
-    def before_request():
-        if getattr(app, "deploy_config", {}).get("test_raven", False):
-            auth.request_class = raven_demoserver.Request
-            auth.response_class = raven_demoserver.Response
-
-    @app.before_request
     def auth_mux():
         if flask.request.url_rule and flask.request.url_rule.rule == '/signup':
-            return raven.before_request()
+            return nevar_auth.before_request()
         else:
-            return auth.before_request()
+            return goose_auth.before_request()
 
     @app.after_request
     def after_request(res):
@@ -202,7 +205,7 @@ def setup_app(app):
 
     app.jinja_env.globals["sif"] = sif
     app.jinja_env.globals["DOMAIN_WEB"] = DOMAIN_WEB
-    app.jinja_env.globals["auth"] = auth
+    app.jinja_env.globals["auth"] = goose_auth
     app.jinja_env.globals["effective_crsid"] = effective_crsid
     app.jinja_env.tests["admin"] = is_admin
     app.jinja_env.undefined = jinja2.StrictUndefined
@@ -273,8 +276,8 @@ def effective_crsid():
     If the `SRCF-Principal-Override` header is set, admins may override the authentication data in
     order to impersonate another user.
     """
-    assert auth.principal
-    crsid = auth.principal
+    crsid = goose_auth.principal
+    assert crsid
     try:
         mem = get_member(crsid)
     except KeyError:
@@ -296,8 +299,8 @@ def effective_member(allow_inactive=False, allow_unregistered=False):
     If the `SRCF-Principal-Override` header is set, admins may override the authentication data in
     order to impersonate another user.
     """
-    assert auth.principal
-    crsid = auth.principal
+    crsid = goose_auth.principal
+    assert crsid
     try:
         mem = get_member(crsid)
         if not mem.member:
