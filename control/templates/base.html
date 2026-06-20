@@ -44,7 +44,13 @@
             </ul>
         </div>
     </nav>
-    <main role="main" class="container flex-shrink-0 my-4">
+    <div class="container flex-shrink-0 mt-4">
+        {%- if member is defined and member.user and not member.contactable %}
+            <div class="alert alert-warning">
+                <i class="fa fa-envelope-o"></i>
+                <strong>We don't have a working email address for you.</strong>  To avoid your account being suspended, please ensure your <a href="{{ url_for("member.home") }}">membership contact address</a> is correct.
+            </div>
+        {%- endif %}
         {%- set ecrsid = effective_crsid() %}
         {%- if auth.principal != ecrsid %}
             <div class="alert alert-danger">
@@ -52,6 +58,8 @@
                 Hello <strong>{{ auth.principal }}</strong>.  You are currently impersonating <strong>{{ ecrsid }}</strong>.
             </div>
         {%- endif %}
+    </div>
+    <main role="main" class="container flex-shrink-0 mb-4">
         {%- if page_title is defined %}
         <h2>
             {%- if page_parent is defined %}
