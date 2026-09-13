@@ -14,6 +14,11 @@ from werkzeug.exceptions import BadRequest, Forbidden, HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
+try:
+    from greenlet import getcurrent as request_ident_func
+except ImportError:
+    from threading import get_ident as request_ident_func
+
 from srcf.controllib.jobs import CreateSociety, Reactivate, Signup, SocietyJob
 from srcf.controllib.utils import email_re, is_admin, ldapsearch, mysql_conn
 from srcf.database import Member, JobLog, queries, Session
@@ -67,7 +72,7 @@ nevar_auth = NevarWLSAuthDecorator(desc="Control Panel", require_ptags=None)
 # A session to use with the main srcf admin database (PostGres)
 srcf_db_sess = sqlalchemy.orm.scoped_session(
     Session,
-    scopefunc=flask._request_ctx_stack.__ident_func__
+    scopefunc=request_ident_func,
 )
 queries.disable_automatic_session(and_use_this_one_instead=srcf_db_sess)
 
