@@ -45,7 +45,7 @@
         </div>
     </nav>
     <div class="container flex-shrink-0 mt-4">
-        {%- if member is defined and member.user and not member.contactable %}
+        {%- if member is defined and member and member.user and not member.contactable %}
             <div class="alert alert-warning">
                 <i class="fa fa-envelope-o"></i>
                 <strong>We don't have a working email address for you.</strong>  To avoid your account being suspended, please ensure your <a href="{{ url_for("member.home") }}">membership contact address</a> is correct.
